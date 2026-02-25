@@ -1,0 +1,854 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  ArrowLeft, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Euro, 
+  Home,
+  Pencil,
+  Trash2,
+  Save,
+  X,
+  Sparkles,
+  Shield,
+  Banknote,
+  Maximize
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import EditableLeadTypeBadge from '@/components/leads/EditableLeadTypeBadge';
+import EditableCategorieBadge from '@/components/leads/EditableCategorieBadge';
+import EditableStatusBadge from '@/components/leads/EditableStatusBadge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import MatchedListings from '@/components/matching/MatchedListings';
+import LeadActivityTimeline from '@/components/leads/LeadActivityTimeline';
+
+export default function LeadDetail() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const leadId = urlParams.get('id');
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  
+  const { user } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({});
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const { data: lead, isLoading } = useQuery({
+    queryKey: ['lead', leadId],
+    queryFn: async () => {
+      const leads = await base44.entities.Lead.filter({ id: leadId });
+      return leads[0];
+    },
+    enabled: !!leadId,
+  });
+
+  const { data: listings = [] } = useQuery({
+    queryKey: ['listings', user?.email],
+    queryFn: () => base44.entities.Listing.filter({ created_by: user.email }, '-created_date'),
+    enabled: !!user?.email,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => {
+      // Calculer automatiquement la catégorie si le score change
+      const updatedData = { ...data };
+      if (data.score !== undefined && data.score !== null) {
+        const score = Number(data.score);
+        if (score >= 75) {
+          updatedData.categorie = 'CHAUD';
+        } else if (score >= 40) {
+          updatedData.categorie = 'TIEDE';
+        } else {
+          updatedData.categorie = 'FROID';
+        }
+        updatedData.date_scoring = new Date().toISOString();
+      }
+      // Calculer le score si la catégorie change (pour les badges éditables)
+      if (data.categorie && !data.score) {
+        if (data.categorie === 'CHAUD') {
+          updatedData.score = 80;
+        } else if (data.categorie === 'TIEDE') {
+          updatedData.score = 55;
+        } else if (data.categorie === 'FROID') {
+          updatedData.score = 25;
+        }
+        updatedData.date_scoring = new Date().toISOString();
+      }
+      return base44.entities.Lead.update(leadId, updatedData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lead', leadId] });
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      setIsEditing(false);
+    },
+  });
+
+  const handleUpdateLead = (id, data) => {
+    updateMutation.mutate(data);
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: () => base44.entities.Lead.delete(leadId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      navigate(createPageUrl('Leads'));
+    },
+  });
+
+  const handleEdit = () => {
+    setEditData(lead);
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    updateMutation.mutate(editData);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditData({});
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('fr-FR', { 
+      style: 'currency', 
+      currency: 'EUR',
+      maximumFractionDigits: 0 
+    }).format(price);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+          <Skeleton className="h-6 w-64 mb-4" />
+          <div className="grid grid-cols-2 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-12" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="max-w-4xl mx-auto text-center py-16">
+        <p className="text-[#999999]">Lead non trouvé</p>
+        <Link to={createPageUrl('Leads')}>
+          <Button variant="outline" className="mt-4 rounded-xl">
+            Retour aux leads
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link to={createPageUrl('Leads')}>
+            <Button variant="ghost" size="icon" className="rounded-xl">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {lead.first_name} {lead.last_name}
+            </h1>
+            <p className="text-[#999999] text-sm mt-0.5">
+              Créé le {format(new Date(lead.created_date), 'dd MMMM yyyy', { locale: fr })}
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {isEditing ? (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={handleCancel}
+                className="rounded-xl"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Annuler
+              </Button>
+              <Button 
+                onClick={handleSave}
+                disabled={updateMutation.isPending}
+                className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Enregistrer
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={handleEdit}
+                className="rounded-xl"
+              >
+                <Pencil className="w-4 h-4 mr-2" />
+                Modifier
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeleteDialog(true)}
+                className="rounded-xl text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Info */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Contact Info */}
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold mb-4">Informations de contact</h2>
+            
+            {isEditing ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Prénom</label>
+                  <Input
+                    value={editData.first_name || ''}
+                    onChange={(e) => setEditData({...editData, first_name: e.target.value})}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Nom</label>
+                  <Input
+                    value={editData.last_name || ''}
+                    onChange={(e) => setEditData({...editData, last_name: e.target.value})}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Email</label>
+                  <Input
+                    type="email"
+                    value={editData.email || ''}
+                    onChange={(e) => setEditData({...editData, email: e.target.value})}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Téléphone</label>
+                  <Input
+                    value={editData.phone || ''}
+                    onChange={(e) => setEditData({...editData, phone: e.target.value})}
+                    className="rounded-xl"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {lead.email && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
+                      <Mail className="w-4 h-4 text-[#666666]" />
+                    </div>
+                    <a href={`mailto:${lead.email}`} className="hover:underline">{lead.email}</a>
+                  </div>
+                )}
+                {lead.phone && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
+                      <Phone className="w-4 h-4 text-[#666666]" />
+                    </div>
+                    <a href={`tel:${lead.phone}`} className="hover:underline">{lead.phone}</a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Search Criteria */}
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold mb-4">Critères de recherche</h2>
+            
+            {isEditing ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Ville recherchée</label>
+                  <Input
+                    value={editData.city || ''}
+                    onChange={(e) => setEditData({...editData, city: e.target.value})}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Type de bien</label>
+                  <Select 
+                    value={editData.property_type || ''} 
+                    onValueChange={(v) => setEditData({...editData, property_type: v})}
+                  >
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="studio">Studio</SelectItem>
+                      <SelectItem value="t1">T1</SelectItem>
+                      <SelectItem value="t2">T2</SelectItem>
+                      <SelectItem value="t3">T3</SelectItem>
+                      <SelectItem value="t4">T4</SelectItem>
+                      <SelectItem value="t5">T5</SelectItem>
+                      <SelectItem value="maison">Maison</SelectItem>
+                      <SelectItem value="loft">Loft</SelectItem>
+                      <SelectItem value="villa">Villa</SelectItem>
+                      <SelectItem value="terrain">Terrain</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Budget min</label>
+                  <Input
+                    type="number"
+                    value={editData.budget_min || ''}
+                    onChange={(e) => setEditData({...editData, budget_min: Number(e.target.value)})}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Budget max</label>
+                  <Input
+                    type="number"
+                    value={editData.budget_max || ''}
+                    onChange={(e) => setEditData({...editData, budget_max: Number(e.target.value)})}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Surface min (m²)</label>
+                  <Input
+                    type="number"
+                    value={editData.surface_min || ''}
+                    onChange={(e) => setEditData({...editData, surface_min: Number(e.target.value)})}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Surface max (m²)</label>
+                  <Input
+                    type="number"
+                    value={editData.surface_max || ''}
+                    onChange={(e) => setEditData({...editData, surface_max: Number(e.target.value)})}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Statut du financement</label>
+                  <Select 
+                    value={editData.financing_status || ''} 
+                    onValueChange={(v) => setEditData({...editData, financing_status: v})}
+                  >
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder="Non renseigné" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pret_accepte">✅ Prêt accepté</SelectItem>
+                      <SelectItem value="accord_principe">🟢 Accord de principe</SelectItem>
+                      <SelectItem value="dossier_en_cours">🔄 Dossier en cours</SelectItem>
+                      <SelectItem value="simulation_faite">📊 Simulation faite</SelectItem>
+                      <SelectItem value="pas_encore_vu">⏳ Pas encore vu</SelectItem>
+                      <SelectItem value="aucun">❌ Aucun</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Apport (%)</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editData.apport_percentage || ''}
+                    onChange={(e) => setEditData({...editData, apport_percentage: Number(e.target.value)})}
+                    className="rounded-xl"
+                    placeholder="Ex: 20"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Délai</label>
+                  <Select 
+                    value={editData.delai || ''} 
+                    onValueChange={(v) => setEditData({...editData, delai: v})}
+                  >
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder="Non défini" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="moins_1_mois">Moins de 1 mois</SelectItem>
+                      <SelectItem value="1_2_mois">1-2 mois</SelectItem>
+                      <SelectItem value="2_3_mois">2-3 mois</SelectItem>
+                      <SelectItem value="3_6_mois">3-6 mois</SelectItem>
+                      <SelectItem value="plus_6_mois">Plus de 6 mois</SelectItem>
+                      <SelectItem value="non_defini">Non défini</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm text-[#999999] mb-1.5 block">Disponibilité</label>
+                  <Select 
+                    value={editData.disponibilite || ''} 
+                    onValueChange={(v) => setEditData({...editData, disponibilite: v})}
+                  >
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder="Non défini" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tous_les_jours">Tous les jours</SelectItem>
+                      <SelectItem value="plusieurs_jours_semaine">Plusieurs jours/semaine</SelectItem>
+                      <SelectItem value="weekends">Week-ends</SelectItem>
+                      <SelectItem value="1_2_creneaux_semaine">1-2 créneaux/semaine</SelectItem>
+                      <SelectItem value="tres_limitee">Très limitée</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm text-[#999999] mb-1.5 block">Critères bloquants</label>
+                  <Input
+                    value={(editData.blocking_criteria || []).join('; ')}
+                    onChange={(e) => setEditData({
+                      ...editData, 
+                      blocking_criteria: e.target.value.split(';').map(s => s.trim()).filter(Boolean)
+                    })}
+                    className="rounded-xl"
+                    placeholder="Ex: ascenseur; parking; jardin"
+                  />
+                  <p className="text-xs text-[#999999] mt-1">Séparez les critères par des points-virgules (;)</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
+                    <MapPin className="w-4 h-4 text-[#666666]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#999999]">Ville recherchée</p>
+                    <p className="text-sm font-medium">{lead.city || '-'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
+                    <Home className="w-4 h-4 text-[#666666]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#999999]">Type de bien</p>
+                    <p className="text-sm font-medium capitalize">{lead.property_type || '-'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
+                    <Euro className="w-4 h-4 text-[#666666]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#999999]">Budget min</p>
+                    <p className="text-sm font-medium">
+                      {lead.budget_min ? formatPrice(lead.budget_min) : '-'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
+                    <Euro className="w-4 h-4 text-[#666666]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#999999]">Budget max</p>
+                    <p className="text-sm font-medium">
+                      {lead.budget_max ? formatPrice(lead.budget_max) : '-'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
+                    <Maximize className="w-4 h-4 text-[#666666]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#999999]">Surface min</p>
+                    <p className="text-sm font-medium">
+                      {lead.surface_min ? `${lead.surface_min} m²` : '-'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
+                    <Maximize className="w-4 h-4 text-[#666666]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#999999]">Surface max</p>
+                    <p className="text-sm font-medium">
+                      {lead.surface_max ? `${lead.surface_max} m²` : '-'}
+                    </p>
+                  </div>
+                </div>
+                {lead.financing_status && (
+                  <div className="flex items-center gap-3 col-span-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
+                      <Banknote className="w-4 h-4 text-[#666666]" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-[#999999]">Statut du financement</p>
+                      <p className="text-sm font-medium capitalize">
+                        {lead.financing_status === 'pret_accepte' && '✅ Prêt accepté'}
+                        {lead.financing_status === 'accord_principe' && '🟢 Accord de principe'}
+                        {lead.financing_status === 'dossier_en_cours' && '🔄 Dossier en cours'}
+                        {lead.financing_status === 'simulation_faite' && '📊 Simulation faite'}
+                        {lead.financing_status === 'pas_encore_vu' && '⏳ Pas encore vu'}
+                        {lead.financing_status === 'aucun' && '❌ Aucun'}
+                      </p>
+                      {lead.apport_percentage && (
+                        <p className="text-xs text-[#999999] mt-1">
+                          Apport : {lead.apport_percentage}%
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {lead.blocking_criteria && lead.blocking_criteria.length > 0 && (
+                  <div className="flex items-start gap-3 col-span-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center flex-shrink-0">
+                      <Shield className="w-4 h-4 text-[#666666]" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs text-[#999999]">Critères bloquants</p>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {lead.blocking_criteria.map((criterion, i) => (
+                          <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                            {criterion}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold mb-4">Notes</h2>
+            
+            {isEditing ? (
+              <Textarea
+                value={editData.notes || ''}
+                onChange={(e) => setEditData({...editData, notes: e.target.value})}
+                placeholder="Ajouter des notes..."
+                className="rounded-xl min-h-32"
+              />
+            ) : (
+              <p className="text-sm text-[#666666] whitespace-pre-line">
+                {lead.notes || 'Aucune note'}
+              </p>
+            )}
+          </div>
+
+          {/* Activity Timeline */}
+          <LeadActivityTimeline leadId={leadId} />
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Score et Catégorie */}
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold mb-4">Score de qualification</h2>
+            
+            <div className="space-y-4">
+              {lead.score !== undefined && lead.score !== null ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[#666666]">Score</span>
+                    <span className="text-2xl font-bold">{lead.score}/100</span>
+                  </div>
+                  {lead.categorie && (
+                    <div className="flex items-center justify-center pt-2">
+                      <EditableCategorieBadge
+                        leadId={lead.id}
+                        currentCategorie={lead.categorie}
+                        onUpdate={handleUpdateLead}
+                      />
+                    </div>
+                  )}
+                  {lead.date_scoring && (
+                    <p className="text-xs text-[#999999] text-center">
+                      Dernière MAJ : {format(new Date(lead.date_scoring), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                    </p>
+                  )}
+                  
+                  {/* Détail du score */}
+                  {(lead.score_initial !== undefined || lead.score_engagement !== undefined || lead.score_progression !== undefined) && (
+                    <div className="pt-4 border-t border-[#E5E5E5] space-y-2">
+                      <p className="text-xs font-medium text-[#666666] mb-3">📊 Détail du score</p>
+                      
+                      <div className="space-y-2">
+                        {lead.score_initial !== undefined && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-[#666666]">• Score initial</span>
+                            <span className="font-medium">{lead.score_initial}/50</span>
+                          </div>
+                        )}
+                        {lead.score_engagement !== undefined && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-[#666666]">• Engagement</span>
+                            <span className="font-medium">{lead.score_engagement}/30</span>
+                          </div>
+                        )}
+                        {lead.score_progression !== undefined && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-[#666666]">• Progression</span>
+                            <span className="font-medium">{lead.score_progression}/20</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Logs de scoring */}
+                  {lead.scoring_logs && lead.scoring_logs.length > 0 && (
+                    <div className="pt-4 border-t border-[#E5E5E5]">
+                      <details className="cursor-pointer">
+                        <summary className="text-xs font-medium text-[#666666] hover:text-black">
+                          📝 Historique des changements
+                        </summary>
+                        <div className="mt-3 space-y-3 max-h-64 overflow-y-auto">
+                          {lead.scoring_logs.slice(0, 5).map((log, idx) => (
+                            <div key={idx} className="bg-[#FAFAFA] rounded-lg p-3 text-xs">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium">
+                                  {log.ancien_score} → {log.nouveau_score} 
+                                  <span className={log.variation?.startsWith('+') ? 'text-green-600 ml-1' : 'text-rose-600 ml-1'}>
+                                    ({log.variation})
+                                  </span>
+                                </span>
+                                <span className="text-[#999999]">
+                                  {format(new Date(log.date), 'dd/MM HH:mm', { locale: fr })}
+                                </span>
+                              </div>
+                              {log.ancien_categorie !== log.nouveau_categorie && (
+                                <p className="text-[#666666] mb-2">
+                                  {log.ancien_categorie} → <span className="font-medium">{log.nouveau_categorie}</span>
+                                </p>
+                              )}
+                              {log.raisons && log.raisons.length > 0 && (
+                                <ul className="space-y-1 text-[#666666]">
+                                  {log.raisons.slice(0, 3).map((raison, i) => (
+                                    <li key={i}>• {raison}</li>
+                                  ))}
+                                  {log.raisons.length > 3 && (
+                                    <li className="text-[#999999]">+ {log.raisons.length - 3} autres...</li>
+                                  )}
+                                </ul>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-[#999999] text-center py-4">Non qualifié</p>
+              )}
+            </div>
+          </div>
+
+          {/* Lead Type */}
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold mb-4">Type de lead</h2>
+            
+            {isEditing ? (
+              <Select 
+                value={editData.lead_type || 'acheteur'} 
+                onValueChange={(v) => setEditData({...editData, lead_type: v})}
+              >
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="acheteur">Acheteur</SelectItem>
+                  <SelectItem value="vendeur">Vendeur</SelectItem>
+                  <SelectItem value="locataire">Locataire</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <EditableLeadTypeBadge
+                leadId={lead.id}
+                currentType={lead.lead_type}
+                onUpdate={handleUpdateLead}
+              />
+            )}
+          </div>
+
+          {/* Property Type */}
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold mb-4">Type de bien recherché</h2>
+            
+            {isEditing ? (
+              <Select 
+                value={editData.property_type || ''} 
+                onValueChange={(v) => setEditData({...editData, property_type: v})}
+              >
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Sélectionner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="studio">Studio</SelectItem>
+                  <SelectItem value="t1">T1</SelectItem>
+                  <SelectItem value="t2">T2</SelectItem>
+                  <SelectItem value="t3">T3</SelectItem>
+                  <SelectItem value="t4">T4</SelectItem>
+                  <SelectItem value="t5">T5</SelectItem>
+                  <SelectItem value="maison">Maison</SelectItem>
+                  <SelectItem value="loft">Loft</SelectItem>
+                  <SelectItem value="villa">Villa</SelectItem>
+                  <SelectItem value="terrain">Terrain</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 capitalize">
+                {lead.property_type || 'Non défini'}
+              </span>
+            )}
+          </div>
+
+          {/* Status */}
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold mb-4">Statut de suivi</h2>
+            
+            {isEditing ? (
+              <Select 
+                value={editData.status || 'nouveau'} 
+                onValueChange={(v) => setEditData({...editData, status: v})}
+              >
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nouveau">Nouveau</SelectItem>
+                  <SelectItem value="contacte">Contacté</SelectItem>
+                  <SelectItem value="en_negociation">En négociation</SelectItem>
+                  <SelectItem value="converti">Converti</SelectItem>
+                  <SelectItem value="perdu">Perdu</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <EditableStatusBadge
+                leadId={lead.id}
+                currentStatus={lead.status}
+                onUpdate={handleUpdateLead}
+              />
+            )}
+          </div>
+
+          {/* Source */}
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold mb-4">Source</h2>
+            
+            {isEditing ? (
+              <Select 
+                value={editData.source || 'autre'} 
+                onValueChange={(v) => setEditData({...editData, source: v})}
+              >
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="social_page">Social Page</SelectItem>
+                  <SelectItem value="leboncoin">Leboncoin</SelectItem>
+                  <SelectItem value="seloger">SeLoger</SelectItem>
+                  <SelectItem value="pap">PAP</SelectItem>
+                  <SelectItem value="bouche_a_oreille">Bouche à oreille</SelectItem>
+                  <SelectItem value="email_capture">Email capture</SelectItem>
+                  <SelectItem value="autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm capitalize">
+                {lead.source?.replace(/_/g, ' ') || 'Non renseigné'}
+              </p>
+            )}
+          </div>
+
+          {/* Matching */}
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                Biens correspondants
+              </h2>
+              <Link to={createPageUrl('Matching')} className="text-xs text-[#999999] hover:text-black">
+                Voir tout
+              </Link>
+            </div>
+            <MatchedListings 
+              listings={listings} 
+              matchedIds={lead?.matched_listings || []}
+              lead={lead}
+            />
+          </div>
+
+          </div>
+      </div>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce lead ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Le lead sera définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate()}
+              className="bg-rose-600 hover:bg-rose-700 rounded-xl"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
