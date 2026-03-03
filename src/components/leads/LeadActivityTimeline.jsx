@@ -11,7 +11,11 @@ import {
   Plus,
   MoreVertical,
   Trash2,
-  Edit
+  Edit,
+  Target,
+  CheckCircle2,
+  XCircle,
+  MessageSquare
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -37,17 +41,40 @@ import { toast } from 'sonner';
 const activityIcons = {
   call: Phone,
   email: Mail,
+  sms: MessageSquare,
   note: FileText,
   task: CheckSquare,
   event: Calendar,
+  visite: Calendar,
+  matching_proposition: Target,
+  matching_accepte: CheckCircle2,
+  matching_refuse: XCircle,
 };
 
 const activityColors = {
   call: 'bg-blue-50 text-blue-600',
   email: 'bg-purple-50 text-purple-600',
+  sms: 'bg-indigo-50 text-indigo-600',
   note: 'bg-amber-50 text-amber-600',
   task: 'bg-green-50 text-green-600',
   event: 'bg-rose-50 text-rose-600',
+  visite: 'bg-teal-50 text-teal-600',
+  matching_proposition: 'bg-blue-50 text-blue-600',
+  matching_accepte: 'bg-green-50 text-green-600',
+  matching_refuse: 'bg-rose-50 text-rose-600',
+};
+
+const getActivityTypeLabel = (type) => {
+  const labels = {
+    call: 'Appel',
+    email: 'Email',
+    sms: 'SMS',
+    visite: 'Visite',
+    matching_proposition: 'Bien proposé',
+    matching_accepte: 'Bien accepté',
+    matching_refuse: 'Bien refusé',
+  };
+  return labels[type] || 'Activité';
 };
 
 export default function LeadActivityTimeline({ leadId }) {
@@ -161,7 +188,11 @@ export default function LeadActivityTimeline({ leadId }) {
   const filteredItems = filter === 'all' 
     ? allItems 
     : allItems.filter(item => {
-        if (item.itemType === 'activity') return item.type === filter;
+        if (item.itemType === 'activity') {
+          if (filter === 'matching') return ['matching_proposition', 'matching_accepte', 'matching_refuse'].includes(item.type);
+          if (filter === 'visite') return item.type === 'visite';
+          return item.type === filter;
+        }
         if (item.itemType === 'task') return filter === 'task';
         if (item.itemType === 'note') return filter === 'note';
         if (item.itemType === 'event') return filter === 'event';
@@ -223,7 +254,7 @@ export default function LeadActivityTimeline({ leadId }) {
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <h4 className="font-medium text-sm">{item.title}</h4>
+              <h4 className="font-medium text-sm">{item.title || item.description || (item.itemType === 'activity' ? getActivityTypeLabel(item.type) : 'Activité')}</h4>
               <p className="text-xs text-[#999999] mt-0.5">
                 {format(new Date(item.created_date), 'dd MMMM yyyy à HH:mm', { locale: fr })}
               </p>
@@ -359,6 +390,9 @@ export default function LeadActivityTimeline({ leadId }) {
             <SelectItem value="all">Toutes les activités</SelectItem>
             <SelectItem value="call">Appels</SelectItem>
             <SelectItem value="email">Emails</SelectItem>
+            <SelectItem value="sms">SMS</SelectItem>
+            <SelectItem value="visite">Visites</SelectItem>
+            <SelectItem value="matching">Matching / Biens</SelectItem>
             <SelectItem value="note">Notes</SelectItem>
             <SelectItem value="task">Tâches</SelectItem>
             <SelectItem value="event">Événements</SelectItem>

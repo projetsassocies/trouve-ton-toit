@@ -34,12 +34,13 @@ export default function ConversationalChat({
   const [hoveredConvId, setHoveredConvId] = useState(null);
   const [inputValue, setInputValue] = useState('');
 
-  const chatEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const renameInputRef = useRef(null);
 
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    const el = messagesContainerRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
     }
   }, [messages]);
 
@@ -245,7 +246,7 @@ export default function ConversationalChat({
             )}
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto space-y-3 p-4">
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-3 p-4">
             {messages.map((msg, idx) => (
               <div key={idx}>
                 <div className={cn("flex", msg.role === 'user' ? "justify-end" : "justify-start")}>
@@ -272,7 +273,6 @@ export default function ConversationalChat({
                 </div>
               </div>
             )}
-            <div ref={chatEndRef} />
           </div>
         )}
 

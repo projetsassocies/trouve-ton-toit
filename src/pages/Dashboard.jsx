@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { Users, Home, TrendingUp, Clock, ChevronRight, Plus, Flame, CloudSun, Snowflake, Bell } from 'lucide-react';
+import { Users, Home, Clock, ChevronRight, Plus, Flame, CloudSun, Snowflake, Bell, Percent, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import StatCard from '@/components/dashboard/StatCard';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -32,8 +32,18 @@ export default function Dashboard() {
     enabled: !!user?.email,
   });
 
-  const newLeadsCount = leads.filter(l => l.status === 'nouveau').length;
-  const activeListings = listings.filter(l => l.status === 'publie').length;
+  const { data: matches = [], isLoading: matchesLoading } = useQuery({
+    queryKey: ['matches', user?.email],
+    queryFn: () => base44.entities.Match.filter({ created_by: user.email }, '-created_date'),
+    enabled: !!user?.email,
+  });
+
+  const proposedMatches = matches.filter(m => m.status !== 'nouveau').length;
+  const acceptedMatches = matches.filter(m => m.status === 'accepte').length;
+  const conversionRate = proposedMatches > 0 ? Math.round((acceptedMatches / proposedMatches) * 100) : 0;
+  const leadsReadyForMandate = [...new Set(
+    matches.filter(m => m.status === 'accepte').map(m => m.lead_id)
+  )].length;
   const leadsChaud = leads.filter(lead => lead.categorie === 'CHAUD');
   const leadsTiede = leads.filter(lead => lead.categorie === 'TIÈDE');
   const leadsFroid = leads.filter(lead => lead.categorie === 'FROID');
@@ -67,7 +77,7 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {leadsLoading || listingsLoading ? (
+        {leadsLoading || listingsLoading || matchesLoading ? (
           <>
             {[...Array(4)].map((_, i) => (
               <div key={i} className="bg-white rounded-2xl p-6 border border-[#E5E5E5]">
@@ -84,16 +94,14 @@ export default function Dashboard() {
               icon={Users}
             />
             <StatCard 
-              title="Nouveaux leads" 
-              value={newLeadsCount} 
-              icon={TrendingUp}
-              trend="+12% ce mois"
-              trendUp
+              title="Taux de conversion" 
+              value={`${conversionRate}%`} 
+              icon={Percent}
             />
             <StatCard 
-              title="Biens actifs" 
-              value={activeListings} 
-              icon={Home}
+              title="Lead prêt pour mandat" 
+              value={leadsReadyForMandate} 
+              icon={FileCheck}
             />
             <StatCard 
               title="Total biens" 

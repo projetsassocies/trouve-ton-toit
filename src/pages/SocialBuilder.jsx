@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import QRCode from 'qrcode';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   ExternalLink, 
@@ -9,7 +10,6 @@ import {
   Plus, 
   Trash2, 
   Upload,
-  GripVertical,
   QrCode,
   Phone,
   Mail,
@@ -19,12 +19,15 @@ import {
   Palette,
   Link as LinkIcon,
   Home,
-  Eye,
-  EyeOff,
   Download,
   MapPin,
   Briefcase,
-  Check
+  Check,
+  Copy,
+  Search,
+  Lightbulb,
+  Play,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +51,49 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from '@/components/ui/checkbox';
 
+function slugify(text) {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/* Catégories pour le modal Ajouter (style Linktree) */
+const ADD_CATEGORIES = [
+  { id: 'suggested', label: 'Suggéré', icon: Lightbulb, color: 'text-amber-500' },
+  { id: 'links', label: 'Liens', icon: LinkIcon, color: 'text-blue-500' },
+  { id: 'contact', label: 'Contact', icon: User, color: 'text-violet-500' },
+  { id: 'properties', label: 'Biens', icon: Home, color: 'text-emerald-600' },
+  { id: 'media', label: 'Média', icon: Play, color: 'text-rose-500' },
+  { id: 'branding', label: 'Marque', icon: QrCode, color: 'text-slate-600' },
+];
+
+const ADD_OPTIONS = {
+  suggested: [
+    { id: 'link', label: 'Lien', desc: 'Ajoutez un lien vers un site, une vidéo...', icon: LinkIcon, action: 'add_link' },
+    { id: 'form', label: 'Formulaire de contact', desc: 'Collectez les coordonnées de vos prospects', icon: User, action: 'add_form' },
+    { id: 'properties', label: 'Biens mis en avant', desc: 'Affichez vos biens sur la page', icon: Home, action: 'add_properties' },
+  ],
+  links: [
+    { id: 'link', label: 'Lien personnalisé', desc: 'Paste ou recherchez un lien à ajouter', icon: LinkIcon, action: 'add_link' },
+  ],
+  contact: [
+    { id: 'form', label: 'Formulaire de contact', desc: 'Formulaire personnalisable pour collecter les infos de vos prospects', icon: User, action: 'add_form' },
+  ],
+  properties: [
+    { id: 'properties', label: 'Biens à la une', desc: 'Sélectionnez les biens à afficher sur votre page sociale', icon: Home, action: 'add_properties' },
+  ],
+  media: [
+    { id: 'link', label: 'Lien vidéo ou média', desc: 'Ajoutez un lien vers YouTube, Instagram...', icon: LinkIcon, action: 'add_link' },
+  ],
+  branding: [
+    { id: 'qr', label: 'QR Code', desc: 'Personnalisez votre QR code lié à la page', icon: QrCode, action: 'add_qr' },
+  ],
+};
+
 const PRESET_THEMES = [
   { label: 'Classique', colors: { primary: '#000000', accent: '#4a4a4a', background: '#ffffff' } },
   { label: 'Bleu', colors: { primary: '#0f4c81', accent: '#d1e8ff', background: '#f3f8ff' } },
@@ -62,8 +108,16 @@ export default function SocialBuilder() {
   const canvasRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [showPropertyDialog, setShowPropertyDialog] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addModalCategory, setAddModalCategory] = useState('suggested');
+  const [accordionValue, setAccordionValue] = useState(['profile', 'colors']);
+  // Sections ajoutées via "Ajouter" (style Linktree - n'existent pas tant qu'on ne les ajoute pas)
+  const [enabledSections, setEnabledSections] = useState(['profile', 'colors']);
+  const sectionRefs = useRef({});
   
   const [formData, setFormData] = useState({
+    slug: '',
+    is_published: false,
     display_name: '',
     profession: '',
     zone: '',
@@ -108,6 +162,8 @@ export default function SocialBuilder() {
   useEffect(() => {
     if (existingConfig) {
       setFormData({
+        slug: existingConfig.slug || '',
+        is_published: existingConfig.is_published ?? false,
         display_name: existingConfig.display_name || '',
         profession: existingConfig.profession || '',
         zone: existingConfig.zone || '',
@@ -115,7 +171,7 @@ export default function SocialBuilder() {
         profile_picture: existingConfig.profile_picture || '',
         phone: existingConfig.phone || '',
         email: existingConfig.email || '',
-        primary_color: existingConfig.primary_color || '#000000',
+        primary_color: existingConfig.primary_color || existingConfig.theme_color || '#000000',
         accent_color: existingConfig.accent_color || '#4ade80',
         background_color: existingConfig.background_color || '#f8f9fa',
         custom_links: existingConfig.custom_links || [],
@@ -136,86 +192,64 @@ export default function SocialBuilder() {
           notes: { enabled: true, required: false, label: 'Message' }
         }
       });
+      // Activer les sections qui ont déjà du contenu (migration depuis ancien paramétrage)
+      const sections = ['profile', 'colors'];
+      if ((existingConfig.custom_links || []).length > 0) sections.push('links');
+      if ((existingConfig.featured_listings || []).length > 0) sections.push('properties');
+      if (existingConfig.cta_button_text || existingConfig.form_fields) sections.push('form');
+      if (existingConfig.qr_label || existingConfig.qr_color) sections.push('qr');
+      setEnabledSections(sections);
     }
   }, [existingConfig]);
 
-  // Generate QR Code
+  const publicPageUrl = formData.slug
+    ? `${window.location.origin}/${formData.slug}`
+    : null;
+
   useEffect(() => {
     generateQRCode();
-  }, [formData.qr_color, formData.qr_background, formData.qr_logo]);
+  }, [formData.qr_color, formData.qr_background, formData.qr_logo, formData.slug, publicPageUrl]);
 
-  const generateQRCode = () => {
+  const generateQRCode = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const url = publicPageUrl || window.location.origin + '/socialpage';
     const size = 200;
-    canvas.width = size;
-    canvas.height = size;
 
-    ctx.fillStyle = formData.qr_background;
-    ctx.fillRect(0, 0, size, size);
+    try {
+      await QRCode.toCanvas(canvas, url, {
+        width: size,
+        margin: 2,
+        color: {
+          dark: formData.qr_color,
+          light: formData.qr_background,
+        },
+      });
 
-    ctx.fillStyle = formData.qr_color;
-    
-    const moduleSize = 8;
-    const modules = Math.floor(size / moduleSize);
-    const margin = 2;
-
-    const drawPositionPattern = (x, y) => {
-      ctx.fillRect(x * moduleSize, y * moduleSize, 7 * moduleSize, 7 * moduleSize);
-      ctx.fillStyle = formData.qr_background;
-      ctx.fillRect((x + 1) * moduleSize, (y + 1) * moduleSize, 5 * moduleSize, 5 * moduleSize);
-      ctx.fillStyle = formData.qr_color;
-      ctx.fillRect((x + 2) * moduleSize, (y + 2) * moduleSize, 3 * moduleSize, 3 * moduleSize);
-    };
-
-    drawPositionPattern(margin, margin);
-    drawPositionPattern(modules - 9, margin);
-    drawPositionPattern(margin, modules - 9);
-
-    const seed = 12345;
-    for (let y = margin; y < modules - margin; y++) {
-      for (let x = margin; x < modules - margin; x++) {
-        if ((x < margin + 8 && y < margin + 8) ||
-            (x > modules - margin - 9 && y < margin + 8) ||
-            (x < margin + 8 && y > modules - margin - 9)) {
-          continue;
-        }
-        
-        const centerStart = Math.floor(modules / 2) - 3;
-        const centerEnd = Math.floor(modules / 2) + 3;
-        if (x >= centerStart && x <= centerEnd && y >= centerStart && y <= centerEnd) {
-          continue;
-        }
-
-        if ((seed * (x + 1) * (y + 1)) % 3 === 0) {
-          ctx.fillRect(x * moduleSize, y * moduleSize, moduleSize, moduleSize);
-        }
+      if (formData.qr_logo) {
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const logoSize = 40;
+          const logoX = (size - logoSize) / 2;
+          const logoY = (size - logoSize) / 2;
+          ctx.fillStyle = formData.qr_background;
+          ctx.beginPath();
+          ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, 6);
+          ctx.fill();
+          ctx.save();
+          ctx.beginPath();
+          ctx.roundRect(logoX, logoY, logoSize, logoSize, 4);
+          ctx.clip();
+          ctx.drawImage(img, logoX, logoY, logoSize, logoSize);
+          ctx.restore();
+        };
+        img.src = formData.qr_logo;
       }
-    }
-
-    if (formData.qr_logo) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        const logoSize = 40;
-        const logoX = (size - logoSize) / 2;
-        const logoY = (size - logoSize) / 2;
-        
-        ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath();
-        ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, 6);
-        ctx.fill();
-        
-        ctx.save();
-        ctx.beginPath();
-        ctx.roundRect(logoX, logoY, logoSize, logoSize, 4);
-        ctx.clip();
-        ctx.drawImage(img, logoX, logoY, logoSize, logoSize);
-        ctx.restore();
-      };
-      img.src = formData.qr_logo;
+    } catch (err) {
+      console.error('QR Code generation failed:', err);
     }
   };
 
@@ -231,10 +265,37 @@ export default function SocialBuilder() {
       queryClient.invalidateQueries({ queryKey: ['social-config'] });
       toast.success('Modifications enregistrées');
     },
+    onError: (err) => {
+      const msg = err?.message || '';
+      if (msg.includes('unique') || msg.includes('duplicate') || msg.includes('23505')) {
+        toast.error('Ce slug est déjà utilisé. Choisissez-en un autre.');
+      } else {
+        toast.error(err?.message || 'Erreur lors de l\'enregistrement');
+      }
+    },
   });
 
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = async () => {
+    const url = publicPageUrl || `${window.location.origin}/socialpage`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success('Lien copié dans le presse-papiers');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Impossible de copier le lien');
+    }
+  };
+
   const handleSave = () => {
-    saveMutation.mutate(formData);
+    let dataToSave = { ...formData };
+    if (!dataToSave.slug?.trim()) {
+      dataToSave.slug = slugify(dataToSave.display_name) || `config-${Date.now().toString(36)}`;
+      setFormData((p) => ({ ...p, slug: dataToSave.slug }));
+    }
+    saveMutation.mutate(dataToSave);
   };
 
   const handleImageUpload = async (e) => {
@@ -252,6 +313,43 @@ export default function SocialBuilder() {
       ...prev,
       custom_links: [...prev.custom_links, { title: '', url: '', visible: true }]
     }));
+  };
+
+  const handleAddModalAction = (action) => {
+    setShowAddModal(false);
+    let newSection = null;
+    switch (action) {
+      case 'add_link':
+        addLink();
+        newSection = 'links';
+        break;
+      case 'add_form':
+        newSection = 'form';
+        break;
+      case 'add_properties':
+        setShowPropertyDialog(true);
+        newSection = 'properties';
+        break;
+      case 'add_qr':
+        newSection = 'qr';
+        break;
+      default:
+        break;
+    }
+    if (newSection) {
+      setEnabledSections(prev => prev.includes(newSection) ? prev : [...prev, newSection]);
+      setAccordionValue(prev => prev.includes(newSection) ? prev : [...prev, newSection]);
+      // Scroll vers le nouvel élément après le rendu
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const el = sectionRefs.current[newSection];
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.focus?.({ preventScroll: true });
+          }
+        }, 100);
+      });
+    }
   };
 
   const removeLink = (index) => {
@@ -329,13 +427,29 @@ export default function SocialBuilder() {
           <h1 className="text-2xl font-semibold tracking-tight">Social Page Builder</h1>
           <p className="text-[#999999] mt-1">Personnalisez votre page publique</p>
         </div>
-        <div className="flex gap-3">
-          <Link to={createPageUrl('SocialPage')} target="_blank">
-            <Button variant="outline" className="rounded-xl">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Voir ma page
-            </Button>
-          </Link>
+        <div className="flex flex-wrap gap-3 items-center">
+          {formData.slug && formData.is_published && (
+            <>
+              <a href={publicPageUrl} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="rounded-xl">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Voir ma page
+                </Button>
+              </a>
+              <Button variant="outline" className="rounded-xl" onClick={handleCopyLink}>
+                {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                {copied ? 'Copié' : 'Copier le lien'}
+              </Button>
+            </>
+          )}
+          {(!formData.slug || !formData.is_published) && (
+            <Link to="/socialpage" target="_blank">
+              <Button variant="outline" className="rounded-xl">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Aperçu (mode connecté)
+              </Button>
+            </Link>
+          )}
           <Button 
             onClick={handleSave}
             disabled={saveMutation.isPending}
@@ -351,11 +465,69 @@ export default function SocialBuilder() {
         </div>
       </div>
 
+      {/* Lien public - discret et cohérent avec le design */}
+      <div className="p-4 rounded-xl border border-[#E5E5E5] bg-[#FAFAFA]">
+        <h2 className="font-medium text-sm text-[#555555] mb-2 flex items-center gap-2">
+          <LinkIcon className="w-4 h-4" />
+          Partager votre page
+        </h2>
+        <p className="text-xs text-[#777777] mb-3">
+          Définissez un lien unique et activez la publication pour que vos prospects accèdent à votre page.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs font-medium text-[#666666] mb-1.5 block">Lien unique</Label>
+            <div className="flex gap-2">
+              <Input
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                placeholder="jean-dupont"
+                className="rounded-lg font-mono bg-white text-sm h-9"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-lg shrink-0 bg-white h-9"
+                onClick={() => setFormData((p) => ({ ...p, slug: slugify(p.display_name) || p.slug }))}
+              >
+                Générer
+              </Button>
+            </div>
+            <p className="text-xs mt-1 text-[#888888] font-mono">
+              {formData.slug ? `${window.location.origin}/${formData.slug}` : 'Saisissez un lien ou cliquez Générer'}
+            </p>
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-[#666666] mb-1.5 block">Page visible</Label>
+            <div className="flex items-center gap-3 p-3 bg-white rounded-lg">
+              <Switch
+                checked={formData.is_published}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
+              />
+              <span className="text-sm font-medium">
+                {formData.is_published ? 'Oui, page publique' : 'Non, masquée'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Split Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Editor - 45% */}
         <div className="lg:col-span-5 space-y-4">
-          <Accordion type="multiple" defaultValue={['profile', 'colors', 'links']} className="space-y-4">
+          {/* Bouton Ajouter façon Linktree */}
+          <Button
+            variant="outline"
+            onClick={() => setShowAddModal(true)}
+            className="w-full rounded-xl h-12 border-2 border-dashed border-[#E5E5E5] hover:border-[#999999] hover:bg-[#FAFAFA] text-[#555555] font-medium"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Ajouter
+          </Button>
+
+          <Accordion type="multiple" value={accordionValue} onValueChange={setAccordionValue} className="space-y-4">
             {/* Profile Section */}
             <AccordionItem value="profile" className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
               <AccordionTrigger className="px-6 py-4 hover:no-underline">
@@ -406,7 +578,7 @@ export default function SocialBuilder() {
 
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-sm text-[#999999] mb-1.5 block">Nom complet</Label>
+                    <Label className="text-sm text-[#999999] mb-1.5 block">Nom complet (affiché sur la page)</Label>
                     <Input
                       value={formData.display_name}
                       onChange={(e) => setFormData({...formData, display_name: e.target.value})}
@@ -551,7 +723,9 @@ export default function SocialBuilder() {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Links Section */}
+            {/* Links Section - visible seulement si ajouté via "Ajouter" */}
+            {enabledSections.includes('links') && (
+            <div ref={el => { if (el) sectionRefs.current.links = el; }} tabIndex={-1}>
             <AccordionItem value="links" className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
               <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <div className="flex items-center gap-3">
@@ -617,8 +791,12 @@ export default function SocialBuilder() {
                 </Button>
               </AccordionContent>
             </AccordionItem>
+            </div>
+            )}
 
-            {/* Featured Properties Section */}
+            {/* Featured Properties Section - visible seulement si ajouté */}
+            {enabledSections.includes('properties') && (
+            <div ref={el => { if (el) sectionRefs.current.properties = el; }} tabIndex={-1}>
             <AccordionItem value="properties" className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
               <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <div className="flex items-center gap-3">
@@ -678,8 +856,12 @@ export default function SocialBuilder() {
                 </Button>
               </AccordionContent>
             </AccordionItem>
+            </div>
+            )}
 
-            {/* Form Configuration Section */}
+            {/* Form Configuration Section - visible seulement si ajouté */}
+            {enabledSections.includes('form') && (
+            <div ref={el => { if (el) sectionRefs.current.form = el; }} tabIndex={-1}>
             <AccordionItem value="form" className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
               <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <div className="flex items-center gap-3">
@@ -769,8 +951,12 @@ export default function SocialBuilder() {
                 </div>
               </AccordionContent>
             </AccordionItem>
+            </div>
+            )}
 
-            {/* QR Code Section */}
+            {/* QR Code Section - visible seulement si ajouté */}
+            {enabledSections.includes('qr') && (
+            <div ref={el => { if (el) sectionRefs.current.qr = el; }} tabIndex={-1}>
             <AccordionItem value="qr" className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
               <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <div className="flex items-center gap-3">
@@ -851,6 +1037,8 @@ export default function SocialBuilder() {
                 </div>
               </AccordionContent>
             </AccordionItem>
+            </div>
+            )}
           </Accordion>
         </div>
 
@@ -883,6 +1071,80 @@ export default function SocialBuilder() {
           </div>
         </div>
       </div>
+
+      {/* Modal Ajouter (style Linktree) */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="max-w-2xl rounded-2xl p-0 gap-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-[#E5E5E5]">
+            <DialogTitle className="text-xl font-bold">Ajouter</DialogTitle>
+            <div className="relative mt-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999]" />
+              <Input
+                placeholder="Coller ou rechercher un lien"
+                className="pl-10 rounded-xl bg-[#F5F5F5] border-0 h-11"
+              />
+            </div>
+          </DialogHeader>
+          <div className="flex min-h-[320px]">
+            {/* Catégories gauche */}
+            <nav className="w-48 border-r border-[#E5E5E5] py-2 flex-shrink-0">
+              {ADD_CATEGORIES.map((cat) => {
+                const Icon = cat.icon;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setAddModalCategory(cat.id)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors border-l-2",
+                      addModalCategory === cat.id
+                        ? "bg-[#EEEEEE] text-[#111111] font-medium border-l-black"
+                        : "border-l-transparent text-[#555555] hover:bg-[#FAFAFA]"
+                    )}
+                  >
+                    <Icon className={cn("w-4 h-4 flex-shrink-0", addModalCategory === cat.id ? cat.color : "text-[#999999]")} />
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </nav>
+            {/* Options droite */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <h3 className="text-sm font-semibold text-[#111111] mb-1 capitalize">
+                {ADD_CATEGORIES.find(c => c.id === addModalCategory)?.label}
+              </h3>
+              <p className="text-xs text-[#999999] mb-4">
+                {addModalCategory === 'suggested' && 'Éléments populaires pour votre page'}
+                {addModalCategory === 'links' && 'Liens personnalisés'}
+                {addModalCategory === 'contact' && 'Formulaires'}
+                {addModalCategory === 'properties' && 'Contenu immobilier'}
+                {addModalCategory === 'media' && 'Vidéos et médias'}
+                {addModalCategory === 'branding' && 'Personnalisation'}
+              </p>
+              <div className="space-y-1">
+                {(ADD_OPTIONS[addModalCategory] || []).map((opt) => {
+                  const OptIcon = opt.icon;
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => handleAddModalAction(opt.action)}
+                      className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-[#F5F5F5] transition-colors text-left group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#F0F0F0] flex items-center justify-center flex-shrink-0 group-hover:bg-[#E5E5E5]">
+                        <OptIcon className="w-5 h-5 text-[#666666]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-[#111111]">{opt.label}</p>
+                        <p className="text-xs text-[#999999] truncate">{opt.desc}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#CCCCCC] flex-shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Property Selection Dialog */}
       <Dialog open={showPropertyDialog} onOpenChange={setShowPropertyDialog}>
@@ -965,13 +1227,13 @@ function SocialPagePreviewLive({ config, listings }) {
             style={{ backgroundColor: config.accent_color }}
           >
             <span className="text-3xl font-semibold" style={{ color: config.primary_color }}>
-              {config.display_name?.[0]?.toUpperCase() || 'A'}
+              {(config.display_name || config.agency_name)?.[0]?.toUpperCase() || 'A'}
             </span>
           </div>
         )}
         
         <h1 className="text-xl font-semibold" style={{ color: config.primary_color }}>
-          {config.display_name || 'Votre nom'}
+          {config.display_name || config.agency_name || 'Votre nom'}
         </h1>
         
         {config.profession && (

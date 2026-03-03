@@ -21,6 +21,11 @@ import { fr } from 'date-fns/locale';
 const activityConfig = {
   call: { icon: Phone, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-200' },
   email: { icon: Mail, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-200' },
+  sms: { icon: Phone, color: 'text-indigo-500', bg: 'bg-indigo-50', border: 'border-indigo-200' },
+  visite: { icon: Calendar, color: 'text-teal-500', bg: 'bg-teal-50', border: 'border-teal-200' },
+  matching_proposition: { icon: Home, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-200' },
+  matching_accepte: { icon: CheckSquare, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200' },
+  matching_refuse: { icon: FileText, color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200' },
   note: { icon: FileText, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200' },
   task: { icon: CheckSquare, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200' },
   event: { icon: Calendar, color: 'text-pink-500', bg: 'bg-pink-50', border: 'border-pink-200' },
@@ -45,7 +50,7 @@ export default function RecentActivity({ user }) {
 
   const recentItems = [
     ...allActivities
-      .filter(a => a.type === 'call' || a.type === 'email')
+      .filter(a => ['call', 'email', 'sms', 'visite', 'matching_proposition', 'matching_accepte', 'matching_refuse'].includes(a.type))
       .map(a => ({
         id: `act-${a.id}`,
         icon: a.type,

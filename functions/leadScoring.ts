@@ -175,6 +175,27 @@ Deno.serve(async (req) => {
       } else if (activity.type === 'email') {
         scoreEngagement += 3;
         raisons.push('Email échangé (+3 pts)');
+      } else if (activity.type === 'sms') {
+        scoreEngagement += 3;
+        raisons.push('SMS échangé (+3 pts)');
+      } else if (activity.type === 'visite') {
+        const title = (activity.title || '').toLowerCase();
+        if (title.includes('effectuée')) {
+          scoreEngagement += 10;
+          raisons.push('Visite effectuée (+10 pts)');
+        } else {
+          scoreEngagement += 6;
+          raisons.push('Visite planifiée (+6 pts)');
+        }
+      } else if (activity.type === 'matching_proposition') {
+        scoreEngagement += 3;
+        raisons.push('Bien proposé (+3 pts)');
+      } else if (activity.type === 'matching_accepte') {
+        scoreEngagement += 12;
+        raisons.push('Bien accepté — engagement fort (+12 pts)');
+      } else if (activity.type === 'matching_refuse') {
+        scoreEngagement -= 2;
+        raisons.push('Bien refusé (-2 pts)');
       }
     }
 

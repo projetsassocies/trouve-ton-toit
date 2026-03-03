@@ -14,9 +14,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { X, Check, Calendar as CalendarIcon, Phone, Mail, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function LeadCaptureForm({ onClose, agentConfig }) {
+export default function LeadCaptureForm({ onClose, agentConfig, isPublic = false }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -40,65 +41,104 @@ export default function LeadCaptureForm({ onClose, agentConfig }) {
 
   const handleSubmit = async () => {
     setLoading(true);
+    setSubmitError(null);
     try {
-      // Créer le lead
       const leadData = {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
-        phone: formData.phone,
+        phone: formData.phone || undefined,
         lead_type: formData.lead_type,
         property_type: formData.property_type || undefined,
         city: formData.city || undefined,
         budget_min: formData.budget_min ? Number(formData.budget_min) : undefined,
         budget_max: formData.budget_max ? Number(formData.budget_max) : undefined,
         notes: formData.notes || undefined,
-        source: 'social_page',
-        status: 'nouveau'
       };
 
-      const newLead = await base44.entities.Lead.create(leadData);
+      if (!agentConfig?.id && isPublic) {
+        throw new Error('Configuration de la page manquante. Rechargez la page.');
+      }
 
-      // Si rendez-vous demandé, créer l'événement
-      if (formData.wants_appointment && formData.appointment_date) {
-        const eventData = {
-          title: `${formData.appointment_type} - ${formData.first_name} ${formData.last_name}`,
-          type: formData.appointment_type === 'Visite' ? 'visit' : 
-                formData.appointment_type === 'Appel' ? 'call' : 'meeting',
-          start_date: formData.appointment_date.toISOString(),
-          end_date: new Date(formData.appointment_date.getTime() + 60 * 60 * 1000).toISOString(),
-          description: formData.appointment_message || undefined,
-          status: 'planned',
-          linked_to_type: 'lead',
-          linked_to_id: newLead.id
-        };
+      if (isPublic && agentConfig?.id) {
+        const eventData = formData.wants_appointment && formData.appointment_date
+          ? {
+              appointment_type: formData.appointment_type,
+              appointment_date: formData.appointment_date.toISOString(),
+              appointment_message: formData.appointment_message || undefined,
+            }
+          : null;
 
-        await base44.entities.Event.create(eventData);
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        if (!supabaseUrl || !supabaseKey) {
+          throw new Error('Configuration Supabase manquante.');
+        }
 
-        // Créer une notification pour l'agent
-        await base44.entities.Notification.create({
-          type: 'info',
-          title: 'Nouvelle demande de rendez-vous',
-          message: `${formData.first_name} ${formData.last_name} a demandé un ${formData.appointment_type.toLowerCase()} via la Social Page`,
-          linked_lead_id: newLead.id,
-          read: false
+        const res = await fetch(`${supabaseUrl}/functions/v1/capture-lead`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({
+            social_page_config_id: agentConfig.id,
+            lead_data: leadData,
+            event_data: eventData,
+          }),
         });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data?.error || `Erreur ${res.status}`);
+        }
+        if (data?.error) throw new Error(data.error);
       } else {
-        // Notification simple pour nouveau lead
-        await base44.entities.Notification.create({
-          type: 'info',
-          title: 'Nouveau lead capturé',
-          message: `${formData.first_name} ${formData.last_name} a rempli le formulaire sur la Social Page`,
-          linked_lead_id: newLead.id,
-          read: false
-        });
+        const fullLeadData = {
+          ...leadData,
+          source: 'social_page',
+          status: 'nouveau',
+        };
+        const newLead = await base44.entities.Lead.create(fullLeadData);
+
+        if (formData.wants_appointment && formData.appointment_date) {
+          const eventRecord = {
+            title: `${formData.appointment_type} - ${formData.first_name} ${formData.last_name}`,
+            type: formData.appointment_type === 'Visite' ? 'visit' :
+                  formData.appointment_type === 'Appel' ? 'call' : 'meeting',
+            date: formData.appointment_date.toISOString(),
+            end_date: new Date(formData.appointment_date.getTime() + 60 * 60 * 1000).toISOString(),
+            description: formData.appointment_message || undefined,
+            status: 'planned',
+            linked_to_type: 'lead',
+            linked_to_id: newLead.id,
+          };
+          await base44.entities.Event.create(eventRecord);
+          await base44.entities.Notification.create({
+            type: 'info',
+            title: 'Nouvelle demande de rendez-vous',
+            message: `${formData.first_name} ${formData.last_name} a demandé un ${formData.appointment_type.toLowerCase()} via la Social Page`,
+            linked_lead_id: newLead.id,
+            read: false,
+          });
+        } else {
+          await base44.entities.Notification.create({
+            type: 'info',
+            title: 'Nouveau lead capturé',
+            message: `${formData.first_name} ${formData.last_name} a rempli le formulaire sur la Social Page`,
+            linked_lead_id: newLead.id,
+            read: false,
+          });
+        }
       }
 
       toast.success('Merci ! Votre demande a bien été envoyée.');
-      setStep(4); // Page de confirmation
+      setStep(4);
     } catch (error) {
       console.error('Erreur lors de la soumission:', error);
-      toast.error('Une erreur est survenue. Veuillez réessayer.');
+      const msg = error?.message || 'Erreur inconnue';
+      setSubmitError(msg);
+      toast.error(msg.length > 80 ? msg.slice(0, 80) + '...' : msg);
     } finally {
       setLoading(false);
     }
@@ -298,6 +338,11 @@ export default function LeadCaptureForm({ onClose, agentConfig }) {
           {/* Step 3: Rendez-vous optionnel */}
           {step === 3 && (
             <div className="space-y-4">
+              {submitError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                  {submitError}
+                </div>
+              )}
               {formData.wants_appointment === null && (
                 <>
                   <p className="text-gray-600 mb-4">

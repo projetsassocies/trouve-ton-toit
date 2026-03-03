@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Phone, Mail, FileText, CheckCircle2, Calendar, Search, Filter } from 'lucide-react';
+import { Phone, Mail, FileText, CheckCircle2, Calendar, Search, Filter, MessageSquare, Target, CheckCircle, XCircle } from 'lucide-react';
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
@@ -14,6 +14,11 @@ import { cn } from '@/lib/utils';
 const typeConfig = {
   call: { icon: Phone, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
   email: { icon: Mail, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+  sms: { icon: MessageSquare, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
+  visite: { icon: Calendar, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-200' },
+  matching_proposition: { icon: Target, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+  matching_accepte: { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
+  matching_refuse: { icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200' },
   note: { icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
   task: { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
   event: { icon: Calendar, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200' },
@@ -61,9 +66,10 @@ export default function TimelineTab() {
 
   const isLoading = loadingActivities || loadingTasks || loadingNotes || loadingEvents;
 
-  // Activités : uniquement call et email (éviter doublons avec Task/Event)
+  // Activités : call, email, sms, visite, matching (proposition/accepte/refuse)
+  const activityTypes = ['call', 'email', 'sms', 'visite', 'matching_proposition', 'matching_accepte', 'matching_refuse'];
   const activityItems = activities
-    .filter(a => a.type === 'call' || a.type === 'email')
+    .filter(a => activityTypes.includes(a.type))
     .map(a => ({ ...a, itemType: 'activity', type: a.type, sortDate: a.created_date }));
 
   const taskItems = tasks.map(t => ({
@@ -182,6 +188,11 @@ export default function TimelineTab() {
               <SelectItem value="all">Tous les types</SelectItem>
               <SelectItem value="call">📞 Appels</SelectItem>
               <SelectItem value="email">📧 Emails</SelectItem>
+              <SelectItem value="sms">💬 SMS</SelectItem>
+              <SelectItem value="visite">🏠 Visites</SelectItem>
+              <SelectItem value="matching_proposition">🎯 Biens proposés</SelectItem>
+              <SelectItem value="matching_accepte">✅ Biens acceptés</SelectItem>
+              <SelectItem value="matching_refuse">❌ Biens refusés</SelectItem>
               <SelectItem value="note">📝 Notes</SelectItem>
               <SelectItem value="task">✅ Tâches</SelectItem>
               <SelectItem value="event">📅 Événements</SelectItem>

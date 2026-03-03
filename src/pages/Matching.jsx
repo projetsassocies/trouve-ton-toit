@@ -226,9 +226,22 @@ export default function Matching() {
     queryClient.invalidateQueries({ queryKey: ['matches'] });
   };
 
-  // --- Match status update ---
+  // --- Sync lead status from match status (only advance, never retreat) ---
+  const getLeadStatusFromMatchStatus = (currentLeadStatus, matchStatus) => {
+    const order = { nouveau: 0, contacte: 1, en_negociation: 2, converti: 3, perdu: -1 };
+    const current = order[currentLeadStatus] ?? 0;
+    let target = current;
+    if (matchStatus === 'propose' || matchStatus === 'visite_planifiee') {
+      target = Math.max(current, 1); // contacte
+    } else if (matchStatus === 'visite_effectuee' || matchStatus === 'accepte') {
+      target = Math.max(current, 2); // en_negociation
+    }
+    return Object.entries(order).find(([, v]) => v === target)?.[0] || currentLeadStatus;
+  };
+
+  // --- Match status update (with lead sync + activity creation) ---
   const updateMatchStatusMutation = useMutation({
-    mutationFn: async ({ matchId, newStatus, note }) => {
+    mutationFn: async ({ matchId, newStatus, note, leadId, listingTitle }) => {
       const match = matchRecords.find(m => m.id === matchId);
       if (!match) return;
       const history = [...(match.history || []), {
@@ -240,21 +253,71 @@ export default function Matching() {
       if (newStatus === 'propose') updates.proposed_date = new Date().toISOString();
       if (newStatus === 'visite_planifiee' || newStatus === 'visite_effectuee') updates.visit_date = new Date().toISOString();
       if (newStatus === 'accepte' || newStatus === 'refuse') updates.decision_date = new Date().toISOString();
-      return base44.entities.Match.update(matchId, updates);
+      await base44.entities.Match.update(matchId, updates);
+
+      // Sync lead status
+      if (leadId) {
+        const lead = await base44.entities.Lead.get(leadId);
+        if (lead) {
+          const newLeadStatus = getLeadStatusFromMatchStatus(lead.status || 'nouveau', newStatus);
+          if (newLeadStatus !== (lead.status || 'nouveau')) {
+            await base44.entities.Lead.update(leadId, { status: newLeadStatus });
+          }
+        }
+      }
+
+      // Create activity for traceability (skip visite_planifiee: handleScheduleVisit creates it)
+      if (leadId && listingTitle) {
+        const activityLabels = {
+          propose: { type: 'matching_proposition', title: `Bien proposé : ${listingTitle}` },
+          visite_effectuee: { type: 'visite', title: `Visite effectuée : ${listingTitle}` },
+          accepte: { type: 'matching_accepte', title: `Bien accepté : ${listingTitle} — Prêt pour signature du mandat` },
+          refuse: { type: 'matching_refuse', title: `Bien refusé : ${listingTitle}` },
+        };
+        const activityConfig = activityLabels[newStatus];
+        if (activityConfig) {
+          try {
+            await base44.entities.Activity.create({
+              type: activityConfig.type,
+              title: activityConfig.title,
+              ...(note && { description: note }),
+              linked_to_id: leadId,
+              linked_to_type: 'lead',
+            });
+          } catch (err) {
+            console.error('Erreur création activité:', err);
+          }
+        }
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['lead'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activities'] });
+      if (variables.leadId) {
+        queryClient.invalidateQueries({ queryKey: ['activities', variables.leadId] });
+      }
       toast.success('Statut mis à jour');
     },
   });
 
   const handleUpdateMatchStatus = (newStatus) => {
     const selectedEntity = mode === 'lead-to-listing' ? selectedLead : selectedListing;
-    const matchId = mode === 'lead-to-listing'
-      ? matchRecords.find(m => m.lead_id === selectedEntity?.id && m.listing_id === selectedMatchId)?.id
-      : matchRecords.find(m => m.listing_id === selectedEntity?.id && m.lead_id === selectedMatchId)?.id;
-    if (matchId) {
-      updateMatchStatusMutation.mutate({ matchId, newStatus });
+    const matchRecord = mode === 'lead-to-listing'
+      ? matchRecords.find(m => m.lead_id === selectedEntity?.id && m.listing_id === selectedMatchId)
+      : matchRecords.find(m => m.listing_id === selectedEntity?.id && m.lead_id === selectedMatchId);
+    const matchResult = matchResults.find(r => r.item.id === selectedMatchId);
+    const listing = mode === 'lead-to-listing' ? matchResult?.item : selectedListing;
+    const lead = mode === 'lead-to-listing' ? selectedLead : matchResult?.item;
+    if (matchRecord) {
+      updateMatchStatusMutation.mutate({
+        matchId: matchRecord.id,
+        newStatus,
+        leadId: matchRecord.lead_id,
+        listingTitle: listing?.title || 'Bien',
+      });
     }
   };
 
@@ -263,12 +326,25 @@ export default function Matching() {
     const lead = mode === 'lead-to-listing'
       ? selectedLead
       : matchResults.find(r => r.item.id === selectedMatchId)?.item;
+    const listing = mode === 'lead-to-listing'
+      ? matchResults.find(r => r.item.id === selectedMatchId)?.item
+      : selectedListing;
     if (!lead?.email) {
       toast.error('Pas d\'email pour ce lead');
       return;
     }
     try {
       await SendEmail({ to: lead.email, subject, html: body.replace(/\n/g, '<br/>') });
+      await base44.entities.Activity.create({
+        type: 'email',
+        title: `Email envoyé : ${subject}`,
+        description: `Proposition de bien : ${listing?.title || 'Bien'}`,
+        linked_to_id: lead.id,
+        linked_to_type: 'lead',
+      });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['activities', lead.id] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activities'] });
       toast.success('Email envoyé');
       handleUpdateMatchStatus('propose');
     } catch {
@@ -280,12 +356,25 @@ export default function Matching() {
     const lead = mode === 'lead-to-listing'
       ? selectedLead
       : matchResults.find(r => r.item.id === selectedMatchId)?.item;
+    const listing = mode === 'lead-to-listing'
+      ? matchResults.find(r => r.item.id === selectedMatchId)?.item
+      : selectedListing;
     if (!lead?.phone) {
       toast.error('Pas de numéro pour ce lead');
       return;
     }
     try {
       await SendSMS({ to: lead.phone, message: body });
+      await base44.entities.Activity.create({
+        type: 'sms',
+        title: `SMS envoyé : proposition de bien`,
+        description: `Bien proposé : ${listing?.title || 'Bien'}`,
+        linked_to_id: lead.id,
+        linked_to_type: 'lead',
+      });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['activities', lead.id] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activities'] });
       toast.success('SMS envoyé');
       handleUpdateMatchStatus('propose');
     } catch {
@@ -305,6 +394,9 @@ export default function Matching() {
         linked_to_id: lead?.id,
         linked_to_type: 'lead',
       });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      if (lead?.id) queryClient.invalidateQueries({ queryKey: ['activities', lead.id] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activities'] });
       handleUpdateMatchStatus('visite_planifiee');
       toast.success('Visite planifiée');
     } catch {

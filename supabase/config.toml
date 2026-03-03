@@ -1,0 +1,13 @@
+# Configuration Supabase
+# Pour déployer les Edge Functions : supabase functions deploy scrapeBienImmobilier
+
+[api]
+enabled = true
+
+[edge_runtime]
+enabled = true
+
+# Scraping peut prendre du temps (timeout par défaut 60s)
+# Augmenter si nécessaire via le dashboard Supabase
+[functions.scrapeBienImmobilier]
+verify_jwt = true

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { Home, MapPin, Euro, Check, Paperclip, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -53,7 +54,9 @@ function isURL(text) {
     text.includes('.fr') ||
     text.includes('leboncoin') ||
     text.includes('seloger') ||
-    text.includes('pap');
+    text.includes('pap') ||
+    text.includes('iadfrance') ||
+    text.includes('iad.fr');
 }
 
 function buildAmenities(data) {
@@ -175,11 +178,29 @@ export default function BienChatTab() {
         if (text.includes('leboncoin')) siteName = 'LeBonCoin';
         else if (text.includes('seloger')) siteName = 'SeLoger';
         else if (text.includes('pap')) siteName = 'PAP';
+        else if (text.includes('iadfrance') || text.includes('iad.fr')) siteName = 'IAD';
 
         try {
-          const { data: scrapedData } = await base44.functions.invoke('scrapeBienImmobilier', { url: text.trim() });
-
-          if (!scrapedData?.success) throw new Error(scrapedData?.error || 'Erreur scraping');
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) throw new Error('Session manquante. Reconnectez-vous puis réessayez.');
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+          const res = await fetch(`${supabaseUrl}/functions/v1/scrapeBienImmobilier`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+              'apikey': anonKey,
+            },
+            body: JSON.stringify({ url: text.trim() }),
+          });
+          let scrapedData;
+          try {
+            scrapedData = await res.json();
+          } catch {
+            throw new Error(`Réponse invalide (${res.status})`);
+          }
+          if (!scrapedData?.success) throw new Error(scrapedData?.error || `Erreur ${res.status}`);
 
           const d = scrapedData.data;
           const propertyData = {
@@ -209,9 +230,14 @@ export default function BienChatTab() {
             timestamp: new Date().toISOString()
           };
         } catch (scrapeErr) {
+          const errMsg = scrapeErr?.message || scrapeErr?.error || String(scrapeErr);
+          const is401 = errMsg.includes('401') || errMsg.toLowerCase().includes('unauthorized');
+          const suggestion = is401
+            ? 'Session expiree ? Deconnectez-vous puis reconnectez-vous, puis reessayez.'
+            : 'Alternatif : copie le titre, la description, le prix et les caracteristiques de l\'annonce, colle-les ici et je creerai la fiche.';
           assistantMsg = {
             role: 'assistant',
-            content: `Je n'ai pas pu acceder a cette annonce sur ${siteName}. Tu peux reessayer ou coller directement le texte de l'annonce et je l'analyserai.`,
+            content: `Erreur extraction : ${errMsg.slice(0, 150)}${errMsg.length > 150 ? '...' : ''}\n\n${suggestion}`,
             timestamp: new Date().toISOString()
           };
         }
@@ -452,8 +478,8 @@ export default function BienChatTab() {
       emptyStateSubtitle="Colle une annonce, une URL ou une description de bien et je l'analyse pour toi"
       suggestions={[
         "T3 lumineux Lyon 3e, 72m², 285 000€, balcon",
+        "Colle le texte ou une URL LeBonCoin, SeLoger, PAP ou IAD",
         "Maison 5 pieces avec jardin a Bordeaux",
-        "https://www.leboncoin.fr/...",
       ]}
       inputPlaceholder="Colle une annonce, URL ou description de bien..."
       inputPrefix={

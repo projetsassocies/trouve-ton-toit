@@ -1,45 +1,51 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, Maximize, Phone, Mail, ExternalLink, ChevronRight, Briefcase, QrCode, Home, MessageSquare } from 'lucide-react';
+import { MapPin, Maximize, ExternalLink, ChevronRight, Briefcase, QrCode, Home, MessageSquare } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import LeadCaptureForm from '@/components/social/LeadCaptureForm';
 
-export default function SocialPage() {
+export default function SocialPage({ config: configProp, listings: listingsProp, isPublic = false }) {
   const [showLeadForm, setShowLeadForm] = useState(false);
+
+  const useProps = configProp != null && listingsProp != null;
 
   const { data: configs = [], isLoading: configLoading } = useQuery({
     queryKey: ['social-config-public'],
     queryFn: () => base44.entities.SocialPageConfig.list(),
+    enabled: !useProps,
   });
 
   const { data: allListings = [], isLoading: listingsLoading } = useQuery({
     queryKey: ['all-listings-public'],
     queryFn: () => base44.entities.Listing.list('-created_date'),
+    enabled: !useProps,
   });
 
-  const config = configs[0] || {};
-  
-  // Get featured listings or fall back to published listings
+  const config = useProps ? configProp : (configs[0] || {});
+  const rawListings = useProps ? listingsProp : allListings;
+
   const featuredListings = config.featured_listings?.length > 0
-    ? allListings.filter(l => config.featured_listings.includes(l.id))
-    : allListings.filter(l => l.status === 'publie').slice(0, 6);
+    ? rawListings.filter((l) => config.featured_listings.includes(l.id))
+    : rawListings.filter((l) => l.status === 'publie').slice(0, 6);
 
-  const visibleLinks = config.custom_links?.filter(l => l.visible !== false && l.title && l.url) || [];
+  const visibleLinks = config.custom_links?.filter((l) => l.visible !== false && l.title && l.url) || [];
 
-  const primaryColor = config.primary_color || '#000000';
+  const primaryColor = config.primary_color || config.theme_color || '#000000';
   const accentColor = config.accent_color || '#4ade80';
   const backgroundColor = config.background_color || '#f8f9fa';
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-FR', { 
-      style: 'currency', 
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
       currency: 'EUR',
-      maximumFractionDigits: 0 
+      maximumFractionDigits: 0,
     }).format(price);
   };
 
-  if (configLoading) {
+  const isLoading = !useProps && (configLoading || listingsLoading);
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[#f8f9fa]">
         <div className="max-w-2xl mx-auto px-4 py-12">
@@ -59,44 +65,44 @@ export default function SocialPage() {
       <div className="max-w-2xl mx-auto px-4 py-12 text-center">
         {/* Avatar */}
         {config.profile_picture ? (
-          <img 
-            src={config.profile_picture} 
-            alt={config.display_name || 'Profile'} 
+          <img
+            src={config.profile_picture}
+            alt={config.display_name || 'Profile'}
             className="w-32 h-32 rounded-full mx-auto mb-5 object-cover shadow-xl"
             style={{ boxShadow: `0 20px 40px ${primaryColor}20` }}
           />
         ) : (
-          <div 
+          <div
             className="w-32 h-32 rounded-full mx-auto mb-5 flex items-center justify-center shadow-xl"
             style={{ backgroundColor: accentColor, boxShadow: `0 20px 40px ${primaryColor}20` }}
           >
             <span className="text-5xl font-semibold" style={{ color: primaryColor }}>
-              {config.display_name?.[0]?.toUpperCase() || 'A'}
+              {config.display_name?.[0]?.toUpperCase() || config.agency_name?.[0]?.toUpperCase() || 'A'}
             </span>
           </div>
         )}
-        
+
         <h1 className="text-2xl font-bold tracking-tight" style={{ color: primaryColor }}>
-          {config.display_name || 'Agent Immobilier'}
+          {config.display_name || config.agency_name || 'Agent Immobilier'}
         </h1>
-        
+
         {config.profession && (
           <p className="text-sm mt-2 flex items-center justify-center gap-1.5" style={{ color: primaryColor, opacity: 0.7 }}>
             <Briefcase className="w-4 h-4" />
             {config.profession}
           </p>
         )}
-        
+
         {config.zone && (
           <p className="text-sm mt-1 flex items-center justify-center gap-1.5" style={{ color: primaryColor, opacity: 0.6 }}>
             <MapPin className="w-4 h-4" />
             {config.zone}
           </p>
         )}
-        
-        {config.bio && (
+
+        {(config.bio || config.about_text) && (
           <p className="mt-4 max-w-md mx-auto" style={{ color: primaryColor, opacity: 0.7 }}>
-            {config.bio}
+            {config.bio || config.about_text}
           </p>
         )}
 
@@ -105,13 +111,13 @@ export default function SocialPage() {
           <button
             onClick={() => setShowLeadForm(true)}
             className="mt-6 px-8 py-4 rounded-2xl text-base font-semibold text-white shadow-2xl transition-all hover:scale-105 hover:shadow-3xl flex items-center gap-3"
-            style={{ 
-              backgroundColor: primaryColor, 
+            style={{
+              backgroundColor: primaryColor,
               boxShadow: `0 20px 60px ${primaryColor}50`,
             }}
           >
             <MessageSquare className="w-5 h-5" />
-            {config.cta_button_text || 'Prendre contact avec'} {config.display_name?.split(' ')[0] || 'moi'}
+            {config.cta_button_text || 'Prendre contact avec'} {config.display_name?.split(' ')[0] || config.agency_name?.split(' ')[0] || 'moi'}
           </button>
         </div>
         <p className="text-xs mt-3" style={{ color: primaryColor, opacity: 0.5 }}>
@@ -149,7 +155,7 @@ export default function SocialPage() {
               {featuredListings.length} bien{featuredListings.length > 1 ? 's' : ''}
             </span>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {featuredListings.map((listing) => (
               <div
@@ -158,8 +164,8 @@ export default function SocialPage() {
               >
                 <div className="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
                   {listing.images?.[0] ? (
-                    <img 
-                      src={listing.images[0]} 
+                    <img
+                      src={listing.images[0]}
                       alt={listing.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -201,7 +207,7 @@ export default function SocialPage() {
       {/* QR Section */}
       {config.qr_label && (
         <div className="max-w-lg mx-auto px-4 py-8 text-center">
-          <div 
+          <div
             className="inline-block p-4 rounded-2xl mb-3"
             style={{ backgroundColor: config.qr_background || '#FFFFFF' }}
           >
@@ -222,9 +228,10 @@ export default function SocialPage() {
 
       {/* Lead Capture Form Modal */}
       {showLeadForm && (
-        <LeadCaptureForm 
-          onClose={() => setShowLeadForm(false)} 
+        <LeadCaptureForm
+          onClose={() => setShowLeadForm(false)}
           agentConfig={config}
+          isPublic={isPublic}
         />
       )}
     </div>
