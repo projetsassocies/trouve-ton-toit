@@ -415,15 +415,18 @@ export default function AssistantChatTab({ activeLead, activeListing }) {
       isProcessing={isProcessing}
       onSendMessage={handleSendMessage}
       renderMessageExtra={renderMessageExtra}
-      emptyStateIcon={<MessageCircle className="w-6 h-6 text-[#095237]" />}
-      emptyStateTitle="Ton assistant CRM intelligent"
-      emptyStateSubtitle="Je peux chercher dans tes leads, programmer des RDV, modifier des fiches, analyser ton pipeline..."
-      suggestions={[
+      placeholderPrompts={useMemo(() => [
         "Combien de leads chauds j'ai ?",
         "Programme un appel demain 10h avec mon dernier lead",
-        "Quels biens matchent pour mes leads a Lyon ?",
-        "Resume mon pipeline cette semaine",
-      ]}
+        "Quels biens matchent pour mes leads à Lyon ?",
+        "Résume mon pipeline cette semaine",
+        "Crée un RDV visite pour ce lead",
+        "Qui sont mes 5 leads les plus chauds ?",
+        "Modifie le statut du lead Martin",
+        "Prochains rendez-vous cette semaine",
+        "Biens disponibles pour acheteurs Lyon ?",
+        "Stats de conversion ce mois",
+      ], [])}
       inputPlaceholder="Demande-moi ce que tu veux..."
     />
   );

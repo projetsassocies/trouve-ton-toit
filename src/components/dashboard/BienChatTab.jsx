@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { supabase } from '@/api/supabaseClient';
 import { useQueryClient } from '@tanstack/react-query';
@@ -473,14 +473,18 @@ export default function BienChatTab() {
       isProcessing={isProcessing}
       onSendMessage={handleSendMessage}
       renderMessageExtra={renderMessageExtra}
-      emptyStateIcon={<Home className="w-6 h-6 text-[#095237]" />}
-      emptyStateTitle="Extraction de biens par IA"
-      emptyStateSubtitle="Colle une annonce, une URL ou une description de bien et je l'analyse pour toi"
-      suggestions={[
+      placeholderPrompts={useMemo(() => [
         "T3 lumineux Lyon 3e, 72m², 285 000€, balcon",
-        "Colle le texte ou une URL LeBonCoin, SeLoger, PAP ou IAD",
-        "Maison 5 pieces avec jardin a Bordeaux",
-      ]}
+        "Colle le texte ou une URL LeBonCoin, SeLoger, PAP",
+        "Maison 5 pièces avec jardin à Bordeaux",
+        "Appartement 45m² Paris 11e, 420 000€",
+        "Annonce SeLoger ou LeBonCoin à coller ici",
+        "Villa 4 chambres, piscine, Côte d'Azur",
+        "Studio meublé centre-ville Lyon, 650€/mois",
+        "T4 avec terrasse, 95m², Rennes",
+        "Description libre d'un bien à ajouter",
+        "URL annonce immobilière à analyser",
+      ], [])}
       inputPlaceholder="Colle une annonce, URL ou description de bien..."
       inputPrefix={
         <label className="flex-shrink-0 h-11 w-11 rounded-xl hover:bg-[#F3F4F6] cursor-pointer transition-colors flex items-center justify-center border border-[#E5E7EB]">

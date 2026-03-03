@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import { UserPlus, MapPin, Euro, Check, Building2, MessageCircle } from 'lucide-react';
@@ -385,15 +385,19 @@ export default function LeadChatTab() {
       isProcessing={isProcessing}
       onSendMessage={handleSendMessage}
       renderMessageExtra={renderMessageExtra}
-      emptyStateIcon={<UserPlus className="w-6 h-6 text-[#095237]" />}
-      emptyStateTitle="Extraction de leads par IA"
-      emptyStateSubtitle="Colle un email, SMS ou message WhatsApp et je qualifie tes leads automatiquement"
-      suggestions={[
+      placeholderPrompts={useMemo(() => [
         "Sophie Martin, 35 ans, cherche T3 Lyon, budget 280k",
         "Couple cherche maison 4 chambres, 500k max",
-        "Jean veut vendre son T2 a Marseille",
-      ]}
-      inputPlaceholder="Colle un message client ou decris un lead..."
+        "Jean veut vendre son T2 à Marseille",
+        "Email : Marie Dupont, acheteuse Lyon 6e, T2 200k",
+        "Colle un message WhatsApp ou email client",
+        "Lead vendeur : maison 120m² avec jardin",
+        "Prospect locataire T1 Paris 15e, 900€",
+        "Nouveau contact : budget 350k, Lyon et environs",
+        "Paul 45 ans cherche villa sur la Côte",
+        "SMS client : recherche appart centre-ville Bordeaux",
+      ], [])}
+      inputPlaceholder="Colle un message client ou décris un lead..."
     />
   );
 }

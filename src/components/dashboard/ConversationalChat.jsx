@@ -6,6 +6,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useTypingPlaceholder } from '@/hooks/useTypingPlaceholder';
 
 export default function ConversationalChat({
   conversations = [],
@@ -24,6 +25,7 @@ export default function ConversationalChat({
   emptyStateSubtitle,
   suggestions = [],
   inputPlaceholder = 'Ecris ta reponse...',
+  placeholderPrompts = [],
   inputPrefix,
   renderAboveInput,
 }) {
@@ -33,6 +35,15 @@ export default function ConversationalChat({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hoveredConvId, setHoveredConvId] = useState(null);
   const [inputValue, setInputValue] = useState('');
+  const [inputFocused, setInputFocused] = useState(false);
+
+  const typingPlaceholder = useTypingPlaceholder(
+    placeholderPrompts.length > 0 ? placeholderPrompts : [inputPlaceholder],
+    45,
+    25,
+    2200,
+    350
+  );
 
   const messagesContainerRef = useRef(null);
   const renameInputRef = useRef(null);
@@ -229,28 +240,7 @@ export default function ConversationalChat({
         </div>
 
         {messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-6">
-            {emptyStateIcon && (
-              <div className="w-12 h-12 rounded-full bg-[#095237]/10 flex items-center justify-center mb-3">
-                {emptyStateIcon}
-              </div>
-            )}
-            {emptyStateTitle && <p className="text-sm text-[#6B7280] mb-1">{emptyStateTitle}</p>}
-            {emptyStateSubtitle && <p className="text-xs text-[#9CA3AF] mb-4 text-center max-w-sm">{emptyStateSubtitle}</p>}
-            {suggestions.length > 0 && (
-              <div className="flex flex-wrap gap-2 justify-center max-w-md">
-                {suggestions.map((s, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setInputValue(s)}
-                    className="px-3 py-1.5 text-xs bg-[#F3F4F6] hover:bg-[#E5E7EB] rounded-full text-[#374151] transition-colors"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <div className="flex-1 min-h-0" />
         ) : (
           <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-3 p-4">
             {messages.map((msg, idx) => (
@@ -286,14 +276,27 @@ export default function ConversationalChat({
 
         <div className="flex gap-2 items-end p-3 border-t border-[#E5E7EB]">
           {inputPrefix}
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={messages.length > 0 ? "Ecris ta reponse..." : inputPlaceholder}
-            className="flex-1 h-11 rounded-xl bg-[#F9FAFB] border-[#E5E7EB] text-sm"
-            disabled={isProcessing}
-          />
+          <div className="relative flex-1 flex">
+            {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
+              <div
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#9CA3AF] pointer-events-none pr-12 overflow-hidden max-w-[calc(100%-3rem)]"
+                aria-hidden
+              >
+                {typingPlaceholder}
+                <span className="inline-block w-0.5 h-4 bg-[#9CA3AF] ml-0.5 animate-pulse align-middle" />
+              </div>
+            )}
+            <Input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              onKeyDown={handleKeyDown}
+              placeholder=""
+              className="flex-1 h-11 rounded-xl bg-[#F9FAFB] border-[#E5E7EB] text-sm"
+              disabled={isProcessing}
+            />
+          </div>
           <Button
             onClick={handleSend}
             disabled={isProcessing || !inputValue.trim()}
