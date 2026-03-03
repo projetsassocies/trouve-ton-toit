@@ -16,9 +16,9 @@ function TabsContent() {
   const { activeTab, setActiveTab, activeLead, activeListing } = useChatContext();
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-      <div className="p-6 md:p-8">
-        <div className="flex gap-2 mb-6">
+    <div className="w-full max-w-[1200px] mx-auto bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden min-w-0">
+      <div className="p-4 sm:p-6 md:p-8">
+        <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto pb-1">
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

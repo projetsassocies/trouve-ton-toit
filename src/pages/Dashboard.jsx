@@ -60,7 +60,7 @@ export default function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             Bonjour{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''} 👋

@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Filter, Plus, ChevronRight, Mail, Phone, LayoutList, LayoutGrid, CheckSquare, Square, Trash2, X, Sparkles } from 'lucide-react';
+import { Search, Filter, Plus, ChevronRight, Phone, LayoutList, LayoutGrid, CheckSquare, Square, Trash2, X, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -161,17 +161,25 @@ export default function Leads() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Leads</h1>
-          <p className="text-[#999999] mt-1">
-            {selectionMode && selectedLeads.length > 0 
-              ? `${selectedLeads.length} lead(s) sélectionné(s)` 
-              : `${leads.length} prospect${leads.length > 1 ? 's' : ''} au total`}
-          </p>
+      {/* Header - minimalist on mobile: title + primary CTA only */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between sm:block gap-2">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Leads</h1>
+            <p className="text-[#999999] text-sm mt-0.5">
+              {selectionMode && selectedLeads.length > 0 
+                ? `${selectedLeads.length} sélectionné(s)` 
+                : `${leads.length} prospect${leads.length > 1 ? 's' : ''}`}
+            </p>
+          </div>
+          <Link to={createPageUrl('AddLead')} className="sm:hidden flex-shrink-0">
+            <Button className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl h-10 px-4 text-sm font-medium">
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter
+            </Button>
+          </Link>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 hidden sm:flex">
           {!selectionMode ? (
             <>
               <Button 
@@ -191,12 +199,6 @@ export default function Leads() {
                 <CheckSquare className="w-4 h-4 mr-2" />
                 Sélectionner
               </Button>
-              <Link to={createPageUrl('AddLead')}>
-                <Button className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl h-10 px-4 text-sm font-medium">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Ajouter un lead
-                </Button>
-              </Link>
             </>
           ) : (
             <Button 
@@ -212,85 +214,84 @@ export default function Leads() {
             </Button>
           )}
         </div>
+        {/* Desktop only: duplicate Add button for consistency when not in selection mode */}
+        {!selectionMode && (
+          <Link to={createPageUrl('AddLead')} className="hidden sm:block">
+            <Button className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl h-10 px-4 text-sm font-medium">
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un lead
+            </Button>
+          </Link>
+        )}
       </div>
 
-      {/* View Toggle & Filters */}
+      {/* Filters - search full width, view + filters on second row; compact on mobile */}
       <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
+        <div className="relative w-full min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999] flex-shrink-0" />
+          <Input
+            placeholder="Rechercher un lead..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 h-10 rounded-xl border-[#E5E5E5] focus:border-black focus:ring-0 w-full"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
           <Tabs value={viewMode} onValueChange={setViewMode}>
-            <TabsList className="bg-white border border-[#E5E5E5]">
-              <TabsTrigger value="list" className="flex items-center gap-2">
+            <TabsList className="bg-white border border-[#E5E5E5] h-10">
+              <TabsTrigger value="list" className="flex items-center gap-1.5 px-3 text-sm h-8">
                 <LayoutList className="w-4 h-4" />
                 Liste
               </TabsTrigger>
-              <TabsTrigger value="kanban" className="flex items-center gap-2">
+              <TabsTrigger value="kanban" className="flex items-center gap-1.5 px-3 text-sm h-8">
                 <LayoutGrid className="w-4 h-4" />
                 Kanban
               </TabsTrigger>
             </TabsList>
           </Tabs>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          {selectionMode && viewMode === 'list' && (
-            <Button 
-              variant="outline"
-              onClick={handleSelectAll}
-              className="border-[#E5E5E5] rounded-xl h-10 px-4 text-sm font-medium hover:bg-[#F5F5F5]"
-            >
-              {selectedLeads.length === filteredLeads.length ? (
-                <>
-                  <Square className="w-4 h-4 mr-2" />
-                  Tout désélectionner
-                </>
-              ) : (
-                <>
-                  <CheckSquare className="w-4 h-4 mr-2" />
-                  Tout sélectionner
-                </>
-              )}
-            </Button>
-          )}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999]" />
-            <Input
-              placeholder="Rechercher un lead..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-10 rounded-xl border-[#E5E5E5] focus:border-black focus:ring-0"
-            />
-          </div>
           {viewMode === 'list' && (
             <>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl border-[#E5E5E5]">
-                  <Filter className="w-4 h-4 mr-2 text-[#999999]" />
+                <SelectTrigger className="h-10 min-w-0 sm:w-36 rounded-xl border-[#E5E5E5] text-sm flex-1 sm:flex-initial">
+                  <Filter className="w-3.5 h-3.5 mr-1 text-[#999999] shrink-0" />
                   <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="nouveau">Nouveau</SelectItem>
                   <SelectItem value="contacte">Contacté</SelectItem>
-                  <SelectItem value="en_negociation">En négociation</SelectItem>
+                  <SelectItem value="en_negociation">Négo</SelectItem>
                   <SelectItem value="converti">Converti</SelectItem>
                   <SelectItem value="perdu">Perdu</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl border-[#E5E5E5]">
-                  <Filter className="w-4 h-4 mr-2 text-[#999999]" />
+                <SelectTrigger className="h-10 min-w-0 sm:w-36 rounded-xl border-[#E5E5E5] text-sm flex-1 sm:flex-initial">
                   <SelectValue placeholder="Catégorie" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Toutes les catégories</SelectItem>
-                  <SelectItem value="CHAUD">Chaud 🔥</SelectItem>
-                  <SelectItem value="TIÈDE">Tiède ☀️</SelectItem>
-                  <SelectItem value="FROID">Froid ❄️</SelectItem>
+                  <SelectItem value="CHAUD">Chaud</SelectItem>
+                  <SelectItem value="TIÈDE">Tiède</SelectItem>
+                  <SelectItem value="FROID">Froid</SelectItem>
                 </SelectContent>
               </Select>
             </>
           )}
         </div>
+        {selectionMode && viewMode === 'list' && (
+          <Button 
+            variant="outline"
+            onClick={handleSelectAll}
+            className="border-[#E5E5E5] rounded-xl h-9 px-3 text-sm font-medium hover:bg-[#F5F5F5] w-fit"
+          >
+            {selectedLeads.length === filteredLeads.length ? (
+              <><Square className="w-4 h-4 mr-2" />Tout désélectionner</>
+            ) : (
+              <><CheckSquare className="w-4 h-4 mr-2" />Tout sélectionner</>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Content */}
@@ -327,7 +328,7 @@ export default function Leads() {
               {filteredLeads.map((lead) => (
                 <div
                   key={lead.id}
-                  className="flex items-center gap-3 p-4 hover:bg-[#FAFAFA] transition-colors group relative"
+                  className="flex items-start md:items-center gap-3 p-4 hover:bg-[#FAFAFA] transition-colors group"
                 >
                   {selectionMode ? (
                     <div
@@ -348,18 +349,29 @@ export default function Leads() {
                     </Link>
                   )}
                   
-                  <div 
-                    className="flex-1 grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1fr_auto] items-center gap-3 min-w-0"
-                    onClick={() => selectionMode && handleToggleSelection(lead.id)}
-                  >
-                    {/* Name & Phone */}
-                    <Link
-                      to={createPageUrl(`LeadDetail?id=${lead.id}`)}
-                      className="min-w-0 hover:underline"
-                    >
-                      <p className="font-medium truncate text-sm">
-                        {lead.first_name} {lead.last_name}
-                      </p>
+                  {/* Mobile: minimalist - name + categorie only; tap for details */}
+                  <div className="flex-1 min-w-0 md:hidden flex items-center gap-3">
+                    <Link to={createPageUrl(`LeadDetail?id=${lead.id}`)} className="flex-1 min-w-0 flex flex-col gap-0.5">
+                      <p className="font-medium truncate text-sm">{lead.first_name} {lead.last_name}</p>
+                      {lead.phone && (
+                        <p className="text-xs text-[#999999] flex items-center gap-1 min-w-0">
+                          <Phone className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate whitespace-nowrap">{lead.phone}</span>
+                        </p>
+                      )}
+                    </Link>
+                    {lead.categorie && (
+                      <EditableCategorieBadge leadId={lead.id} currentCategorie={lead.categorie} onUpdate={handleUpdateLead} />
+                    )}
+                    <Link to={createPageUrl(`LeadDetail?id=${lead.id}`)} className="flex-shrink-0">
+                      <ChevronRight className="w-5 h-5 text-[#CCCCCC]" />
+                    </Link>
+                  </div>
+
+                  {/* Desktop: table row */}
+                  <div className="flex-1 hidden md:grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1fr_auto] items-center gap-3 min-w-0">
+                    <Link to={createPageUrl(`LeadDetail?id=${lead.id}`)} className="min-w-0 hover:underline">
+                      <p className="font-medium truncate text-sm">{lead.first_name} {lead.last_name}</p>
                       {lead.phone && (
                         <div className="flex items-center gap-1 mt-0.5 text-xs text-[#999999]">
                           <Phone className="w-3 h-3" />
@@ -367,57 +379,27 @@ export default function Leads() {
                         </div>
                       )}
                     </Link>
-
-                    {/* Lead Type */}
-                    <div className="hidden lg:flex justify-center">
-                      <EditableLeadTypeBadge
-                        leadId={lead.id}
-                        currentType={lead.lead_type}
-                        onUpdate={handleUpdateLead}
-                      />
+                    <div className="flex justify-center">
+                      <EditableLeadTypeBadge leadId={lead.id} currentType={lead.lead_type} onUpdate={handleUpdateLead} />
                     </div>
-
-                    {/* Property Type */}
-                    <span className="hidden md:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#666666] capitalize justify-center">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#666666] capitalize justify-center truncate">
                       {lead.property_type || '-'}
                     </span>
-
-                    {/* Budget */}
-                    <span className="hidden md:block text-sm font-medium text-right">
+                    <span className="text-sm font-medium text-right truncate">
                       {lead.budget_max ? formatPrice(lead.budget_max) : '-'}
                     </span>
-
-                    {/* City */}
-                    <span className="hidden sm:block text-sm text-[#666666] truncate" title={lead.city}>
-                      {lead.city || '-'}
-                    </span>
-
-                    {/* Categorie Badge */}
+                    <span className="text-sm text-[#666666] truncate" title={lead.city}>{lead.city || '-'}</span>
                     <div className="flex justify-center">
                       {lead.categorie ? (
-                        <EditableCategorieBadge
-                          leadId={lead.id}
-                          currentCategorie={lead.categorie}
-                          onUpdate={handleUpdateLead}
-                        />
+                        <EditableCategorieBadge leadId={lead.id} currentCategorie={lead.categorie} onUpdate={handleUpdateLead} />
                       ) : <div />}
                     </div>
-
-                    {/* Pipeline Status Badge */}
                     <div className="flex justify-center">
-                      <EditableStatusBadge
-                        leadId={lead.id}
-                        currentStatus={lead.status}
-                        onUpdate={handleUpdateLead}
-                      />
+                      <EditableStatusBadge leadId={lead.id} currentStatus={lead.status} onUpdate={handleUpdateLead} />
                     </div>
-                    
                     {!selectionMode && (
-                      <Link
-                        to={createPageUrl(`LeadDetail?id=${lead.id}`)}
-                        className="flex items-center justify-center"
-                      >
-                        <ChevronRight className="w-4 h-4 text-[#CCCCCC] group-hover:text-[#999999] transition-colors flex-shrink-0" />
+                      <Link to={createPageUrl(`LeadDetail?id=${lead.id}`)} className="flex justify-center">
+                        <ChevronRight className="w-4 h-4 text-[#CCCCCC] group-hover:text-[#999999]" />
                       </Link>
                     )}
                   </div>
@@ -430,13 +412,13 @@ export default function Leads() {
 
       {/* Action Bar - Fixed at bottom when items selected */}
       {selectionMode && selectedLeads.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black text-white rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-4">
+        <div className="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:bottom-6 z-50 bg-black text-white rounded-2xl shadow-2xl px-4 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           <span className="text-sm font-medium">
             {selectedLeads.length} lead{selectedLeads.length > 1 ? 's' : ''} sélectionné{selectedLeads.length > 1 ? 's' : ''}
           </span>
           <div className="h-6 w-px bg-white/20" />
           <Select onValueChange={handleUpdateStatus}>
-            <SelectTrigger className="w-40 h-9 bg-white/10 border-white/20 text-white rounded-lg">
+            <SelectTrigger className="w-full sm:w-40 h-9 bg-white/10 border-white/20 text-white rounded-lg">
               <SelectValue placeholder="Changer statut" />
             </SelectTrigger>
             <SelectContent>

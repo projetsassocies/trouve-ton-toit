@@ -119,7 +119,7 @@ export default function Listings() {
               : `${listings.length} bien${listings.length > 1 ? 's' : ''} au total`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {!selectionMode ? (
             <>
               <Button 

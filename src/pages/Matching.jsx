@@ -566,7 +566,7 @@ export default function Matching() {
         {/* ============ MATCHING TAB ============ */}
         <TabsContent value="matching" className="mt-4">
           {/* Mode toggle */}
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <Button
               variant={mode === 'lead-to-listing' ? 'default' : 'outline'}
               size="sm"
@@ -627,7 +627,7 @@ export default function Matching() {
           {/* 3-panel layout */}
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] gap-3 items-start">
             {/* Left panel: Selector */}
-            <div className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden h-[calc(100vh-220px)] min-h-[500px]">
+            <div className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden min-h-[300px] lg:min-h-[500px] lg:h-[calc(100vh-220px)]">
               {mode === 'lead-to-listing' ? (
                 <LeadSelector
                   leads={leads}
@@ -674,7 +674,7 @@ export default function Matching() {
             </div>
 
             {/* Center panel: Results */}
-            <div className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden h-[calc(100vh-220px)] min-h-[500px]">
+            <div className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden min-h-[300px] lg:min-h-[500px] lg:h-[calc(100vh-220px)]">
               <MatchResultsPanel
                 mode={mode}
                 selectedEntity={mode === 'lead-to-listing' ? selectedLead : selectedListing}
@@ -693,7 +693,7 @@ export default function Matching() {
             </div>
 
             {/* Right panel: Actions */}
-            <div className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden h-[calc(100vh-220px)] min-h-[500px]">
+            <div className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden min-h-[300px] lg:min-h-[500px] lg:h-[calc(100vh-220px)]">
               <MatchActionsPanel
                 mode={mode}
                 selectedEntity={selectedEntity}

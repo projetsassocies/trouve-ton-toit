@@ -42,7 +42,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
+    <div className="min-h-screen bg-[#FAFAFA] overflow-x-hidden">
       {user && <NotificationToast user={user} />}
 
       <style>{`
@@ -167,8 +167,8 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Main Content */}
-      <main className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
-        <div className="p-4 lg:p-8">
+      <main className="lg:ml-64 min-h-screen pt-16 lg:pt-0 overflow-x-hidden">
+        <div className="p-4 lg:p-8 max-w-[100vw]">
           {children}
         </div>
       </main>

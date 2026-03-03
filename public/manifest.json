@@ -1,6 +1,7 @@
 {
   "name": "TrouveTonToit",
   "short_name": "TTT",
+  "icons": [{ "src": "/favicon.png", "sizes": "192x192", "type": "image/png" }],
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

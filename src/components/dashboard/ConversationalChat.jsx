@@ -30,7 +30,7 @@ export default function ConversationalChat({
   const [searchQuery, setSearchQuery] = useState('');
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hoveredConvId, setHoveredConvId] = useState(null);
   const [inputValue, setInputValue] = useState('');
 
@@ -102,9 +102,14 @@ export default function ConversationalChat({
   };
 
   return (
-    <div className="flex rounded-xl border border-[#E5E7EB] overflow-hidden" style={{ height: '500px' }}>
+    <div className="relative flex rounded-xl border border-[#E5E7EB] overflow-hidden min-h-[400px] lg:min-h-[500px] h-[400px] lg:h-[500px] w-full">
       {sidebarOpen && (
-        <div className="w-[280px] bg-[#F9FAFB] border-r border-[#E5E7EB] flex flex-col flex-shrink-0">
+        <>
+          <div
+            className="lg:hidden fixed inset-0 bg-black/30 z-10"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="absolute lg:relative inset-y-0 left-0 z-20 w-[260px] lg:w-[280px] max-w-[85vw] bg-[#F9FAFB] border-r border-[#E5E7EB] flex flex-col flex-shrink-0 shadow-xl lg:shadow-none">
           <div className="p-3 space-y-2">
             <button
               onClick={onNewConversation}
@@ -202,13 +207,14 @@ export default function ConversationalChat({
             )}
           </div>
         </div>
+        </>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <div className="flex items-center px-3 py-2 border-b border-[#E5E7EB]">
           <button
             onClick={() => setSidebarOpen(prev => !prev)}
-            className="p-1.5 rounded-lg hover:bg-[#F3F4F6] transition-colors"
+            className="p-1.5 rounded-lg hover:bg-[#F3F4F6] transition-colors flex-shrink-0"
             title={sidebarOpen ? "Masquer l'historique" : "Afficher l'historique"}
           >
             {sidebarOpen

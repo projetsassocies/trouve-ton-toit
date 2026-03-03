@@ -84,7 +84,7 @@ export default function NotificationPopover({ user }) {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-0 rounded-2xl" align="end">
+      <PopoverContent className="w-[min(24rem,calc(100vw-2rem))] p-0 rounded-2xl" align="end">
         {/* Header */}
         <div className="p-4 border-b border-[#E5E5E5] flex items-center justify-between">
           <h3 className="font-semibold">Notifications</h3>

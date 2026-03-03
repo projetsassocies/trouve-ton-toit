@@ -57,7 +57,7 @@ export default function LeadSelector({
             className="pl-9 h-9 rounded-xl border-[#E5E5E5] text-sm"
           />
         </div>
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
           <Select value={leadType} onValueChange={(v) => onFilterChange({ ...filters, leadType: v })}>
             <SelectTrigger className="h-7 rounded-lg border-[#E5E5E5] text-xs">
               <SelectValue />
