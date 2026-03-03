@@ -31,6 +31,8 @@ export default function Login() {
           password: formData.password,
           options: {
             data: { full_name: formData.full_name },
+            // Redirige vers l'URL courante après vérification (Vercel ou localhost)
+            emailRedirectTo: `${window.location.origin}/`,
           },
         });
         if (signUpError) throw signUpError;
