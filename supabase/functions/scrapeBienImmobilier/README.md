@@ -32,14 +32,14 @@ Dans le dashboard Supabase → Project Settings → Edge Functions → Secrets :
 | Secret | Description | Priorité |
 |--------|-------------|----------|
 | `OPENAI_API_KEY` | Clé API OpenAI (obligatoire sauf si Apify LeBonCoin) | Obligatoire |
-| `APIFY_TOKEN` | **LeBonCoin uniquement** - Apify Details Scraper (~19€/mois) | 1 si URL LeBonCoin |
+| `APIFY_TOKEN` | **LeBonCoin uniquement** - Apify Details Scraper PPR (pay per result) | 1 si URL LeBonCoin |
 | `SCRAPINGBEE_API_KEY` | ScrapingBee - premium_proxy pour tous les sites | 2 |
 | `SCRAPERAPI_KEY` | ScraperAPI | 3 |
 | `BRIGHTDATA_WEB_UNLOCKER_API_KEY` | BrightData Web Unlocker | 4 |
 | `BROWSERLESS_API_KEY` | Browserless.io | 5 |
 | `BRIGHTDATA_BROWSER_AUTH` | BrightData Browser API | 6 |
 
-**Apify (LeBonCoin)** : Scraper spécialisé, meilleur taux de succès. https://console.apify.com/account/integrations → API token. Puis créer une tâche sur l'Actor silentflow/leboncoin-details-scraper (abonnement ~19€/mois).
+**Apify (LeBonCoin)** : Scraper spécialisé pour annonces individuelles. https://console.apify.com/account/integrations → API token. Actor : `silentflow/leboncoin-details-scraper-ppr` (pay per result, pas d'abonnement). Extrait images, prix, description, DPE/GES, surface, pièces, amenities, coordonnées GPS.
 
 **ScrapingBee** : premium_proxy activé pour tous les sites (LeBonCoin, SeLoger, IAD, PAP).
 

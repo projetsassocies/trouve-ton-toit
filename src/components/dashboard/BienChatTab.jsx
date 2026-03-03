@@ -203,6 +203,9 @@ export default function BienChatTab({ greetingText }) {
           if (!scrapedData?.success) throw new Error(scrapedData?.error || `Erreur ${res.status}`);
 
           const d = scrapedData.data;
+          const amenitiesList = Array.isArray(d.amenities) && d.amenities.length > 0
+            ? d.amenities
+            : buildAmenities(d);
           const propertyData = {
             title: d.titre || `Bien ${d.type_bien || ''} ${d.ville || ''}`.trim(),
             description: d.description || '',
@@ -215,11 +218,14 @@ export default function BienChatTab({ greetingText }) {
             bedrooms: d.chambres,
             bathrooms: d.salles_bain,
             property_type: d.type_bien || 't3',
-            transaction_type: 'vente',
+            transaction_type: d.transaction_type || 'vente',
             energy_class: d.dpe || null,
             ges_class: d.ges || null,
-            amenities: buildAmenities(d),
-            floor: d.etage || null,
+            amenities: amenitiesList,
+            floor: d.etage ?? null,
+            latitude: d.latitude ?? null,
+            longitude: d.longitude ?? null,
+            source_url: d.url_source ?? null,
             images: d.photos || [],
           };
 
@@ -321,8 +327,11 @@ export default function BienChatTab({ greetingText }) {
         energy_class: d.energy_class || null,
         ges_class: d.ges_class || null,
         amenities: d.amenities || [],
-        floor: d.floor || null,
-        total_floors: d.total_floors || null,
+        floor: d.floor ?? null,
+        total_floors: d.total_floors ?? null,
+        latitude: d.latitude ?? null,
+        longitude: d.longitude ?? null,
+        source_url: d.source_url ?? null,
         images: [...(d.images || []), ...images.map(img => img.url)],
         status: 'brouillon',
       });

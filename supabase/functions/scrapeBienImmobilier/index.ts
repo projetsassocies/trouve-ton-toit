@@ -18,6 +18,31 @@ function detectSiteSource(url: string): string | null {
   return null
 }
 
+/** Normalise les URLs Leboncoin vers le format /ad/category/id attendu par l'API Apify */
+function normalizeLeBonCoinUrl(url: string): string {
+  try {
+    const u = url.trim()
+    if (!u.includes('leboncoin')) return url
+    if (u.includes('/ad/')) return u
+    // Ancien format : leboncoin.fr/ventes_immobilieres/1234567890.htm ou /locations/xxx
+    const match = u.match(/leboncoin\.fr\/(ventes_immobilieres|locations(?:\/longue_duree)?|achat\/terrains)\/(\d+)/i)
+    if (match) {
+      const category = match[1].replace(/\/$/, '')
+      const id = match[2]
+      return `https://www.leboncoin.fr/ad/${category}/${id}`
+    }
+    // Id numérique seul
+    const idMatch = u.match(/(\d{8,})/)
+    if (idMatch && (u.includes('ventes') || u.includes('locations') || u.includes('immobilier'))) {
+      const cat = u.includes('locations') ? 'locations' : 'ventes_immobilieres'
+      return `https://www.leboncoin.fr/ad/${cat}/${idMatch[1]}`
+    }
+  } catch {
+    /* ignore */
+  }
+  return url
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS })
@@ -54,6 +79,12 @@ Deno.serve(async (req) => {
       url = url.substring(0, hashIndex)
     }
 
+    // Normaliser les URLs Leboncoin pour l'API Apify
+    if (url.includes('leboncoin')) {
+      url = normalizeLeBonCoinUrl(url)
+      console.log(`[SCRAPING] URL normalisée: ${url}`)
+    }
+
     console.log(`[SCRAPING] Début: ${url}`)
     console.time('scraping_duration')
 
@@ -73,15 +104,15 @@ Deno.serve(async (req) => {
     const scraperApiKey = Deno.env.get('SCRAPERAPI_KEY')
     const webUnlockerKey = Deno.env.get('BRIGHTDATA_WEB_UNLOCKER_API_KEY')
 
-    // Apify Leboncoin Details Scraper : scraper spécialisé LeBonCoin (meilleur taux de succès)
+    // Apify Leboncoin Details Scraper : scraper spécialisé LeBonCoin (images HD, attributs complets, DPE/GES)
     if (siteSource === 'leboncoin' && apifyToken) {
       console.log('[SCRAPING] Appel Apify Leboncoin Details Scraper...')
       const runResp = await fetch(
-        `https://api.apify.com/v2/acts/silentflow~leboncoin-details-scraper/runs?token=${apifyToken}&waitForFinish=60`,
+        `https://api.apify.com/v2/acts/silentflow~leboncoin-details-scraper-ppr/runs?token=${apifyToken}&waitForFinish=90`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ urls: [url] }),
+          body: JSON.stringify({ urls: [url], maxItems: 1 }),
         }
       )
       if (!runResp.ok) {
@@ -100,32 +131,97 @@ Deno.serve(async (req) => {
       const ad = Array.isArray(items) ? items[0] : items
       if (!ad) throw new Error('Apify: aucune donnée retournée')
 
-      const getAttr = (key: string) => {
+      const getAttr = (keys: string | string[]) => {
         const arr = ad.attributes || []
-        const found = arr.find((a: { key?: string }) => a.key === key)
-        return found?.value ?? found?.valueLabel ?? null
+        const k = Array.isArray(keys) ? keys : [keys]
+        for (const key of k) {
+          const found = arr.find((a: { key?: string }) => (a as { key?: string }).key === key)
+          if (found) {
+            const v = (found as { value?: string; valueLabel?: string }).value ?? (found as { valueLabel?: string }).valueLabel
+            if (v != null && v !== '') return String(v)
+          }
+        }
+        return null
       }
-      const pieces = parseInt(getAttr('rooms') || getAttr('piece') || ad.rooms || '0', 10) || 0
+
+      const rawVal = (v: unknown) => (v != null && v !== '') ? String(v).replace(/\D/g, '') : ''
+      const pieces = parseInt(getAttr(['rooms', 'piece']) || rawVal(ad.rooms) || '0', 10) || 0
       const typeMap: Record<number, string> = { 1: 'studio', 2: 't2', 3: 't3', 4: 't4', 5: 't5' }
+      const catName = (ad.categoryName || '').toLowerCase()
+      const isMaison = catName.includes('maison') || catName.includes('villa')
+      const isTerrain = catName.includes('terrain')
+      const isLoft = catName.includes('loft')
+
+      const surfaceVal = getAttr(['surface', 'square_meters', 'square', 'carrez']) || rawVal(ad.surface)
+      const surface = surfaceVal ? parseInt(surfaceVal.replace(/\D/g, ''), 10) : null
+
+      let dpe: string | null = getAttr(['dpe', 'energy_performance', 'energy_class', 'energy_rating']) || null
+      let ges: string | null = getAttr(['ges', 'emissions', 'greenhouse_gas']) || null
+      if (dpe && /^[A-G]$/i.test(dpe)) dpe = dpe.toUpperCase()
+      else if (!dpe && ad.property?.energy?.rating) dpe = String(ad.property.energy.rating).toUpperCase()
+      if (ges && /^[A-G]$/i.test(ges)) ges = ges.toUpperCase()
+      else if (!ges && ad.property?.energy?.ges) ges = String(ad.property.energy.ges).toUpperCase()
+
+      const etageVal = getAttr(['floor', 'etage', 'stage'])
+      const etage = etageVal != null ? parseInt(String(etageVal).replace(/\D/g, ''), 10) : null
+
+      const amenities: string[] = []
+      const attrs = ad.attributes || []
+      const attrKeys = attrs.map((a: { key?: string }) => ((a as { key?: string }).key || '').toLowerCase())
+      const attrLabels = attrs.map((a: { valueLabel?: string; value?: string }) =>
+        ((a as { valueLabel?: string }).valueLabel || (a as { value?: string }).value || '').toLowerCase()
+      )
+      const addAmenity = (keys: string[], target: string) => {
+        const matchKey = keys.some(k => attrKeys.some(ak => ak.includes(k) || k.includes(ak)))
+        const matchLabel = keys.some(k => attrLabels.some(l => l.includes(k) || k.includes(l)))
+        if (matchKey || matchLabel || getAttr(keys)) amenities.push(target)
+      }
+      addAmenity(['ascenseur', 'elevator', 'lift'], 'ascenseur')
+      addAmenity(['cave', 'cellar'], 'cave')
+      addAmenity(['balcon', 'balcony'], 'balcon')
+      addAmenity(['terrasse', 'terrace'], 'terrasse')
+      addAmenity(['jardin', 'garden'], 'jardin')
+      addAmenity(['parking', 'garage'], 'parking')
+
+      const transaction_type = catName.includes('location') ? 'location' : 'vente'
+
+      let photos = ad.images || []
+      if (!Array.isArray(photos)) photos = []
+      if (ad.media?.images?.urls && Array.isArray(ad.media.images.urls)) {
+        photos = ad.media.images.urls
+      }
 
       const parsedData = {
         titre: ad.title || '',
         description: ad.description || '',
-        prix: ad.price ? parseInt(String(ad.price).replace(/\D/g, ''), 10) : null,
+        prix: ad.price != null ? parseInt(String(ad.price).replace(/\D/g, ''), 10) : null,
         ville: ad.city || '',
-        code_postal: ad.zipcode || '',
+        code_postal: ad.zipcode || ad.postalCode || '',
         quartier: ad.department || '',
-        type_bien: ad.categoryName?.toLowerCase().includes('maison') ? 'maison' : (typeMap[pieces] || 't3'),
-        surface: parseInt(getAttr('surface') || getAttr('square_meters') || ad.surface || '0', 10) || null,
+        type_bien: isTerrain ? 'terrain' : isLoft ? 'loft' : isMaison ? 'maison' : (typeMap[pieces] || 't3'),
+        surface: surface || null,
         pieces: pieces || null,
-        chambres: parseInt(getAttr('rooms') || getAttr('bedrooms') || '0', 10) || null,
-        salles_bain: parseInt(getAttr('bathrooms') || '0', 10) || null,
-        photos: ad.images || [],
-        date_publication: new Date().toISOString(),
+        chambres: parseInt(getAttr('bedrooms') || '0', 10) || null,
+        salles_bain: parseInt(getAttr(['bathrooms', 'salle_de_bain']) || '0', 10) || null,
+        etage: etage,
+        dpe,
+        ges,
+        amenities: amenities.length > 0 ? amenities : undefined,
+        parking: amenities.includes('parking'),
+        balcon: amenities.includes('balcon'),
+        terrasse: amenities.includes('terrasse'),
+        jardin: amenities.includes('jardin'),
+        cave: amenities.includes('cave'),
+        ascenseur: amenities.includes('ascenseur'),
+        photos,
+        latitude: ad.latitude ?? null,
+        longitude: ad.longitude ?? null,
+        date_publication: ad.firstPublicationDate || new Date().toISOString(),
+        transaction_type,
       }
 
       console.timeEnd('scraping_duration')
-      console.log('[SCRAPING] ✓ Succès (Apify)')
+      console.log(`[SCRAPING] ✓ Succès (Apify) - ${photos.length} images, DPE: ${dpe || '-'}`)
       return jsonResponse({
         success: true,
         data: { ...parsedData, url_source: url, site_source: 'leboncoin' },
