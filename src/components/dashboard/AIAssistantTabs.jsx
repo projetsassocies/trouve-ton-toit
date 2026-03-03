@@ -2,6 +2,8 @@ import React from 'react';
 import { UserPlus, Home, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatContextProvider, useChatContext } from '@/contexts/ChatContext';
+import { useAuth } from '@/lib/AuthContext';
+import { getChatGreeting } from '@/lib/chatGreeting';
 import LeadChatTab from './LeadChatTab';
 import BienChatTab from './BienChatTab';
 import AssistantChatTab from './AssistantChatTab';
@@ -13,12 +15,20 @@ const TABS = [
 ];
 
 function TabsContent() {
+  const { user } = useAuth();
   const { activeTab, setActiveTab, activeLead, activeListing } = useChatContext();
+  const greeting = getChatGreeting(user);
 
   return (
     <div className="w-full max-w-[1200px] mx-auto bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden min-w-0">
-      <div className="p-4 sm:p-6 md:p-8">
-        <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto pb-1">
+      <div className="p-4 sm:p-5">
+        {/* Compact chat area first */}
+        {activeTab === 'lead' && <LeadChatTab greetingText={greeting} />}
+        {activeTab === 'bien' && <BienChatTab greetingText={greeting} />}
+        {activeTab === 'chat' && <AssistantChatTab activeLead={activeLead} activeListing={activeListing} greetingText={greeting} />}
+
+        {/* Tabs below the chat box */}
+        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[#E5E5E5]">
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -27,12 +37,12 @@ function TabsContent() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
                   isActive
-                    ? "bg-white border-2 shadow-sm"
+                    ? "bg-[#f0fdf4] border-2"
                     : "bg-[#F3F4F6] text-[#6B7280] border-2 border-transparent hover:bg-[#E5E7EB]"
                 )}
-                style={isActive ? { borderColor: tab.color, color: '#111827' } : {}}
+                style={isActive ? { borderColor: tab.color, color: '#095237' } : {}}
               >
                 <Icon className="w-4 h-4" style={isActive ? { color: tab.color } : {}} />
                 {tab.label}
@@ -40,10 +50,6 @@ function TabsContent() {
             );
           })}
         </div>
-
-        {activeTab === 'lead' && <LeadChatTab />}
-        {activeTab === 'bien' && <BienChatTab />}
-        {activeTab === 'chat' && <AssistantChatTab activeLead={activeLead} activeListing={activeListing} />}
       </div>
     </div>
   );

@@ -20,10 +20,7 @@ export default function ConversationalChat({
   isProcessing = false,
   onSendMessage,
   renderMessageExtra,
-  emptyStateIcon,
-  emptyStateTitle,
-  emptyStateSubtitle,
-  suggestions = [],
+  greetingText = '',
   inputPlaceholder = 'Ecris ta reponse...',
   placeholderPrompts = [],
   inputPrefix,
@@ -113,14 +110,21 @@ export default function ConversationalChat({
   };
 
   return (
-    <div className="relative flex rounded-xl border border-[#E5E7EB] overflow-hidden min-h-[400px] lg:min-h-[500px] h-[400px] lg:h-[500px] w-full">
-      {sidebarOpen && (
-        <>
-          <div
-            className="lg:hidden fixed inset-0 bg-black/30 z-10"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="absolute lg:relative inset-y-0 left-0 z-20 w-[260px] lg:w-[280px] max-w-[85vw] bg-[#F9FAFB] border-r border-[#E5E7EB] flex flex-col flex-shrink-0 shadow-xl lg:shadow-none">
+    <div className="relative flex rounded-xl border border-[#E5E7EB] overflow-hidden h-[280px] sm:h-[320px] w-full">
+      {/* History panel - smooth slide-in overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-black/20 transition-opacity duration-300",
+          sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setSidebarOpen(false)}
+      />
+      <div
+        className={cn(
+          "absolute inset-y-0 left-0 z-50 w-[260px] sm:w-[280px] max-w-[85vw] bg-[#F9FAFB] border-r border-[#E5E7EB] flex flex-col flex-shrink-0 shadow-xl transition-transform duration-300 ease-out",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
           <div className="p-3 space-y-2">
             <button
               onClick={onNewConversation}
@@ -218,15 +222,13 @@ export default function ConversationalChat({
             )}
           </div>
         </div>
-        </>
-      )}
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <div className="flex items-center px-3 py-2 border-b border-[#E5E7EB]">
+        <div className="flex items-center px-2 py-1.5 border-b border-[#E5E7EB] min-h-0">
           <button
             onClick={() => setSidebarOpen(prev => !prev)}
             className="p-1.5 rounded-lg hover:bg-[#F3F4F6] transition-colors flex-shrink-0"
-            title={sidebarOpen ? "Masquer l'historique" : "Afficher l'historique"}
+            title={sidebarOpen ? "Masquer l'historique" : "Historique des conversations"}
           >
             {sidebarOpen
               ? <PanelLeftClose className="w-4 h-4 text-[#6B7280]" />
@@ -240,7 +242,13 @@ export default function ConversationalChat({
         </div>
 
         {messages.length === 0 ? (
-          <div className="flex-1 min-h-0" />
+          <div className="flex-1 flex items-center justify-center p-4">
+            {greetingText && (
+              <p className="text-sm sm:text-base text-[#374151] font-medium text-center">
+                {greetingText}
+              </p>
+            )}
+          </div>
         ) : (
           <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-3 p-4">
             {messages.map((msg, idx) => (

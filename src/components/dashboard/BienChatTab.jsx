@@ -71,7 +71,7 @@ function buildAmenities(data) {
   return amenities;
 }
 
-export default function BienChatTab() {
+export default function BienChatTab({ greetingText }) {
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [loadingConversations, setLoadingConversations] = useState(false);
@@ -462,6 +462,7 @@ export default function BienChatTab() {
 
   return (
     <ConversationalChat
+      greetingText={greetingText}
       conversations={conversations}
       loadingConversations={loadingConversations}
       activeConversationId={activeConversationId}

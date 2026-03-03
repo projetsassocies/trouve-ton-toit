@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
   MessageCircle, Calendar, UserPen, ClipboardList, StickyNote,
@@ -219,7 +219,7 @@ function ToolResultSummary({ name, data }) {
   }
 }
 
-export default function AssistantChatTab({ activeLead, activeListing }) {
+export default function AssistantChatTab({ activeLead, activeListing, greetingText }) {
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [loadingConversations, setLoadingConversations] = useState(false);
@@ -404,6 +404,7 @@ export default function AssistantChatTab({ activeLead, activeListing }) {
 
   return (
     <ConversationalChat
+      greetingText={greetingText}
       conversations={conversations}
       loadingConversations={loadingConversations}
       activeConversationId={activeConversationId}
