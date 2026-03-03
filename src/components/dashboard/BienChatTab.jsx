@@ -181,15 +181,17 @@ export default function BienChatTab({ greetingText }) {
         else if (text.includes('iadfrance') || text.includes('iad.fr')) siteName = 'IAD';
 
         try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session?.access_token) throw new Error('Session manquante. Reconnectez-vous puis réessayez.');
+          const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
+          if (sessionError) throw new Error('Session expirée. Reconnectez-vous puis réessayez.');
+          const sess = session ?? (await supabase.auth.getSession()).data?.session;
+          if (!sess?.access_token) throw new Error('Session manquante. Reconnectez-vous puis réessayez.');
           const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
           const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
           const res = await fetch(`${supabaseUrl}/functions/v1/scrapeBienImmobilier`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`,
+              'Authorization': `Bearer ${sess.access_token}`,
               'apikey': anonKey,
             },
             body: JSON.stringify({ url: text.trim() }),
