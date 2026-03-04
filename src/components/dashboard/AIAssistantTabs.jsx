@@ -1,16 +1,14 @@
 import React from 'react';
-import { UserPlus, Home, MessageCircle } from 'lucide-react';
+import { UserPlus, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatContextProvider, useChatContext } from '@/contexts/ChatContext';
 import { useAuth } from '@/lib/AuthContext';
 import { getChatGreeting } from '@/lib/chatGreeting';
 import LeadChatTab from './LeadChatTab';
-import BienChatTab from './BienChatTab';
 import AssistantChatTab from './AssistantChatTab';
 
 const TABS = [
   { id: 'lead', label: 'Lead', icon: UserPlus, color: '#095237' },
-  { id: 'bien', label: 'Bien', icon: Home, color: '#095237' },
   { id: 'chat', label: 'Assistant', icon: MessageCircle, color: '#095237' },
 ];
 
@@ -22,12 +20,9 @@ function TabsContent() {
   return (
     <div className="w-full max-w-[1200px] mx-auto bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden min-w-0">
       <div className="p-4 sm:p-5">
-        {/* Compact chat area first */}
         {activeTab === 'lead' && <LeadChatTab greetingText={greeting} />}
-        {activeTab === 'bien' && <BienChatTab greetingText={greeting} />}
         {activeTab === 'chat' && <AssistantChatTab activeLead={activeLead} activeListing={activeListing} greetingText={greeting} />}
 
-        {/* Tabs below the chat box */}
         <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[#E5E5E5]">
           {TABS.map(tab => {
             const Icon = tab.icon;

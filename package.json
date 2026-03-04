@@ -13,8 +13,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "supabase:link": "supabase link --project-ref iiwmtzorwwanjrnhsrah",
-    "supabase:deploy-scrape": "supabase functions deploy scrapeBienImmobilier"
+    "supabase:link": "supabase link --project-ref iiwmtzorwwanjrnhsrah"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
