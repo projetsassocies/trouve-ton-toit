@@ -9,6 +9,9 @@
     "https://www.seloger.com/*",
     "https://www.pap.fr/*",
     "https://www.iadfrance.fr/*",
+    "https://iadfrance.fr/*",
+    "https://www.iad.fr/*",
+    "https://iad.fr/*",
     "https://iiwmtzorwwanjrnhsrah.supabase.co/*"
   ],
   "action": {
@@ -24,10 +27,18 @@
       "matches": [
         "https://www.leboncoin.fr/ad/*",
         "https://www.seloger.com/annonces/*",
+        "https://www.seloger.com/*",
         "https://www.pap.fr/annonces/*",
-        "https://www.iadfrance.fr/annonce/*"
+        "https://www.pap.fr/annonce/*",
+        "https://www.iadfrance.fr/annonce/*",
+        "https://www.iadfrance.fr/ad/*",
+        "https://iadfrance.fr/annonce/*",
+        "https://iadfrance.fr/ad/*",
+        "https://www.iad.fr/*",
+        "https://iad.fr/*"
       ],
       "js": [
+        "extractors/shared.js",
         "extractors/leboncoin.js",
         "extractors/seloger.js",
         "extractors/pap.js",

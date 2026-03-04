@@ -29,19 +29,13 @@ function headers(accessToken) {
 
 async function signIn(email, password) {
   const url = `${SUPABASE_URL}/auth/v1/token?grant_type=password`;
-  const hdrs = headers();
-  console.log('[TTT] signIn →', url);
-  console.log('[TTT] headers:', JSON.stringify(hdrs));
-
   const res = await fetch(url, {
     method: 'POST',
-    headers: hdrs,
+    headers: headers(),
     body: JSON.stringify({ email, password }),
   });
 
-  console.log('[TTT] signIn status:', res.status);
   const body = await res.text();
-  console.log('[TTT] signIn body:', body.substring(0, 500));
 
   if (!res.ok) {
     let errMsg = `Erreur ${res.status}`;

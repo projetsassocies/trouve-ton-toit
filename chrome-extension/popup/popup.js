@@ -25,6 +25,15 @@ function formatPrice(price) {
   return Number(price).toLocaleString('fr-FR') + ' €';
 }
 
+function decodeHtml(str) {
+  if (!str) return str;
+  return String(str)
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
 function renderPreview(data) {
   const photos = data.images || [];
   const photosEl = $('#preview-photos');
@@ -37,7 +46,7 @@ function renderPreview(data) {
     photosEl.appendChild(img);
   });
 
-  $('#preview-title').textContent = data.title || 'Bien immobilier';
+  $('#preview-title').textContent = decodeHtml(data.title) || 'Bien immobilier';
   $('#preview-price').textContent = formatPrice(data.price);
   $('#preview-city').textContent = [data.city, data.postal_code].filter(Boolean).join(' ') || '—';
   $('#preview-type').textContent = (data.property_type || '—').toUpperCase();
@@ -53,6 +62,16 @@ function renderPreview(data) {
     $('#row-energy').style.display = 'flex';
     $('#preview-energy').textContent = data.energy_class;
   }
+
+  const elevatorVal = data.elevator;
+  if (elevatorVal === true || elevatorVal === false) {
+    $('#row-elevator').style.display = 'flex';
+    $('#preview-elevator').textContent = elevatorVal ? 'Oui' : 'Non';
+  }
+
+  const terrainSqm = data.amenities_data?.terrain_sqm;
+  $('#row-terrain').style.display = terrainSqm ? 'flex' : 'none';
+  if (terrainSqm) $('#preview-terrain').textContent = `${terrainSqm} m²`;
 
   const amenities = data.amenities || [];
   if (amenities.length > 0) {

@@ -19,7 +19,8 @@ import {
   Sparkles,
   Users,
   MapPinned,
-  Loader2
+  Loader2,
+  TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,7 @@ export default function ListingDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [exactAddress, setExactAddress] = useState('');
   const [loadingAmenities, setLoadingAmenities] = useState(false);
+  const [loadingEstimation, setLoadingEstimation] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
 
   const { data: listing, isLoading } = useQuery({
@@ -83,15 +85,27 @@ export default function ListingDetail() {
 
   const updateListingMutation = useMutation({
     mutationFn: (data) => base44.entities.Listing.update(listingId, data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['listing', listingId] });
-      toast.success('Commodités générées avec succès');
+      if (variables.nearby_amenities !== undefined) {
+        toast.success('Commodités générées avec succès');
+      } else if (variables.estimation_min !== undefined) {
+        toast.success('Estimation enregistrée');
+      }
     },
   });
 
   useEffect(() => {
-    if (listing?.exact_address) {
-      setExactAddress(listing.exact_address);
+    if (listing) {
+      if (listing.exact_address) {
+        setExactAddress(listing.exact_address);
+      } else {
+        // Pré-remplir avec l'adresse du bien si disponible
+        const parts = [listing.address, listing.postal_code, listing.city].filter(Boolean);
+        if (parts.length > 0) {
+          setExactAddress(parts.join(', '));
+        }
+      }
     }
   }, [listing]);
 
@@ -105,12 +119,12 @@ export default function ListingDetail() {
     try {
       const response = await base44.functions.invoke('getAmenities', { address: exactAddress });
       
-      if (response.data.error) {
-        toast.error(response.data.error);
+      if (response?.error) {
+        toast.error(response.error);
         return;
       }
 
-      const { latitude, longitude, amenities } = response.data;
+      const { latitude, longitude, amenities } = response;
       
       await updateListingMutation.mutateAsync({
         exact_address: exactAddress,
@@ -125,6 +139,46 @@ export default function ListingDetail() {
       console.error(error);
     } finally {
       setLoadingAmenities(false);
+    }
+  };
+
+  const handleGenerateEstimation = async () => {
+    if (!listing?.surface || listing.surface <= 0) {
+      toast.error('La surface du bien est requise pour l\'estimation');
+      return;
+    }
+
+    setLoadingEstimation(true);
+    try {
+      const address = exactAddress || [listing.address, listing.postal_code, listing.city].filter(Boolean).join(', ');
+      const response = await base44.functions.invoke('getPropertyEstimation', {
+        address: address || undefined,
+        latitude: listing.latitude,
+        longitude: listing.longitude,
+        surface: listing.surface,
+        property_type: listing.property_type,
+        postal_code: listing.postal_code
+      });
+
+      if (response?.error) {
+        toast.error(response.error);
+        return;
+      }
+
+      await updateListingMutation.mutateAsync({
+        estimation_min: response.estimation_min,
+        estimation_max: response.estimation_max,
+        estimation_prix_m2: response.prix_m2,
+        estimation_date: new Date().toISOString(),
+        estimation_source: response.source
+      });
+
+      setActiveTab('estimation');
+    } catch (error) {
+      toast.error('Erreur lors de l\'estimation');
+      console.error(error);
+    } finally {
+      setLoadingEstimation(false);
     }
   };
 
@@ -283,7 +337,10 @@ export default function ListingDetail() {
 
           {/* Tabs Navigation */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-12 bg-[#F5F5F5] rounded-xl p-1">
+            <TabsList className={cn(
+              "grid w-full h-12 bg-[#F5F5F5] rounded-xl p-1",
+              listing.transaction_type === 'vente' ? "grid-cols-3" : "grid-cols-2"
+            )}>
               <TabsTrigger value="details" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
                 Détails du bien
               </TabsTrigger>
@@ -291,6 +348,12 @@ export default function ListingDetail() {
                 <MapPinned className="w-4 h-4 mr-2" />
                 Commodités
               </TabsTrigger>
+              {listing.transaction_type === 'vente' && (
+                <TabsTrigger value="estimation" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Estimation
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* Details Tab */}
@@ -441,6 +504,80 @@ export default function ListingDetail() {
                 </div>
               )}
             </TabsContent>
+
+            {/* Estimation Tab (vente uniquement) */}
+            {listing.transaction_type === 'vente' && (
+              <TabsContent value="estimation" className="space-y-6 mt-6">
+                <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+                  <h2 className="font-semibold mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-[#666666]" />
+                    Estimation de valeur
+                  </h2>
+                  <p className="text-sm text-[#999999] mb-4">
+                    Estimation indicative basée sur les prix du marché (données DVF et prix au m² par secteur)
+                  </p>
+                  <Button
+                    onClick={handleGenerateEstimation}
+                    disabled={loadingEstimation}
+                    className="bg-black hover:bg-black/90 text-white rounded-xl h-11 px-6"
+                  >
+                    {loadingEstimation ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Calcul en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Générer l'estimation
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {listing.estimation_min != null && listing.estimation_max != null ? (
+                  <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6 space-y-4">
+                    <h2 className="font-semibold">Fourchette d'estimation</h2>
+                    <div className="flex flex-wrap gap-4">
+                      <div className="flex-1 min-w-[140px] p-4 rounded-xl bg-[#F5F5F5]">
+                        <p className="text-xs text-[#999999] mb-1">Minimum</p>
+                        <p className="text-xl font-semibold">{formatPrice(listing.estimation_min)}</p>
+                      </div>
+                      <div className="flex-1 min-w-[140px] p-4 rounded-xl bg-[#c5ff4e]/20 border border-[#c5ff4e]/40">
+                        <p className="text-xs text-[#999999] mb-1">Estimation médiane</p>
+                        <p className="text-xl font-semibold">
+                          {formatPrice(Math.round((listing.estimation_min + listing.estimation_max) / 2))}
+                        </p>
+                      </div>
+                      <div className="flex-1 min-w-[140px] p-4 rounded-xl bg-[#F5F5F5]">
+                        <p className="text-xs text-[#999999] mb-1">Maximum</p>
+                        <p className="text-xl font-semibold">{formatPrice(listing.estimation_max)}</p>
+                      </div>
+                    </div>
+                    {listing.estimation_prix_m2 && (
+                      <p className="text-sm text-[#999999]">
+                        Prix de référence : {listing.estimation_prix_m2.toLocaleString('fr-FR')} €/m²
+                        {listing.estimation_source && (
+                          <span className="ml-2">
+                            (source : {listing.estimation_source === 'dvf' ? 'données DVF' : 'référentiel départemental'})
+                          </span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-2xl border border-[#E5E5E5] p-12 text-center">
+                    <div className="w-16 h-16 rounded-full bg-[#F5F5F5] flex items-center justify-center mx-auto mb-4">
+                      <TrendingUp className="w-8 h-8 text-[#CCCCCC]" />
+                    </div>
+                    <h3 className="font-semibold mb-2">Aucune estimation générée</h3>
+                    <p className="text-sm text-[#999999]">
+                      Cliquez sur &quot;Générer l'estimation&quot; pour obtenir une fourchette de prix basée sur le marché local
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
+            )}
           </Tabs>
         </div>
 

@@ -1,26 +1,25 @@
 /**
  * SeLoger extractor.
  *
- * Strategy:
- *   1. Try JSON-LD structured data (@type RealEstateListing / Product)
- *   2. Fallback to DOM selectors
+ * Strategy: JSON-LD + DOM + fallback parsing from page text.
  */
 
 // eslint-disable-next-line no-var
 var extractSeLoger = (function () {
   'use strict';
 
+  const P = window.TTT_Parser;
+
   function canHandle() {
     return location.hostname.includes('seloger.com');
   }
 
   function extract() {
-    const fromJsonLd = tryJsonLd();
-    if (fromJsonLd) return fromJsonLd;
-    return tryDOM();
+    let data = tryJsonLd();
+    if (!data) data = tryDOM();
+    if (data && P?.fillFromText) return P.fillFromText(data);
+    return data;
   }
-
-  // ── JSON-LD approach ────────────────────────
 
   function tryJsonLd() {
     try {
@@ -34,14 +33,15 @@ var extractSeLoger = (function () {
           }
         }
       }
-    } catch { /* fallback to DOM */ }
+    } catch { /* fallback */ }
     return null;
   }
 
   function mapJsonLd(item) {
     const offer = item.offers || item.offer || {};
     const address = item.address || item.contentLocation?.address || {};
-
+    const rooms = parseInt(item.numberOfRooms, 10) || null;
+    const bedrooms = parseInt(item.numberOfBedrooms, 10) || null;
     const price = parseNum(offer.price || item.price);
     const images = [];
     if (item.image) {
@@ -51,7 +51,6 @@ var extractSeLoger = (function () {
         if (url) images.push(url);
       });
     }
-
     return {
       title: item.name || '',
       description: item.description || '',
@@ -59,11 +58,11 @@ var extractSeLoger = (function () {
       city: address.addressLocality || '',
       postal_code: address.postalCode || '',
       surface: parseNum(item.floorSize?.value),
-      rooms: parseInt(item.numberOfRooms, 10) || null,
-      bedrooms: parseInt(item.numberOfBedrooms, 10) || null,
+      rooms,
+      bedrooms,
       bathrooms: parseInt(item.numberOfBathroomsTotal, 10) || null,
       floor: null,
-      property_type: guessType(item.name || '', null),
+      property_type: (P && P.guessType) ? P.guessType(item.name || '', rooms, bedrooms) : guessType(item.name || '', rooms),
       transaction_type: (offer.businessFunction || '').toLowerCase().includes('location') ? 'location' : 'vente',
       energy_class: null,
       ges_class: null,
@@ -75,50 +74,107 @@ var extractSeLoger = (function () {
     };
   }
 
-  // ── DOM fallback ────────────────────────────
-
   function tryDOM() {
-    const title = textOf('[data-testid="sl.title"], h1, .detail-title');
-    const priceText = textOf('[data-testid="sl.price"], .price, [class*="Price"]');
+    const title = textOf('[data-testid="sl.title"], h1, .detail-title, [class*="title"]');
+    const priceText = textOf('[data-testid="sl.price"], .price, [class*="Price"], [class*="price"]');
     const price = parseNum(priceText);
     const description = textOf('[data-testid="sl.description"], .detail-description, [class*="Description"]');
 
-    const cityText = textOf('[data-testid="sl.location"], .detail-location, [class*="Location"]');
-    const postal_code = (cityText.match(/\d{5}/) || [''])[0];
-    const city = cityText.replace(/\d{5}/, '').replace(/,/g, '').trim();
+    const locationText = textOf('[data-testid="sl.location"], .detail-location, [class*="Location"], [class*="address"]') || title;
+    const postal_code = (locationText.match(/\d{5}/) || [null])[0] || null;
+    let city = locationText.replace(/\d{5}/g, '').replace(/[(),]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (city.length > 60) city = city.substring(0, 50);
 
     let rooms = null, surface = null, bedrooms = null, bathrooms = null;
 
-    document.querySelectorAll('[class*="Criterion"], [class*="criterion"], [class*="tag"], .detail-tags li').forEach(el => {
-      const text = el.textContent.toLowerCase();
-      if (text.includes('pièce')) rooms = parseInt(text, 10) || rooms;
-      if (text.includes('m²') || text.includes('m2')) surface = parseNum(text) || surface;
-      if (text.includes('chambre')) bedrooms = parseInt(text, 10) || bedrooms;
-      if (text.includes('salle')) bathrooms = parseInt(text, 10) || bathrooms;
+    const criteriaSel = '[data-testid*="criteria"], [class*="Criterion"], [class*="criterion"], [class*="tag"] li, .detail-tags li, [class*="feature"] li';
+    document.querySelectorAll(criteriaSel).forEach(el => {
+      const text = (el.textContent || '').trim();
+      const lower = text.toLowerCase();
+      if (lower.includes('pièce')) {
+        const n = parseInt(text.replace(/[^\d]/g, '').substring(0, 2), 10);
+        if (!isNaN(n)) rooms = n;
+      }
+      if (lower.includes('m²') || lower.includes('m2')) {
+        const m = text.match(/(\d{1,3}(?:[.,]\d+)?)\s*m/i);
+        if (m) {
+          const n = parseFloat(m[1].replace(',', '.'));
+          if (n > 0 && n < 2000) surface = n;
+        }
+      }
+      if (lower.includes('chambre')) {
+        const n = parseInt(text.replace(/[^\d]/g, '').substring(0, 2), 10);
+        if (!isNaN(n)) bedrooms = n;
+      }
+      if (lower.includes('salle') && lower.includes('bain')) {
+        const n = parseInt(text.replace(/[^\d]/g, '').substring(0, 2), 10);
+        if (!isNaN(n)) bathrooms = n;
+      }
     });
+
+    const pageText = P ? P.getPageText() : document.body?.innerText || '';
+    const combined = title + ' ' + locationText + ' ' + pageText;
+    if (P) {
+      if (!rooms) rooms = P.parseRooms(combined) || P.parseRooms(title);
+      if (!surface) surface = P.parseSurface(combined) || P.parseSurface(title);
+      if (!bedrooms) bedrooms = P.parseBedrooms(combined) || P.parseBedrooms(title);
+      if (!city) city = P.parseCity(locationText) || P.parseCity(title);
+    }
 
     const images = [];
-    document.querySelectorAll('[class*="Gallery"] img, [class*="Carousel"] img, [class*="slider"] img').forEach(img => {
-      const src = img.src || img.dataset.src;
+    document.querySelectorAll('[class*="Gallery"] img, [class*="Carousel"] img, [class*="slider"] img, [class*="Slider"] img, [class*="Photo"] img, [data-testid*="gallery"] img, [data-testid*="photo"] img').forEach(img => {
+      const src = img.src || img.currentSrc || img.dataset?.src || img.dataset?.lazySrc || img.getAttribute('data-src');
       if (src && src.startsWith('http') && !src.includes('logo') && !src.includes('icon')) images.push(src);
     });
+    document.querySelectorAll('picture source[srcset]').forEach(s => {
+      (s.srcset || '').split(',').forEach(part => {
+        const u = part.trim().split(/\s/)[0];
+        if (u && u.startsWith('http')) images.push(u);
+      });
+    });
+    if (images.length === 0 && P?.collectImageUrls) images.push(...P.collectImageUrls([]));
 
+    const amenities = [];
+    let elevator = null;
+    document.querySelectorAll(criteriaSel).forEach(el => {
+      const full = el.textContent || '';
+      if (/ascenseur\s*[:\s]*oui|avec\s*ascenseur|ascenseur\s*:\s*yes/i.test(full)) {
+        elevator = true;
+        amenities.push('ascenseur');
+      } else if (/ascenseur\s*[:\s]*non|sans\s*ascenseur/i.test(full)) {
+        elevator = false;
+      }
+      const t = full.toLowerCase();
+      if (t.includes('parking') || t.includes('garage')) amenities.push('parking');
+      if (t.includes('balcon')) amenities.push('balcon');
+      if (t.includes('terrasse')) amenities.push('terrasse');
+      if (t.includes('jardin')) amenities.push('jardin');
+      if (t.includes('cave')) amenities.push('cave');
+      if (t.includes('piscine')) amenities.push('piscine');
+    });
+
+    const type = (P && P.guessType) ? P.guessType(title, rooms, bedrooms) : guessType(title, rooms);
     return {
       title,
       description,
       price,
-      city,
-      postal_code,
+      city: city || '',
+      postal_code: postal_code || '',
       surface,
       rooms,
       bedrooms,
       bathrooms,
       floor: null,
-      property_type: guessType(title, rooms),
+      property_type: type,
       transaction_type: location.href.includes('location') ? 'location' : 'vente',
       energy_class: null,
       ges_class: null,
-      amenities: [],
+      amenities: [...new Set(amenities)],
+      elevator,
+      parking: amenities.includes('parking'),
+      balcony: amenities.includes('balcon'),
+      garden: amenities.includes('jardin'),
+      cellar: amenities.includes('cave'),
       images: [...new Set(images)],
       source_url: location.href,
       latitude: null,
@@ -126,16 +182,14 @@ var extractSeLoger = (function () {
     };
   }
 
-  // ── Utilities ───────────────────────────────
-
   function textOf(sel) {
     const el = document.querySelector(sel);
-    return el ? el.textContent.trim() : '';
+    return el ? el.textContent.trim().replace(/\s+/g, ' ') : '';
   }
 
   function parseNum(str) {
     if (str == null) return null;
-    const n = parseInt(String(str).replace(/[^\d]/g, ''), 10);
+    const n = parseInt(String(str).replace(/[^\d]/g, '').substring(0, 8), 10);
     return isNaN(n) ? null : n;
   }
 
@@ -144,8 +198,9 @@ var extractSeLoger = (function () {
     if (t.includes('maison') || t.includes('villa')) return 'maison';
     if (t.includes('terrain')) return 'terrain';
     if (t.includes('loft')) return 'loft';
+    if (t.includes('studio')) return 'studio';
     const map = { 1: 'studio', 2: 't2', 3: 't3', 4: 't4', 5: 't5' };
-    return map[rooms] || 't3';
+    return map[rooms] || (rooms ? 't' + Math.min(rooms, 5) : 't3');
   }
 
   return { canHandle, extract };

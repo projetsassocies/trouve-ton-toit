@@ -97,14 +97,36 @@ var extractLeBonCoin = (function () {
     if (dpe && /^[A-G]$/i.test(dpe)) dpe = dpe.toUpperCase(); else dpe = null;
     if (ges && /^[A-G]$/i.test(ges)) ges = ges.toUpperCase(); else ges = null;
 
+    const hasPositive = (keys) => {
+      for (const k of keys) {
+        const v = String(attrMap[k] ?? '').toLowerCase();
+        if (v && v !== 'non' && v !== 'no' && v !== '0' && v !== 'false') return true;
+      }
+      return false;
+    };
+    const hasNegative = (keys) => {
+      for (const k of keys) {
+        const v = String(attrMap[k] ?? '').toLowerCase();
+        if (v === 'non' || v === 'no' || v === '0' || v === 'false') return true;
+      }
+      return false;
+    };
+    const elevator = hasPositive(['ascenseur', 'elevator', 'lift']) ? true : hasNegative(['ascenseur']) ? false : null;
+    const parking = hasPositive(['parking', 'garage']);
+    const balcony = hasPositive(['balcon', 'balcony']);
+    const terrasse = hasPositive(['terrasse', 'terrace']);
+    const jardin = hasPositive(['jardin', 'garden']);
+    const cave = hasPositive(['cave', 'cellar']);
+
     const amenities = [];
-    const hasKey = (keys) => keys.some(k => attrMap[k] != null && attrMap[k] !== '' && attrMap[k] !== '0');
-    if (hasKey(['parking', 'garage'])) amenities.push('parking');
-    if (hasKey(['balcon', 'balcony'])) amenities.push('balcon');
-    if (hasKey(['terrasse', 'terrace'])) amenities.push('terrasse');
-    if (hasKey(['jardin', 'garden'])) amenities.push('jardin');
-    if (hasKey(['cave', 'cellar'])) amenities.push('cave');
-    if (hasKey(['ascenseur', 'elevator', 'lift'])) amenities.push('ascenseur');
+    if (parking) amenities.push('parking');
+    if (balcony) amenities.push('balcon');
+    if (terrasse) amenities.push('terrasse');
+    if (jardin) amenities.push('jardin');
+    if (cave) amenities.push('cave');
+    if (elevator === true) amenities.push('ascenseur');
+
+    const year_built = parseInt(attrMap.année_de_construction || attrMap.year_built || attrMap.construction || '', 10) || null;
 
     return {
       title: ad.subject || ad.title || '',
@@ -122,6 +144,12 @@ var extractLeBonCoin = (function () {
       energy_class: dpe,
       ges_class: ges,
       amenities,
+      elevator: elevator === true,
+      parking: !!parking,
+      balcony: !!balcony,
+      garden: !!jardin,
+      cellar: !!cave,
+      year_built,
       images: images.filter(u => typeof u === 'string'),
       source_url: location.href,
       latitude: ad.location?.lat ?? null,
@@ -145,13 +173,26 @@ var extractLeBonCoin = (function () {
     const city = cityParts.filter(p => !/^\d{5}$/.test(p)).join(' ').trim();
 
     const criteriaEls = document.querySelectorAll('[data-qa-id="criteria_item"]');
-    let rooms = null, surface = null, bedrooms = null;
+    let rooms = null, surface = null, bedrooms = null, bathrooms = null, floor = null, energy_class = null, ges_class = null;
+    let elevator = false;
     criteriaEls.forEach(el => {
       const label = (el.querySelector('[data-qa-id="criteria_item_label"]')?.textContent || '').toLowerCase();
-      const value = el.querySelector('[data-qa-id="criteria_item_value"]')?.textContent || '';
+      const value = (el.querySelector('[data-qa-id="criteria_item_value"]')?.textContent || '').trim();
+      const valLow = value.toLowerCase();
       if (label.includes('pièce')) rooms = parseInt(value, 10) || null;
       if (label.includes('surface') || label.includes('m²')) surface = parseNum(value);
       if (label.includes('chambre')) bedrooms = parseInt(value, 10) || null;
+      if (label.includes('salle') && label.includes('eau')) bathrooms = parseInt(value, 10) || null;
+      if (label.includes('étage') || label.includes('etage')) floor = parseInt(value, 10) || null;
+      if (label.includes('ascenseur')) elevator = valLow === 'oui' || valLow === 'yes' || valLow === '1';
+      if (label.includes('énergie') || label.includes('classe énergie') || label.includes('dpe')) {
+        const letter = value.replace(/[^A-G]/gi, '');
+        if (/^[A-G]$/.test(letter)) energy_class = letter.toUpperCase();
+      }
+      if (label.includes('ges') || label.includes('émissions')) {
+        const letter = value.replace(/[^A-G]/gi, '');
+        if (/^[A-G]$/.test(letter)) ges_class = letter.toUpperCase();
+      }
     });
 
     const images = [];
@@ -169,6 +210,9 @@ var extractLeBonCoin = (function () {
 
     const transaction_type = location.pathname.includes('location') ? 'location' : 'vente';
 
+    const amenities = [];
+    if (elevator) amenities.push('ascenseur');
+
     return {
       title,
       description,
@@ -178,13 +222,18 @@ var extractLeBonCoin = (function () {
       surface,
       rooms,
       bedrooms,
-      bathrooms: null,
-      floor: null,
+      bathrooms,
+      floor,
       property_type,
       transaction_type,
-      energy_class: null,
-      ges_class: null,
-      amenities: [],
+      energy_class,
+      ges_class,
+      amenities,
+      elevator,
+      parking: false,
+      balcony: false,
+      garden: false,
+      cellar: false,
       images: [...new Set(images)],
       source_url: location.href,
       latitude: null,

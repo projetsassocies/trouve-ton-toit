@@ -34,8 +34,12 @@
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === 'EXTRACT') {
-      const data = doExtract();
-      sendResponse(data ? { success: true, data } : { success: false });
+      try {
+        const data = doExtract();
+        sendResponse(data ? { success: true, data } : { success: false });
+      } catch (err) {
+        try { sendResponse({ success: false, error: err.message }); } catch (_) {}
+      }
     }
     return true;
   });
