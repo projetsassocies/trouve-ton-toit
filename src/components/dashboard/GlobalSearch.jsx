@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Search, User, Home, MapPin, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function GlobalSearch({ leads = [], listings = [] }) {
+export default function GlobalSearch({ leads = [], listings = [], compact = false }) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef(null);
@@ -41,12 +41,13 @@ export default function GlobalSearch({ leads = [], listings = [] }) {
   };
 
   return (
-    <div ref={containerRef} className="w-full max-w-[800px] mx-auto relative">
+    <div ref={containerRef} className={cn("relative", compact ? "w-full min-w-0 max-w-[280px]" : "w-full max-w-[800px] mx-auto")}>
       <div className={cn(
-        "flex items-center h-14 bg-white border border-[#E5E7EB] rounded-xl px-5 shadow-sm transition-all",
+        "flex items-center bg-white border border-[#E5E7EB] rounded-xl shadow-sm transition-all",
+        compact ? "h-10 px-4" : "h-14 px-5",
         isOpen && query && "rounded-b-none border-b-0"
       )}>
-        <Search className="w-5 h-5 text-[#9CA3AF] mr-3 flex-shrink-0" />
+        <Search className={cn("text-[#9CA3AF] flex-shrink-0", compact ? "w-4 h-4 mr-2" : "w-5 h-5 mr-3")} />
         <input
           ref={inputRef}
           type="text"
@@ -56,8 +57,8 @@ export default function GlobalSearch({ leads = [], listings = [] }) {
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          placeholder="Rechercher un lead, un bien, une adresse..."
-          className="flex-1 bg-transparent border-none outline-none text-[15px] placeholder:text-[#9CA3AF]"
+          placeholder={compact ? "Rechercher..." : "Rechercher un lead, un bien, une adresse..."}
+          className={cn("flex-1 bg-transparent border-none outline-none placeholder:text-[#9CA3AF]", compact ? "text-sm" : "text-[15px]")}
         />
         {query && (
           <button 

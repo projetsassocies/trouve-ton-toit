@@ -12,13 +12,13 @@ const TABS = [
   { id: 'chat', label: 'Assistant', icon: MessageCircle, color: '#095237' },
 ];
 
-function TabsContent() {
+function TabsContent({ fullWidth }) {
   const { user } = useAuth();
   const { activeTab, setActiveTab, activeLead, activeListing } = useChatContext();
   const greeting = getChatGreeting(user);
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden min-w-0">
+    <div className={cn("w-full bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden min-w-0", !fullWidth && "max-w-[1200px] mx-auto")}>
       <div className="p-4 sm:p-5">
         {activeTab === 'lead' && <LeadChatTab greetingText={greeting} />}
         {activeTab === 'chat' && <AssistantChatTab activeLead={activeLead} activeListing={activeListing} greetingText={greeting} />}
@@ -50,10 +50,10 @@ function TabsContent() {
   );
 }
 
-export default function AIAssistantTabs() {
+export default function AIAssistantTabs({ fullWidth = false }) {
   return (
     <ChatContextProvider>
-      <TabsContent />
+      <TabsContent fullWidth={fullWidth} />
     </ChatContextProvider>
   );
 }

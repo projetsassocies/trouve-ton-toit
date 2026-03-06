@@ -12,7 +12,7 @@ import AIAssistantTabs from '@/components/dashboard/AIAssistantTabs';
 import CompactStatsBar from '@/components/dashboard/CompactStatsBar';
 import InsightPostits from '@/components/dashboard/InsightPostits';
 import PriorityLeadsZone from '@/components/dashboard/PriorityLeadsZone';
-import RecentActivity from '@/components/dashboard/RecentActivity';
+import MyTasksWidget from '@/components/dashboard/MyTasksWidget';
 import NotificationPopover from '@/components/notifications/NotificationPopover';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -42,45 +42,43 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Header : Bonjour + Barre recherche | Notification */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             Bonjour{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''} 👋
           </h1>
           <p className="text-[#999999] mt-1">Votre copilote opérationnel</p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <GlobalSearch leads={leads} listings={listings} compact />
           <NotificationPopover user={user} />
-          <InsightPostits className="w-full sm:w-56 min-w-0" />
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="my-6">
-        <GlobalSearch leads={leads} listings={listings} />
-      </div>
-
-      {/* Stats compactes stratégiques */}
+      {/* Stats compactes (à la place de l'ancienne barre de recherche) */}
       <CompactStatsBar />
 
-      {/* AI Assistant with Tabs */}
-      <AIAssistantTabs />
+      {/* Chat IA + Pile de post-its côte à côte */}
+      <div className="flex flex-col lg:flex-row gap-4 items-stretch">
+        <div className="flex-1 min-w-0">
+          <AIAssistantTabs fullWidth />
+        </div>
+        <div className="lg:w-56 flex-shrink-0">
+          <InsightPostits className="w-full" />
+        </div>
+      </div>
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Leads prioritaires + Activité */}
         <div className="space-y-6">
           <PriorityLeadsZone formatPrice={formatPrice} />
         </div>
-
-        {/* Sidebar - Recent Activity & Listings */}
         <div className="space-y-6">
-          {/* Recent Activity */}
-          <RecentActivity user={user} />
+          <MyTasksWidget />
 
-          {/* Recent Listings */}
+          {/* Derniers biens */}
           <div className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
             <div className="p-5 border-b border-[#E5E5E5] flex items-center justify-between">
               <h2 className="font-semibold">Derniers biens</h2>
