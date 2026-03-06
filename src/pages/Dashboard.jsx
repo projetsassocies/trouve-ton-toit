@@ -12,7 +12,7 @@ import AIAssistantTabs from '@/components/dashboard/AIAssistantTabs';
 import CompactStatsBar from '@/components/dashboard/CompactStatsBar';
 import InsightPostits from '@/components/dashboard/InsightPostits';
 import PriorityLeadsZone from '@/components/dashboard/PriorityLeadsZone';
-import MyTasksWidget from '@/components/dashboard/MyTasksWidget';
+import ActivityWidget from '@/components/dashboard/ActivityWidget';
 import NotificationPopover from '@/components/notifications/NotificationPopover';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -76,7 +76,7 @@ export default function Dashboard() {
           <PriorityLeadsZone formatPrice={formatPrice} />
         </div>
         <div className="space-y-6">
-          <MyTasksWidget />
+          <ActivityWidget />
 
           {/* Derniers biens */}
           <div className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
