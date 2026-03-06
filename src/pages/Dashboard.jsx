@@ -4,23 +4,22 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { Users, Home, Clock, ChevronRight, Plus, Flame, CloudSun, Snowflake, Bell, Percent, FileCheck } from 'lucide-react';
+import { Home, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import StatCard from '@/components/dashboard/StatCard';
 import StatusBadge from '@/components/ui/StatusBadge';
 import GlobalSearch from '@/components/dashboard/GlobalSearch';
 import AIAssistantTabs from '@/components/dashboard/AIAssistantTabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import LeadCategoryColumn from '@/components/dashboard/LeadCategoryColumn';
+import CompactStatsBar from '@/components/dashboard/CompactStatsBar';
+import InsightPostits from '@/components/dashboard/InsightPostits';
+import PriorityLeadsZone from '@/components/dashboard/PriorityLeadsZone';
 import RecentActivity from '@/components/dashboard/RecentActivity';
 import NotificationPopover from '@/components/notifications/NotificationPopover';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const { user } = useAuth();
 
-  const { data: leads = [], isLoading: leadsLoading } = useQuery({
+  const { data: leads = [] } = useQuery({
     queryKey: ['leads', user?.email],
     queryFn: () => base44.entities.Lead.filter({ created_by: user.email }, '-created_date', 50),
     enabled: !!user?.email,
@@ -32,21 +31,6 @@ export default function Dashboard() {
     enabled: !!user?.email,
   });
 
-  const { data: matches = [], isLoading: matchesLoading } = useQuery({
-    queryKey: ['matches', user?.email],
-    queryFn: () => base44.entities.Match.filter({ created_by: user.email }, '-created_date'),
-    enabled: !!user?.email,
-  });
-
-  const proposedMatches = matches.filter(m => m.status !== 'nouveau').length;
-  const acceptedMatches = matches.filter(m => m.status === 'accepte').length;
-  const conversionRate = proposedMatches > 0 ? Math.round((acceptedMatches / proposedMatches) * 100) : 0;
-  const leadsReadyForMandate = [...new Set(
-    matches.filter(m => m.status === 'accepte').map(m => m.lead_id)
-  )].length;
-  const leadsChaud = leads.filter(lead => lead.categorie === 'CHAUD');
-  const leadsTiede = leads.filter(lead => lead.categorie === 'TIÈDE');
-  const leadsFroid = leads.filter(lead => lead.categorie === 'FROID');
   const recentListings = listings.slice(0, 4);
 
   const formatPrice = (price) => {
@@ -65,9 +49,12 @@ export default function Dashboard() {
           <h1 className="text-2xl font-semibold tracking-tight">
             Bonjour{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''} 👋
           </h1>
-          <p className="text-[#999999] mt-1">Voici un aperçu de votre activité</p>
+          <p className="text-[#999999] mt-1">Votre copilote opérationnel</p>
         </div>
-        <NotificationPopover user={user} />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:flex-shrink-0">
+          <NotificationPopover user={user} />
+          <InsightPostits className="w-full sm:w-56 min-w-0" />
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -75,86 +62,20 @@ export default function Dashboard() {
         <GlobalSearch leads={leads} listings={listings} />
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {leadsLoading || listingsLoading || matchesLoading ? (
-          <>
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 border border-[#E5E5E5]">
-                <Skeleton className="h-4 w-24 mb-4" />
-                <Skeleton className="h-8 w-16" />
-              </div>
-            ))}
-          </>
-        ) : (
-          <>
-            <StatCard 
-              title="Total Leads" 
-              value={leads.length} 
-              icon={Users}
-            />
-            <StatCard 
-              title="Taux de conversion" 
-              value={`${conversionRate}%`} 
-              icon={Percent}
-            />
-            <StatCard 
-              title="Lead prêt pour mandat" 
-              value={leadsReadyForMandate} 
-              icon={FileCheck}
-            />
-            <StatCard 
-              title="Total biens" 
-              value={listings.length} 
-              icon={Clock}
-            />
-          </>
-        )}
-      </div>
+      {/* Stats compactes stratégiques */}
+      <CompactStatsBar />
 
       {/* AI Assistant with Tabs */}
       <AIAssistantTabs />
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Leads par Catégorie */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {leadsLoading ? (
-            <> 
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-[#E5E5E5] p-5 space-y-4">
-                  <Skeleton className="h-6 w-3/4 mb-4" />
-                  {[...Array(3)].map((_, j) => (
-                    <div key={j} className="space-y-2">
-                      <Skeleton className="h-24 rounded-xl" />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </>
-          ) : (
-            <>
-              <LeadCategoryColumn 
-                title="Chaud" 
-                icon={Flame} 
-                leads={leadsChaud} 
-                iconColor="text-red-500" 
-                bgColor="bg-red-50" 
-                formatPrice={formatPrice}
-              />
-              <LeadCategoryColumn 
-                title="Tiède" 
-                icon={CloudSun} 
-                leads={leadsTiede} 
-                iconColor="text-yellow-500" 
-                bgColor="bg-yellow-50" 
-                formatPrice={formatPrice}
-              />
-            </>
-          )}
+        {/* Leads prioritaires + Activité */}
+        <div className="space-y-6">
+          <PriorityLeadsZone formatPrice={formatPrice} />
         </div>
 
-        {/* Sidebar - Recent Listings & Activity */}
+        {/* Sidebar - Recent Activity & Listings */}
         <div className="space-y-6">
           {/* Recent Activity */}
           <RecentActivity user={user} />
