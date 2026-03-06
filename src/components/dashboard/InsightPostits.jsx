@@ -13,7 +13,46 @@ import { toast } from 'sonner';
 
 const POSTIT_COLORS = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#FCE7F3', '#E0E7FF'];
 
-export default function InsightPostits({ className }) {
+/** Exemples affichés lorsque la liste est vide — pour visualiser le rendu */
+const EXAMPLE_INSIGHTS = [
+  {
+    id: 'ex-1',
+    title: 'Rappeler M. Dupont — visite effectuée hier',
+    subtitle: "Aujourd'hui — Suivi post-visite",
+    type: 'example',
+    link: null,
+  },
+  {
+    id: 'ex-2',
+    title: 'Signature mandat — Famille Martin',
+    subtitle: "Visite — 6 mars 14h00",
+    type: 'example',
+    link: null,
+  },
+  {
+    id: 'ex-3',
+    title: 'Relancer proposition — T3 Lyon Croix-Rousse',
+    subtitle: 'En attente depuis 3 jours',
+    type: 'example',
+    link: null,
+  },
+  {
+    id: 'ex-4',
+    title: 'Vérifier financement — Mme Bernard',
+    subtitle: "Demain — Lead chaud",
+    type: 'example',
+    link: null,
+  },
+  {
+    id: 'ex-5',
+    title: 'Appel de relance — Lead tiède sans contact',
+    subtitle: 'Dernier contact il y a 5 jours',
+    type: 'example',
+    link: null,
+  },
+];
+
+export default function InsightPostits({ className, showExamplesWhenEmpty = true }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -122,10 +161,16 @@ export default function InsightPostits({ className }) {
 
     items.sort((a, b) => a.priority - b.priority);
 
-    return items.filter((item) => !dismissedIds.has(item.id));
-  }, [tasks, events, user?.email, dismissedIds]);
+    const filtered = items.filter((item) => !dismissedIds.has(item.id));
+
+    if (filtered.length === 0 && showExamplesWhenEmpty) {
+      return EXAMPLE_INSIGHTS.filter((item) => !dismissedIds.has(item.id));
+    }
+    return filtered;
+  }, [tasks, events, user?.email, dismissedIds, showExamplesWhenEmpty]);
 
   const currentInsight = insights[currentIndex];
+  const isShowingExamples = insights.length > 0 && insights[0]?.type === 'example';
   const hasMultiple = insights.length > 1;
   const canGoPrev = currentIndex > 0;
   const canGoNext = currentIndex < insights.length - 1;
@@ -160,6 +205,7 @@ export default function InsightPostits({ className }) {
       });
       toast.success('Événement marqué terminé');
     }
+    /* type === 'example' : on masque juste le post-it (pas d'appel API) */
 
     const newDismissed = new Set(dismissedIds);
     newDismissed.add(currentInsight.id);
@@ -225,9 +271,16 @@ export default function InsightPostits({ className }) {
         }}
       >
         <div className="p-4 pb-14">
-          <p className="text-xs text-amber-800/70 font-medium mb-1">
-            Insight du jour
-          </p>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-xs text-amber-800/70 font-medium">
+              Insight du jour
+            </p>
+            {isShowingExamples && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-200/60 text-amber-800">
+                Exemples
+              </span>
+            )}
+          </div>
           <p className="font-medium text-sm text-amber-900 line-clamp-2">
             {currentInsight.title}
           </p>
