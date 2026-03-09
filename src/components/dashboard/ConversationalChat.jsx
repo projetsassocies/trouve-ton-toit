@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   MessageCircle, Loader2, Send, Trash2, Pencil,
-  Plus, Search, PanelLeftClose, PanelLeftOpen
+  Plus, Search, PanelLeftClose, PanelLeftOpen, ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -110,8 +110,23 @@ export default function ConversationalChat({
     }
   };
 
+  const sendButton = (
+    <button
+      type="button"
+      onClick={handleSend}
+      disabled={isProcessing || !inputValue.trim()}
+      className="w-10 h-10 rounded-full bg-[#c5ff4e] hover:bg-[#b8f045] text-[#1a1a1a] flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-50"
+    >
+      {isProcessing ? (
+        <Loader2 className="w-5 h-5 animate-spin" />
+      ) : (
+        <ArrowRight className="w-5 h-5" />
+      )}
+    </button>
+  );
+
   return (
-    <div className="relative flex rounded-xl border border-[#EBEBEB] overflow-hidden h-[280px] sm:h-[320px] w-full bg-white">
+    <div className="relative flex overflow-hidden h-[280px] sm:h-[320px] w-full">
       {/* History panel - smooth slide-in overlay */}
       <div
         className={cn(
@@ -120,9 +135,9 @@ export default function ConversationalChat({
         )}
         onClick={() => setSidebarOpen(false)}
       />
-      <div
-        className={cn(
-          "absolute inset-y-0 left-0 z-50 w-[260px] sm:w-[280px] max-w-[85vw] bg-white border-r border-[#EBEBEB] flex flex-col flex-shrink-0 transition-transform duration-300 ease-out",
+        <div
+          className={cn(
+          "absolute inset-y-0 left-0 z-50 w-[260px] sm:w-[280px] max-w-[85vw] bg-white flex flex-col flex-shrink-0 transition-transform duration-300 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -168,8 +183,8 @@ export default function ConversationalChat({
                     className={cn(
                       "group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors relative",
                       activeConversationId === conv.id
-                        ? "bg-white shadow-sm border border-[#E5E7EB]"
-                        : "hover:bg-white/70"
+                        ? "bg-[#fafafa]"
+                        : "hover:bg-[#fafafa]"
                     )}
                   >
                     <div className="flex-1 min-w-0">
@@ -225,7 +240,7 @@ export default function ConversationalChat({
         </div>
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <div className="flex items-center px-2 py-1.5 border-b border-[#EBEBEB] min-h-0">
+        <div className="flex items-center px-2 py-1.5 min-h-0">
           <button
             onClick={() => setSidebarOpen(prev => !prev)}
             className="p-1.5 rounded-lg hover:bg-[#F3F4F6] transition-colors flex-shrink-0"
@@ -283,44 +298,37 @@ export default function ConversationalChat({
 
         {renderAboveInput}
 
-        <div className="flex gap-2 items-end p-3 border-t border-[#EBEBEB]">
-          {inputPrefix}
-          <div className="relative flex-1 flex">
+        <div className="flex flex-col gap-3 pt-3">
+          <div className="relative flex">
             {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
               <div
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#9CA3AF] pointer-events-none pr-12 overflow-hidden max-w-[calc(100%-3rem)]"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#9ca3af] pointer-events-none pr-12 overflow-hidden max-w-[calc(100%-3rem)]"
                 aria-hidden
               >
                 {typingPlaceholder}
-                <span className="inline-block w-0.5 h-4 bg-[#9CA3AF] ml-0.5 animate-pulse align-middle" />
+                <span className="inline-block w-0.5 h-4 bg-[#9ca3af] ml-0.5 animate-pulse align-middle" />
               </div>
             )}
-            <Input
+            <input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
               onKeyDown={handleKeyDown}
-              placeholder=""
-              className="flex-1 h-11 rounded-xl bg-[#FAFAFA] border-[#EBEBEB] text-sm"
+              placeholder="Posez votre question..."
+              className="flex-1 h-12 rounded-xl bg-white border border-[#e8e8e8] text-sm px-4 text-[#1a1a1a] placeholder:text-[#9ca3af] outline-none focus:border-[#c5ff4e]/50"
               disabled={isProcessing}
             />
           </div>
-          <Button
-            onClick={handleSend}
-            disabled={isProcessing || !inputValue.trim()}
-            className="h-11 w-11 rounded-xl bg-[#095237] hover:bg-[#074029] p-0 flex-shrink-0"
-          >
-            {isProcessing
-              ? <Loader2 className="w-4 h-4 animate-spin text-white" />
-              : <Send className="w-4 h-4 text-[#c5ff4e]" />}
-          </Button>
+
+          {renderBelowInput && (
+            <div>
+              {typeof renderBelowInput === 'function'
+                ? renderBelowInput({ sendButton })
+                : renderBelowInput}
+            </div>
+          )}
         </div>
-        {renderBelowInput && (
-          <div className="px-3 pb-3">
-            {renderBelowInput}
-          </div>
-        )}
       </div>
     </div>
   );
