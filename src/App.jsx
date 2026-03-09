@@ -6,6 +6,7 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import Login from '@/pages/Login';
 import PublicSocialPage from '@/pages/PublicSocialPage';
 import MySocialPage from '@/pages/MySocialPage';
@@ -72,12 +73,14 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
+        <ThemeProvider>
         <QueryClientProvider client={queryClientInstance}>
           <Router>
             <AuthenticatedApp />
           </Router>
           <Toaster />
         </QueryClientProvider>
+        </ThemeProvider>
       </AuthProvider>
     </ErrorBoundary>
   )

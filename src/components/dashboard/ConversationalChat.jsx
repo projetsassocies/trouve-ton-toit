@@ -25,6 +25,7 @@ export default function ConversationalChat({
   placeholderPrompts = [],
   inputPrefix,
   renderAboveInput,
+  renderBelowInput,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [renamingId, setRenamingId] = useState(null);
@@ -110,7 +111,7 @@ export default function ConversationalChat({
   };
 
   return (
-    <div className="relative flex rounded-xl border border-[#E5E7EB] overflow-hidden h-[280px] sm:h-[320px] w-full">
+    <div className="relative flex rounded-xl border border-[#E5E7EB] dark:border-[#333] overflow-hidden h-[280px] sm:h-[320px] w-full">
       {/* History panel - smooth slide-in overlay */}
       <div
         className={cn(
@@ -121,7 +122,7 @@ export default function ConversationalChat({
       />
       <div
         className={cn(
-          "absolute inset-y-0 left-0 z-50 w-[260px] sm:w-[280px] max-w-[85vw] bg-[#F9FAFB] border-r border-[#E5E7EB] flex flex-col flex-shrink-0 shadow-xl transition-transform duration-300 ease-out",
+          "absolute inset-y-0 left-0 z-50 w-[260px] sm:w-[280px] max-w-[85vw] bg-[#F9FAFB] dark:bg-[#1a1a1a] border-r border-[#E5E7EB] dark:border-[#333] flex flex-col flex-shrink-0 shadow-xl transition-transform duration-300 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -224,7 +225,7 @@ export default function ConversationalChat({
         </div>
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <div className="flex items-center px-2 py-1.5 border-b border-[#E5E7EB] min-h-0">
+        <div className="flex items-center px-2 py-1.5 border-b border-[#E5E7EB] dark:border-[#333] min-h-0">
           <button
             onClick={() => setSidebarOpen(prev => !prev)}
             className="p-1.5 rounded-lg hover:bg-[#F3F4F6] transition-colors flex-shrink-0"
@@ -282,7 +283,7 @@ export default function ConversationalChat({
 
         {renderAboveInput}
 
-        <div className="flex gap-2 items-end p-3 border-t border-[#E5E7EB]">
+        <div className="flex gap-2 items-end p-3 border-t border-[#E5E7EB] dark:border-[#333]">
           {inputPrefix}
           <div className="relative flex-1 flex">
             {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
@@ -315,6 +316,11 @@ export default function ConversationalChat({
               : <Send className="w-4 h-4 text-[#c5ff4e]" />}
           </Button>
         </div>
+        {renderBelowInput && (
+          <div className="px-3 pb-3">
+            {renderBelowInput}
+          </div>
+        )}
       </div>
     </div>
   );
