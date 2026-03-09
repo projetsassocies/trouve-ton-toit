@@ -37,8 +37,8 @@ export default function MyTodoList({ className }) {
 
   if (isLoading) {
     return (
-      <div className={cn('bg-white dark:bg-[#111] rounded-2xl border border-[#E5E5E5] dark:border-[#333] p-4', className)}>
-        <h2 className="font-semibold text-[#111] dark:text-white mb-4">Ma to-do</h2>
+      <div className={cn('bg-white rounded-2xl border border-[#EBEBEB] p-4', className)}>
+        <h2 className="font-semibold text-[#1a1a1a] mb-4">Ma to-do</h2>
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-10 rounded-lg" />
@@ -49,15 +49,15 @@ export default function MyTodoList({ className }) {
   }
 
   return (
-    <div className={cn('bg-white dark:bg-[#111] rounded-2xl border border-[#E5E5E5] dark:border-[#333] overflow-hidden', className)}>
-      <div className="p-4 border-b border-[#E5E5E5] dark:border-[#333]">
-        <h2 className="font-semibold text-[#111] dark:text-white">Ma to-do</h2>
+    <div className={cn('bg-white rounded-2xl border border-[#EBEBEB] overflow-hidden', className)}>
+      <div className="p-4 border-b border-[#EBEBEB]">
+        <h2 className="font-semibold text-[#1a1a1a]">Ma to-do</h2>
       </div>
       <div className="p-3">
         {pendingTasks.length === 0 ? (
           <div className="py-6 text-center">
-            <CheckSquare className="w-8 h-8 text-[#CCC] mx-auto mb-2" />
-            <p className="text-sm text-[#999]">Rien à faire</p>
+            <CheckSquare className="w-8 h-8 text-[#CCCCCC] mx-auto mb-2" />
+            <p className="text-sm text-[#6b6b6b]">Rien à faire</p>
             <Link
               to={createPageUrl('Activity')}
               className="text-xs text-[#095237] hover:underline mt-1 inline-block"
@@ -75,7 +75,7 @@ export default function MyTodoList({ className }) {
                 <div
                   key={task.id}
                   className={cn(
-                    'flex items-center gap-3 p-2 rounded-lg hover:bg-[#FAFAFA] dark:hover:bg-[#1a1a1a] transition-colors',
+                    'flex items-center gap-3 p-2 rounded-lg hover:bg-[#FAFAFA] transition-colors',
                     task.status === 'completed' && 'opacity-60'
                   )}
                 >
@@ -88,15 +88,15 @@ export default function MyTodoList({ className }) {
                     <Square className="w-4 h-4" />
                   </button>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#111] dark:text-white truncate">{task.title}</p>
+                    <p className="text-sm text-[#1a1a1a] truncate">{task.title}</p>
                     {task.linked_to_id && task.linked_to_type === 'lead' && (
-                      <p className="text-[10px] text-[#666] dark:text-[#999] truncate">
+                      <p className="text-[10px] text-[#6b6b6b] truncate">
                         — Fiche lead
                       </p>
                     )}
                   </div>
                   {isUrgent && (
-                    <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-[10px] font-medium flex-shrink-0">
+                    <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-600 text-[10px] font-medium flex-shrink-0">
                       Urgent
                     </span>
                   )}

@@ -34,14 +34,14 @@ export default function Dashboard() {
   const firstName = user?.full_name?.trim().split(' ')[0] || '';
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-6">
+    <div className="max-w-[1600px] mx-auto space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#111] dark:text-white">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#1a1a1a]">
             Bonjour, {firstName || 'vous'} 👋
           </h1>
-          <p className="text-[#999] dark:text-[#666] mt-1">Voici votre activité du jour</p>
+          <p className="text-[#6b6b6b] mt-1 text-[15px]">Voici votre activité du jour</p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <GlobalSearch leads={leads} listings={listings} compact />

@@ -284,17 +284,17 @@ export default function PrioritizedActionsCard({ formatPrice, className }) {
     return (
       <div
         className={cn(
-          'bg-white dark:bg-[#111] rounded-2xl border border-[#E5E5E5] dark:border-[#333] p-6',
+          'bg-white rounded-2xl border border-[#EBEBEB] p-6',
           className
         )}
       >
         <div className="flex items-center gap-2 mb-4">
           <Target className="w-5 h-5 text-[#095237]" />
-          <h2 className="font-semibold text-[#111] dark:text-white">Actions prioritaires</h2>
+          <h2 className="font-semibold text-[#1a1a1a]">Actions prioritaires</h2>
         </div>
         <div className="py-12 text-center">
-          <Target className="w-12 h-12 text-[#999] mx-auto mb-3" />
-          <p className="text-sm text-[#999]">Aucune action prioritaire pour le moment</p>
+          <Target className="w-12 h-12 text-[#CCCCCC] mx-auto mb-3" />
+          <p className="text-sm text-[#6b6b6b]">Aucune action prioritaire pour le moment</p>
         </div>
       </div>
     );
@@ -305,14 +305,14 @@ export default function PrioritizedActionsCard({ formatPrice, className }) {
   return (
     <div
       className={cn(
-        'bg-white dark:bg-[#111] rounded-2xl border border-[#E5E5E5] dark:border-[#333] overflow-hidden',
+        'bg-white rounded-2xl border border-[#EBEBEB] overflow-hidden',
         className
       )}
     >
-      <div className="p-4 border-b border-[#E5E5E5] dark:border-[#333] flex items-center justify-between">
+      <div className="p-4 border-b border-[#EBEBEB] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Target className="w-5 h-5 text-[#095237]" />
-          <h2 className="font-semibold text-[#111] dark:text-white">Actions prioritaires</h2>
+          <h2 className="font-semibold text-[#1a1a1a]">Actions prioritaires</h2>
           <span className="px-2 py-0.5 rounded-full bg-[#dcfce7] dark:bg-[#14532d] text-[#166534] dark:text-[#86efac] text-xs font-medium">
             {actions.length} à traiter
           </span>
@@ -343,21 +343,21 @@ export default function PrioritizedActionsCard({ formatPrice, className }) {
       </div>
 
       <div className="p-4">
-        <div className="rounded-xl border border-[#E5E5E5] dark:border-[#333] p-4 bg-[#FAFAFA] dark:bg-[#1a1a1a]">
+        <div className="rounded-xl border border-[#EBEBEB] p-5 bg-[#FAFAFA]">
           <div className="flex items-start gap-3 mb-3">
             {currentAction.isUrgent && (
-              <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-medium">
+              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-xs font-medium">
                 Urgent
               </span>
             )}
             <Icon className="w-5 h-5 text-[#095237] flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-[#111] dark:text-white">
+              <h3 className="font-semibold text-[#1a1a1a]">
                 {currentAction.title}
               </h3>
             </div>
           </div>
-          <p className="text-sm text-[#666] dark:text-[#999] mb-3">{currentAction.context}</p>
+          <p className="text-sm text-[#6b6b6b] mb-3">{currentAction.context}</p>
           <p className="text-xs text-[#095237] font-medium mb-4">
             Pourquoi maintenant : {currentAction.pourquoiMaintenant}
           </p>
@@ -393,7 +393,7 @@ export default function PrioritizedActionsCard({ formatPrice, className }) {
                 'w-2 h-2 rounded-full transition-colors',
                 i === currentIndex
                   ? 'bg-[#095237]'
-                  : 'bg-[#E5E5E5] dark:bg-[#333]'
+                  : 'bg-[#E0E0E0]'
               )}
             />
           ))}

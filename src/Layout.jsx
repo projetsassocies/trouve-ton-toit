@@ -43,7 +43,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0a0a0a] overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] overflow-x-hidden">
       {user && <NotificationToast user={user} />}
 
       <style>{`
@@ -84,7 +84,7 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-[#111] border-b border-[#E5E5E5] dark:border-[#333] z-50 flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-[#111] border-b border-[#EBEBEB] dark:border-[#333] z-50 flex items-center justify-between px-4">
         <button 
           onClick={() => setSidebarOpen(true)}
           className="p-2 hover:bg-[#F5F5F5] dark:hover:bg-[#222] rounded-lg transition-colors"
@@ -105,13 +105,13 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed top-0 left-0 h-full w-64 bg-white dark:bg-[#111] border-r border-[#E5E5E5] dark:border-[#333] z-50 transition-transform duration-300 ease-out",
+        "fixed top-0 left-0 h-full w-64 bg-white dark:bg-[#111] border-r border-[#EBEBEB] dark:border-[#333] z-50 transition-transform duration-300 ease-out",
         "lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="h-16 flex items-center justify-between px-5 border-b border-[#E5E5E5] dark:border-[#333]">
+          <div className="h-16 flex items-center justify-between px-5 border-b border-[#EBEBEB] dark:border-[#333]">
             <span className="font-semibold text-lg tracking-tight text-[#111] dark:text-white">TrouveTonToit</span>
             <button 
               onClick={() => setSidebarOpen(false)}
@@ -144,7 +144,7 @@ export default function Layout({ children, currentPageName }) {
           </nav>
 
           {/* Bottom Section */}
-          <div className="p-3 border-t border-[#E5E5E5] dark:border-[#333] space-y-2">
+          <div className="p-3 border-t border-[#EBEBEB] dark:border-[#333] space-y-2">
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <Link

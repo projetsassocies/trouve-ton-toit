@@ -38,10 +38,10 @@ function TabsContent({ fullWidth }) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
+                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-[#095237] text-white'
-                  : 'bg-[#F3F4F6] dark:bg-[#222] text-[#6B7280] dark:text-[#999] border-2 border-transparent hover:bg-[#E5E7EB] dark:hover:bg-[#333]'
+                  : 'bg-[#F5F5F5] text-[#6b6b6b] hover:bg-[#EBEBEB] hover:text-[#1a1a1a]'
               )}
             >
               <Icon className="w-4 h-4" />
@@ -58,7 +58,7 @@ function TabsContent({ fullWidth }) {
               <Link
                 key={action.label}
                 to={createPageUrl(action.link)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-[#F3F4F6] dark:bg-[#222] text-[#374151] dark:text-[#ccc] hover:bg-[#E5E7EB] dark:hover:bg-[#333] transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-[#F5F5F5] text-[#1a1a1a] hover:bg-[#EBEBEB] transition-colors"
               >
                 <Icon className="w-3.5 h-3.5" />
                 {action.label}
@@ -69,7 +69,7 @@ function TabsContent({ fullWidth }) {
             <button
               key={action.label}
               onClick={() => switchToAssistant(action.prompt)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-[#F3F4F6] dark:bg-[#222] text-[#374151] dark:text-[#ccc] hover:bg-[#E5E7EB] dark:hover:bg-[#333] transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-[#F5F5F5] text-[#1a1a1a] hover:bg-[#EBEBEB] transition-colors"
             >
               <Icon className="w-3.5 h-3.5" />
               {action.label}
@@ -81,9 +81,9 @@ function TabsContent({ fullWidth }) {
   );
 
   return (
-    <div className={cn("w-full bg-white dark:bg-[#111] rounded-2xl border border-[#E5E7EB] dark:border-[#333] shadow-sm overflow-hidden min-w-0", !fullWidth && "max-w-[1200px] mx-auto")}>
-      <div className="p-4 sm:p-5">
-        <h2 className="text-lg sm:text-xl font-semibold text-[#111] dark:text-white mb-4">
+    <div className={cn("w-full bg-white rounded-2xl border border-[#EBEBEB] overflow-hidden min-w-0", !fullWidth && "max-w-[1200px] mx-auto")}>
+      <div className="p-5 sm:p-6">
+        <h2 className="text-xl font-semibold text-[#1a1a1a] mb-5">
           {greeting}
         </h2>
         {activeTab === 'lead' && <LeadChatTab greetingText="" renderBelowInput={renderBelowInput} />}

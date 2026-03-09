@@ -111,7 +111,7 @@ export default function ConversationalChat({
   };
 
   return (
-    <div className="relative flex rounded-xl border border-[#E5E7EB] dark:border-[#333] overflow-hidden h-[280px] sm:h-[320px] w-full">
+    <div className="relative flex rounded-xl border border-[#EBEBEB] overflow-hidden h-[280px] sm:h-[320px] w-full bg-white">
       {/* History panel - smooth slide-in overlay */}
       <div
         className={cn(
@@ -122,7 +122,7 @@ export default function ConversationalChat({
       />
       <div
         className={cn(
-          "absolute inset-y-0 left-0 z-50 w-[260px] sm:w-[280px] max-w-[85vw] bg-[#F9FAFB] dark:bg-[#1a1a1a] border-r border-[#E5E7EB] dark:border-[#333] flex flex-col flex-shrink-0 shadow-xl transition-transform duration-300 ease-out",
+          "absolute inset-y-0 left-0 z-50 w-[260px] sm:w-[280px] max-w-[85vw] bg-white border-r border-[#EBEBEB] flex flex-col flex-shrink-0 transition-transform duration-300 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -225,7 +225,7 @@ export default function ConversationalChat({
         </div>
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <div className="flex items-center px-2 py-1.5 border-b border-[#E5E7EB] dark:border-[#333] min-h-0">
+        <div className="flex items-center px-2 py-1.5 border-b border-[#EBEBEB] min-h-0">
           <button
             onClick={() => setSidebarOpen(prev => !prev)}
             className="p-1.5 rounded-lg hover:bg-[#F3F4F6] transition-colors flex-shrink-0"
@@ -245,7 +245,7 @@ export default function ConversationalChat({
         {messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center p-4">
             {greetingText && (
-              <p className="text-sm sm:text-base text-[#374151] font-medium text-center">
+              <p className="text-sm sm:text-base text-[#1a1a1a] font-medium text-center">
                 {greetingText}
               </p>
             )}
@@ -259,7 +259,7 @@ export default function ConversationalChat({
                     "max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
                     msg.role === 'user'
                       ? "bg-[#095237] text-white rounded-br-md"
-                      : "bg-[#F3F4F6] text-[#374151] rounded-bl-md"
+                      : "bg-[#F5F5F5] text-[#1a1a1a] rounded-bl-md"
                   )}>
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
@@ -269,7 +269,7 @@ export default function ConversationalChat({
             ))}
             {isProcessing && (
               <div className="flex justify-start">
-                <div className="bg-[#F3F4F6] rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="bg-[#F5F5F5] rounded-2xl rounded-bl-md px-4 py-3">
                   <div className="flex gap-1.5">
                     <span className="w-2 h-2 bg-[#9CA3AF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-2 h-2 bg-[#9CA3AF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -283,7 +283,7 @@ export default function ConversationalChat({
 
         {renderAboveInput}
 
-        <div className="flex gap-2 items-end p-3 border-t border-[#E5E7EB] dark:border-[#333]">
+        <div className="flex gap-2 items-end p-3 border-t border-[#EBEBEB]">
           {inputPrefix}
           <div className="relative flex-1 flex">
             {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
@@ -302,7 +302,7 @@ export default function ConversationalChat({
               onBlur={() => setInputFocused(false)}
               onKeyDown={handleKeyDown}
               placeholder=""
-              className="flex-1 h-11 rounded-xl bg-[#F9FAFB] border-[#E5E7EB] text-sm"
+              className="flex-1 h-11 rounded-xl bg-[#FAFAFA] border-[#EBEBEB] text-sm"
               disabled={isProcessing}
             />
           </div>

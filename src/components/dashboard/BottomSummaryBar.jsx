@@ -63,30 +63,30 @@ export default function BottomSummaryBar({ className }) {
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-4 md:gap-8 py-4 px-4 rounded-xl',
-        'bg-white dark:bg-[#111] border border-[#E5E5E5] dark:border-[#333]',
+        'flex flex-wrap items-center gap-4 md:gap-8 py-4 px-5 rounded-2xl',
+        'bg-white border border-[#EBEBEB]',
         className
       )}
     >
       <div className="flex items-center gap-2">
         <Flame className="w-4 h-4 text-amber-500" />
-        <span className="text-sm font-medium text-[#111] dark:text-white">
+        <span className="text-sm font-medium text-[#1a1a1a]">
           {stats.hotLeads} Lead{stats.hotLeads > 1 ? 's' : ''} chaud{stats.hotLeads > 1 ? 's' : ''}
         </span>
       </div>
       <div className="flex items-center gap-2">
         <Percent className="w-4 h-4 text-[#095237]" />
-        <span className="text-sm font-medium text-[#111] dark:text-white">
+        <span className="text-sm font-medium text-[#1a1a1a]">
           {stats.conversionRate}% Taux de conversion
         </span>
       </div>
       <div className="flex items-center gap-2">
         <Clock className="w-4 h-4 text-[#666] dark:text-[#999]" />
-        <span className="text-sm font-medium text-[#111] dark:text-white">
+        <span className="text-sm font-medium text-[#1a1a1a]">
           {stats.avgResponseDays !== null ? `${stats.avgResponseDays}j` : '—'} Temps moy. de réponse
         </span>
         {needsImprovement && (
-          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">À améliorer</span>
+          <span className="text-xs text-amber-600 font-medium">À améliorer</span>
         )}
       </div>
     </div>

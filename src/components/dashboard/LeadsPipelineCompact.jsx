@@ -49,9 +49,9 @@ export default function LeadsPipelineCompact({ formatPrice, className }) {
 
   if (leadsLoading) {
     return (
-      <div className={cn('bg-white dark:bg-[#111] rounded-2xl border border-[#E5E5E5] dark:border-[#333] p-4', className)}>
+      <div className={cn('bg-white rounded-2xl border border-[#EBEBEB] p-4', className)}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-[#111] dark:text-white">Pipeline des Leads</h2>
+          <h2 className="font-semibold text-[#1a1a1a]">Pipeline des Leads</h2>
         </div>
         <div className="grid grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((i) => (
@@ -63,11 +63,11 @@ export default function LeadsPipelineCompact({ formatPrice, className }) {
   }
 
   return (
-    <div className={cn('bg-white dark:bg-[#111] rounded-2xl border border-[#E5E5E5] dark:border-[#333] overflow-hidden', className)}>
-      <div className="p-4 border-b border-[#E5E5E5] dark:border-[#333] flex items-center justify-between">
+    <div className={cn('bg-white rounded-2xl border border-[#EBEBEB] overflow-hidden', className)}>
+      <div className="p-4 border-b border-[#EBEBEB] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-[#095237]" />
-          <h2 className="font-semibold text-[#111] dark:text-white">Pipeline des Leads</h2>
+          <h2 className="font-semibold text-[#1a1a1a]">Pipeline des Leads</h2>
         </div>
         <Link
           to={createPageUrl('Leads')}
@@ -83,10 +83,10 @@ export default function LeadsPipelineCompact({ formatPrice, className }) {
             return (
               <div
                 key={col.id}
-                className=" rounded-xl border border-[#E5E5E5] dark:border-[#333] overflow-hidden bg-[#FAFAFA] dark:bg-[#1a1a1a]"
+                className="rounded-xl border border-[#EBEBEB] overflow-hidden bg-[#FAFAFA]"
               >
-                <div className="p-2 border-b border-[#E5E5E5] dark:border-[#333] flex items-center justify-between">
-                  <span className="text-xs font-medium text-[#666] dark:text-[#999]">{col.label}</span>
+                <div className="p-2 border-b border-[#EBEBEB] flex items-center justify-between">
+                  <span className="text-xs font-medium text-[#6b6b6b]">{col.label}</span>
                   <span className="w-6 h-6 rounded-full bg-[#095237] text-white text-xs flex items-center justify-center font-medium">
                     {columnLeads.length}
                   </span>
@@ -96,13 +96,13 @@ export default function LeadsPipelineCompact({ formatPrice, className }) {
                     <Link
                       key={lead.id}
                       to={createPageUrl(`LeadDetail?id=${lead.id}`)}
-                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-white dark:hover:bg-[#222] transition-colors group"
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-white transition-colors group"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#111] dark:text-white truncate">
+                        <p className="text-sm font-medium text-[#1a1a1a] truncate">
                           {lead.first_name} {lead.last_name}
                         </p>
-                        <p className="text-[10px] text-[#666] dark:text-[#999] truncate">
+                        <p className="text-[10px] text-[#6b6b6b] truncate">
                           {lead.property_type ? `${lead.property_type} ` : ''}
                           {lead.budget_max ? `• ${formatPriceFn(lead.budget_max)}` : ''}
                         </p>

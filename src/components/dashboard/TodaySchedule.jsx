@@ -44,7 +44,7 @@ export default function TodaySchedule({ className }) {
 
   if (isLoading) {
     return (
-      <div className={cn('bg-white dark:bg-[#111] rounded-2xl border border-[#E5E5E5] dark:border-[#333] p-4', className)}>
+      <div className={cn('bg-white rounded-2xl border border-[#EBEBEB] p-4', className)}>
         <div className="flex items-center gap-2 mb-4">
           <Calendar className="w-5 h-5 text-[#095237]" />
           <h2 className="font-semibold text-[#111] dark:text-white">Aujourd'hui</h2>
@@ -59,11 +59,11 @@ export default function TodaySchedule({ className }) {
   }
 
   return (
-    <div className={cn('bg-white dark:bg-[#111] rounded-2xl border border-[#E5E5E5] dark:border-[#333] overflow-hidden', className)}>
-      <div className="p-4 border-b border-[#E5E5E5] dark:border-[#333] flex items-center justify-between">
+    <div className={cn('bg-white rounded-2xl border border-[#EBEBEB] overflow-hidden', className)}>
+      <div className="p-4 border-b border-[#EBEBEB] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-[#095237]" />
-          <h2 className="font-semibold text-[#111] dark:text-white">Aujourd'hui</h2>
+          <h2 className="font-semibold text-[#1a1a1a]">Aujourd'hui</h2>
         </div>
         {todayEvents.length > 0 && (
           <span className="px-2 py-0.5 rounded-full bg-[#dcfce7] dark:bg-[#14532d] text-[#166534] dark:text-[#86efac] text-xs font-medium">
@@ -74,8 +74,8 @@ export default function TodaySchedule({ className }) {
       <div className="p-3">
         {todayEvents.length === 0 ? (
           <div className="py-8 text-center">
-            <Calendar className="w-10 h-10 text-[#CCC] mx-auto mb-2" />
-            <p className="text-sm text-[#999]">Aucun rendez-vous aujourd'hui</p>
+            <Calendar className="w-10 h-10 text-[#CCCCCC] mx-auto mb-2" />
+            <p className="text-sm text-[#6b6b6b]">Aucun rendez-vous aujourd'hui</p>
             <Link
               to={createPageUrl('Activity')}
               className="text-xs text-[#095237] hover:underline mt-1 inline-block"
@@ -96,20 +96,20 @@ export default function TodaySchedule({ className }) {
                 <Link
                   key={event.id}
                   to={createPageUrl('Activity')}
-                  className="flex gap-3 p-3 rounded-xl hover:bg-[#FAFAFA] dark:hover:bg-[#1a1a1a] transition-colors"
+                  className="flex gap-3 p-3 rounded-xl hover:bg-[#FAFAFA] transition-colors"
                 >
                   <div className="flex flex-col items-center min-w-[44px]">
-                    <span className="text-sm font-medium text-[#111] dark:text-white">
+                    <span className="text-sm font-medium text-[#1a1a1a]">
                       {format(eventDate, 'HH:mm')}
                     </span>
-                    <span className="text-[10px] text-[#999]">{duration}</span>
+                    <span className="text-[10px] text-[#6b6b6b]">{duration}</span>
                   </div>
                   <Icon className="w-4 h-4 text-[#095237] flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-[#111] dark:text-white truncate">
+                    <p className="font-medium text-sm text-[#1a1a1a] truncate">
                       {event.title}
                     </p>
-                    <p className="text-xs text-[#666] dark:text-[#999] truncate">
+                    <p className="text-xs text-[#6b6b6b] truncate">
                       {event.description || config.label}
                     </p>
                   </div>

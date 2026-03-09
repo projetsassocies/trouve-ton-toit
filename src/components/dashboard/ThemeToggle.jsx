@@ -13,7 +13,7 @@ export default function ThemeToggle({ className }) {
       variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className={cn('rounded-xl', className)}
+      className={cn('rounded-xl border-[#EBEBEB] shadow-none hover:bg-[#FAFAFA]', className)}
       aria-label={isDark ? 'Mode clair' : 'Mode sombre'}
     >
       {isDark ? (

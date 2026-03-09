@@ -75,7 +75,7 @@ export default function NotificationPopover({ user }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-xl relative">
+        <Button variant="outline" size="icon" className="rounded-xl border-[#EBEBEB] shadow-none hover:bg-[#FAFAFA] relative">
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
@@ -84,9 +84,9 @@ export default function NotificationPopover({ user }) {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[min(24rem,calc(100vw-2rem))] p-0 rounded-2xl" align="end">
+      <PopoverContent className="w-[min(24rem,calc(100vw-2rem))] p-0 rounded-2xl border-[#EBEBEB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]" align="end">
         {/* Header */}
-        <div className="p-4 border-b border-[#E5E5E5] flex items-center justify-between">
+        <div className="p-4 border-b border-[#EBEBEB] flex items-center justify-between">
           <h3 className="font-semibold">Notifications</h3>
           {unreadCount > 0 && (
             <Button

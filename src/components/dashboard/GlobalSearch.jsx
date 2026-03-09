@@ -43,7 +43,7 @@ export default function GlobalSearch({ leads = [], listings = [], compact = fals
   return (
     <div ref={containerRef} className={cn("relative", compact ? "w-full min-w-0 max-w-[280px]" : "w-full max-w-[800px] mx-auto")}>
       <div className={cn(
-        "flex items-center bg-white border border-[#E5E7EB] rounded-xl shadow-sm transition-all",
+        "flex items-center bg-white border border-[#EBEBEB] rounded-xl transition-all",
         compact ? "h-10 px-4" : "h-14 px-5",
         isOpen && query && "rounded-b-none border-b-0"
       )}>
@@ -71,7 +71,7 @@ export default function GlobalSearch({ leads = [], listings = [], compact = fals
       </div>
 
       {isOpen && query && (
-        <div className="absolute top-full left-0 right-0 bg-white border border-t-0 border-[#E5E7EB] rounded-b-xl shadow-lg z-50 max-h-[400px] overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 bg-white border border-t-0 border-[#EBEBEB] rounded-b-xl z-50 max-h-[400px] overflow-y-auto">
           {!hasResults ? (
             <div className="p-6 text-center text-[#9CA3AF] text-sm">
               Aucun résultat pour "{query}"
@@ -103,7 +103,7 @@ export default function GlobalSearch({ leads = [], listings = [], compact = fals
               )}
               
               {filteredListings.length > 0 && (
-                <div className="px-3 py-2 border-t border-[#E5E7EB]">
+                <div className="px-3 py-2 border-t border-[#EBEBEB]">
                   <p className="text-xs font-medium text-[#9CA3AF] uppercase tracking-wide mb-1">Biens</p>
                   {filteredListings.map(listing => (
                     <Link

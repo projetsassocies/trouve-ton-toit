@@ -221,17 +221,18 @@ export default function DashboardKPIs({ className }) {
   }
 
   return (
-    <div className={cn('space-y-4', className)}>
-      <div className="flex gap-2">
+    <div className={cn('space-y-5', className)}>
+      {/* Période : tabs comme sur la capture - Aujourd'hui avec underline vert */}
+      <div className="flex gap-0 border-b border-[#EBEBEB]">
         {PERIODS.map((p) => (
           <button
             key={p.id}
             onClick={() => setPeriod(p.id)}
             className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              'px-5 py-2.5 text-sm font-medium transition-colors relative -mb-px',
               period === p.id
-                ? 'bg-[#095237] text-white'
-                : 'bg-white dark:bg-[#1f1f1f] border border-[#E5E5E5] dark:border-[#333] text-[#666] dark:text-[#999] hover:bg-[#FAFAFA] dark:hover:bg-[#2a2a2a]'
+                ? 'text-[#095237] border-b-2 border-[#095237]'
+                : 'text-[#6b6b6b] hover:text-[#1a1a1a] border-b-2 border-transparent'
             )}
           >
             {p.label}
@@ -239,8 +240,9 @@ export default function DashboardKPIs({ className }) {
         ))}
       </div>
 
+      {/* 5 cartes blanches épurées, sans shadow */}
       <div
-        className="flex flex-wrap gap-3"
+        className="flex flex-wrap gap-4"
         role="region"
         aria-label="Statistiques KPIs"
       >
@@ -253,30 +255,22 @@ export default function DashboardKPIs({ className }) {
             <div
               key={key}
               className={cn(
-                'flex flex-col gap-2 p-4 rounded-xl border min-w-[120px]',
-                'bg-white dark:bg-[#1f1f1f] border-[#E5E5E5] dark:border-[#333]',
-                'hover:shadow-sm transition-all'
+                'flex flex-col gap-3 p-5 rounded-2xl border min-w-[130px]',
+                'bg-white border-[#EBEBEB]'
               )}
             >
               <div className="flex items-start justify-between gap-2">
-                <div className="w-9 h-9 rounded-lg bg-[#f0fdf4] dark:bg-[#0d2818] flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-[#095237]" />
+                <div className="w-10 h-10 rounded-full bg-[#F5F5F5] flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-[#095237]" />
                 </div>
                 {delta !== 0 && (
-                  <span
-                    className={cn(
-                      'text-xs font-medium px-2 py-0.5 rounded-full',
-                      delta >= 0
-                        ? 'bg-[#dcfce7] dark:bg-[#14532d] text-[#166534] dark:text-[#86efac]'
-                        : 'bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400'
-                    )}
-                  >
+                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#095237] text-white">
                     {deltaStr}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#666] dark:text-[#999]">{config.label}</p>
-              <p className="text-xl font-bold text-[#111] dark:text-white">
+              <p className="text-xs text-[#6b6b6b]">{config.label}</p>
+              <p className="text-2xl font-bold text-[#1a1a1a] leading-none">
                 {config.isPercent ? `${value}%` : value}
               </p>
             </div>
