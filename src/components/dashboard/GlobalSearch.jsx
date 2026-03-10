@@ -89,7 +89,7 @@ export default function GlobalSearch({ leads = [], listings = [], compact = fals
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors"
                     >
                       <div className="w-8 h-8 rounded-full bg-[#f9ffed] flex items-center justify-center">
-                        <User className="w-4 h-4 text-[#095237]" />
+                        <User className="w-4 h-4 text-secondary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{lead.first_name} {lead.last_name}</p>

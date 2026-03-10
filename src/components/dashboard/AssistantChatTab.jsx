@@ -117,7 +117,7 @@ function ToolCallCard({ toolCall, isExpanded, onToggle }) {
         <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${
           hasError ? 'text-red-500' :
           isSuccess ? 'text-green-600' :
-          'text-[#095237]'
+          'text-secondary'
         }`} />
         <span className="font-medium text-[#374151] flex-1 text-left">{label}</span>
         {isSuccess && <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />}

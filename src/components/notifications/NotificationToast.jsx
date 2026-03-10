@@ -124,7 +124,7 @@ export default function NotificationToast({ user }) {
                   </p>
                   
                   {notif.match_count !== undefined && (
-                    <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-[#c5ff4e]/20 text-black text-xs font-medium">
+                    <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-primary/20 text-primary-foreground text-xs font-medium">
                       <Sparkles className="w-3 h-3 mr-1" />
                       {notif.match_count} correspondance{notif.match_count > 1 ? 's' : ''}
                     </div>

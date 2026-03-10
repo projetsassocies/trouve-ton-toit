@@ -356,7 +356,7 @@ export default function ActivityWidget({ className }) {
               e.stopPropagation();
               handleToggleComplete(task);
             }}
-            className="w-5 h-5 rounded-full border-2 border-[#D0D0D0] hover:border-[#095237] hover:bg-[#f0fdf4] flex items-center justify-center flex-shrink-0 transition-colors"
+            className="w-5 h-5 rounded-full border-2 border-border hover:border-secondary hover:bg-primary/10 flex items-center justify-center flex-shrink-0 transition-colors"
             aria-label="Marquer terminé"
           >
             {task.status === 'completed' && (
@@ -477,7 +477,7 @@ export default function ActivityWidget({ className }) {
               className={cn(
                 'flex-1 px-4 py-3 text-sm font-medium transition-colors',
                 isActive
-                  ? 'text-[#095237] border-b-2 border-[#095237] bg-[#f0fdf4]/30'
+                  ? 'text-secondary border-b-2 border-secondary bg-primary/10'
                   : 'text-[#666666] hover:text-black hover:bg-[#FAFAFA]'
               )}
             >
@@ -519,7 +519,7 @@ export default function ActivityWidget({ className }) {
           {hasMore && (
             <button
               onClick={() => setShowMore(!showMore)}
-              className="w-full py-2 text-center text-sm text-[#095237] hover:underline font-medium"
+              className="w-full py-2 text-center text-sm text-secondary hover:underline font-medium"
             >
               {showMore ? 'Voir moins' : 'Voir plus'}
             </button>

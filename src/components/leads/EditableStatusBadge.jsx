@@ -6,7 +6,7 @@ const STATUSES = [
   { value: 'nouveau', label: 'Nouveau', bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
   { value: 'contacte', label: 'Contacté', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
   { value: 'en_negociation', label: 'En négo', bg: 'bg-purple-50', text: 'text-purple-700', dot: 'bg-purple-500' },
-  { value: 'converti', label: 'Converti', bg: 'bg-[#c5ff4e]/10', text: 'text-[#000000]', dot: 'bg-[#c5ff4e]' },
+  { value: 'converti', label: 'Converti', bg: 'bg-primary/10', text: 'text-foreground', dot: 'bg-primary' },
   { value: 'perdu', label: 'Perdu', bg: 'bg-rose-50', text: 'text-rose-700', dot: 'bg-rose-500' },
 ];
 

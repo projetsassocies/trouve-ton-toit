@@ -263,7 +263,7 @@ export default function MatchActionsPanel({
                 onSendEmail({ subject: emailSubject, body: emailBody });
                 setActiveDialog(null);
               }}
-              className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
             >
               <Send className="w-4 h-4 mr-2" />
               Envoyer
@@ -294,7 +294,7 @@ export default function MatchActionsPanel({
                 onSendSMS({ body: smsBody });
                 setActiveDialog(null);
               }}
-              className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
             >
               <Send className="w-4 h-4 mr-2" />
               Envoyer
@@ -339,7 +339,7 @@ export default function MatchActionsPanel({
                 onScheduleVisit({ date: visitDate, time: visitTime });
                 setActiveDialog(null);
               }}
-              className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
             >
               <CalendarPlus className="w-4 h-4 mr-2" />
               Planifier
@@ -370,7 +370,7 @@ export default function MatchActionsPanel({
                 onAddNote(noteText);
                 setActiveDialog(null);
               }}
-              className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
             >
               <StickyNote className="w-4 h-4 mr-2" />
               Enregistrer

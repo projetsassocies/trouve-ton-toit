@@ -21,7 +21,7 @@ const priorityConfig = {
 const statusColumns = {
   todo: { label: 'À faire', color: 'border-gray-300' },
   in_progress: { label: 'En cours', color: 'border-blue-400' },
-  completed: { label: 'Terminé', color: 'border-[#c5ff4e]' },
+  completed: { label: 'Terminé', color: 'border-primary' },
 };
 
 export default function TasksTab() {

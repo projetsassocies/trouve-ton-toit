@@ -189,7 +189,7 @@ export default function ComparisonView({
               <Button
                 size="sm"
                 onClick={() => onPropose(item)}
-                className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl h-9 px-5 text-sm font-medium shadow-sm hover:shadow transition-shadow"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-9 px-5 text-sm font-medium shadow-sm hover:shadow transition-shadow"
               >
                 <Send className="w-3.5 h-3.5 mr-2" />
                 Proposer

@@ -371,7 +371,7 @@ export default function EditListing() {
                 className={cn(
                   "px-4 py-2.5 rounded-xl text-sm font-medium border transition-all",
                   formData.amenities.includes(amenity.value)
-                    ? "bg-[#c5ff4e] text-black border-[#c5ff4e]"
+                    ? "bg-primary text-primary-foreground border-primary"
                     : "bg-white text-[#666666] border-[#E5E5E5] hover:border-[#CCCCCC]"
                 )}
               >
@@ -457,7 +457,7 @@ export default function EditListing() {
           <Button 
             type="submit" 
             disabled={updateMutation.isPending}
-            className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
           >
             {updateMutation.isPending ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

@@ -553,11 +553,11 @@ export default function Matching() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-white border border-[#E5E5E5]">
-          <TabsTrigger value="matching" className="data-[state=active]:bg-[#c5ff4e] data-[state=active]:text-black">
+          <TabsTrigger value="matching" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Target className="w-4 h-4 mr-2" />
             Matching
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="data-[state=active]:bg-[#c5ff4e] data-[state=active]:text-black">
+          <TabsTrigger value="analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <BarChart3 className="w-4 h-4 mr-2" />
             Statistiques
           </TabsTrigger>
@@ -578,7 +578,7 @@ export default function Matching() {
               }}
               className={cn(
                 "rounded-xl h-8 text-xs",
-                mode === 'lead-to-listing' && "bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black"
+                mode === 'lead-to-listing' && "bg-primary hover:bg-primary/90 text-primary-foreground"
               )}
             >
               <Users className="w-3.5 h-3.5 mr-1.5" />
@@ -596,7 +596,7 @@ export default function Matching() {
               }}
               className={cn(
                 "rounded-xl h-8 text-xs",
-                mode === 'listing-to-lead' && "bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black"
+                mode === 'listing-to-lead' && "bg-primary hover:bg-primary/90 text-primary-foreground"
               )}
             >
               <Building2 className="w-3.5 h-3.5 mr-1.5" />
@@ -848,7 +848,7 @@ export default function Matching() {
                   <XAxis dataKey="week" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="matchs" stroke="#c5ff4e" strokeWidth={2} dot={{ fill: '#c5ff4e', r: 4 }} />
+                  <Line type="monotone" dataKey="matchs" stroke="#c6f960" strokeWidth={2} dot={{ fill: '#c6f960', r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             </Card>
@@ -862,7 +862,7 @@ export default function Matching() {
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#c5ff4e" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="count" fill="#c6f960" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </Card>

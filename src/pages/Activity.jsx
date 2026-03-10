@@ -62,7 +62,7 @@ export default function Activity() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl whitespace-nowrap">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl whitespace-nowrap">
               <Plus className="w-4 h-4 mr-2" />
               Nouveau
             </Button>
@@ -113,7 +113,7 @@ export default function Activity() {
           >
             Agenda
             {todayEvents > 0 && (
-              <Badge className="ml-1 sm:ml-2 bg-[#c5ff4e] text-black h-4 sm:h-5 px-1 sm:px-1.5 text-[10px] sm:text-xs">
+              <Badge className="ml-1 sm:ml-2 bg-primary text-primary-foreground h-4 sm:h-5 px-1 sm:px-1.5 text-[10px] sm:text-xs">
                 {todayEvents}
               </Badge>
             )}

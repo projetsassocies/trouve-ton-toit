@@ -256,7 +256,7 @@ export default function LeadChatTab({ greetingText, renderBelowInput }) {
     switch (categorie) {
       case 'CHAUD': return { border: 'border-[#EF4444]', badge: 'bg-[#FEE2E2] text-[#DC2626]', scoreColor: 'text-[#EF4444]' };
       case 'TIEDE': return { border: 'border-[#F59E0B]', badge: 'bg-[#FEF3C7] text-[#D97706]', scoreColor: 'text-[#F59E0B]' };
-      default: return { border: 'border-[#095237]', badge: 'bg-[#095237]/10 text-[#095237]', scoreColor: 'text-[#095237]' };
+      default: return { border: 'border-secondary', badge: 'bg-secondary/10 text-secondary', scoreColor: 'text-secondary' };
     }
   };
 
@@ -318,7 +318,7 @@ export default function LeadChatTab({ greetingText, renderBelowInput }) {
                   <Button
                     onClick={(e) => { e.stopPropagation(); handleCreateLead(lead, idx); }}
                     size="sm"
-                    className="h-7 text-xs bg-[#095237] hover:bg-[#074029] text-white rounded-lg px-3"
+                    className="h-7 text-xs bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg px-3"
                   >
                     <UserPlus className="w-3 h-3 mr-1" /> Creer le lead
                   </Button>
@@ -351,7 +351,7 @@ export default function LeadChatTab({ greetingText, renderBelowInput }) {
                   switchToAssistant(`Est-ce que j'ai des biens qui matchent pour ${lead.first_name} ${lead.last_name} ?`);
                 }}
                 variant="outline"
-                className="flex-1 h-8 text-xs rounded-lg border-[#095237] text-[#095237] hover:bg-[#095237]/5"
+                className="flex-1 h-8 text-xs rounded-lg border-secondary text-secondary hover:bg-secondary/5"
               >
                 <Building2 className="w-3 h-3 mr-1" /> Chercher un bien compatible
               </Button>
@@ -361,7 +361,7 @@ export default function LeadChatTab({ greetingText, renderBelowInput }) {
                   switchToAssistant(`Programme un appel avec ${lead.first_name} ${lead.last_name}`);
                 }}
                 variant="outline"
-                className="flex-1 h-8 text-xs rounded-lg border-[#095237] text-[#095237] hover:bg-[#095237]/5"
+                className="flex-1 h-8 text-xs rounded-lg border-secondary text-secondary hover:bg-secondary/5"
               >
                 <MessageCircle className="w-3 h-3 mr-1" /> Demander a l'assistant
               </Button>

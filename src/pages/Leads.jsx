@@ -173,7 +173,7 @@ export default function Leads() {
             </p>
           </div>
           <Link to={createPageUrl('AddLead')} className="sm:hidden flex-shrink-0">
-            <Button className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl h-10 px-4 text-sm font-medium">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-10 px-4 text-sm font-medium">
               <Plus className="w-4 h-4 mr-2" />
               Ajouter
             </Button>
@@ -217,7 +217,7 @@ export default function Leads() {
         {/* Desktop only: duplicate Add button for consistency when not in selection mode */}
         {!selectionMode && (
           <Link to={createPageUrl('AddLead')} className="hidden sm:block">
-            <Button className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl h-10 px-4 text-sm font-medium">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-10 px-4 text-sm font-medium">
               <Plus className="w-4 h-4 mr-2" />
               Ajouter un lead
             </Button>
@@ -343,7 +343,7 @@ export default function Leads() {
                   ) : (
                     <Link
                       to={createPageUrl(`LeadDetail?id=${lead.id}`)}
-                      className="w-10 h-10 rounded-full bg-[#f9ffed] flex items-center justify-center font-medium text-sm flex-shrink-0 text-[#095237]"
+                      className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-medium text-sm flex-shrink-0 text-secondary"
                     >
                       {lead.first_name?.[0]}{lead.last_name?.[0]}
                     </Link>

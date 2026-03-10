@@ -144,7 +144,7 @@ export default function ConversationalChat({
           <div className="p-3 space-y-2">
             <button
               onClick={onNewConversation}
-              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[#095237] hover:bg-[#074029] text-white text-sm font-medium transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-secondary hover:bg-secondary/90 text-secondary-foreground text-sm font-medium transition-colors"
             >
               <Plus className="w-4 h-4" />
               Nouvelle conversation
@@ -199,7 +199,7 @@ export default function ConversationalChat({
                           }}
                           onBlur={() => handleRename(conv.id)}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-full text-xs bg-transparent border-b border-[#095237] outline-none py-0.5"
+                          className="w-full text-xs bg-transparent border-b border-secondary outline-none py-0.5"
                         />
                       ) : (
                         <>

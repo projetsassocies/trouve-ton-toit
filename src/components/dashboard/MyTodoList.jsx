@@ -60,7 +60,7 @@ export default function MyTodoList({ className }) {
             <p className="text-sm text-[#6b6b6b]">Rien à faire</p>
             <Link
               to={createPageUrl('Activity')}
-              className="text-xs text-[#095237] hover:underline mt-1 inline-block"
+              className="text-xs text-secondary hover:underline mt-1 inline-block"
             >
               Ajouter une tâche
             </Link>
@@ -83,7 +83,7 @@ export default function MyTodoList({ className }) {
                     onClick={() =>
                       toggleMutation.mutate({ id: task.id, completed: task.status !== 'completed' })
                     }
-                    className="flex-shrink-0 text-[#095237] hover:opacity-80"
+                    className="flex-shrink-0 text-secondary hover:opacity-80"
                   >
                     <Square className="w-4 h-4" />
                   </button>

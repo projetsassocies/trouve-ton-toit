@@ -111,7 +111,7 @@ export default function ListingSelector({
                 className={cn(
                   "px-3 py-2.5 cursor-pointer transition-colors",
                   selectedListingId === listing.id
-                    ? "bg-[#c5ff4e]/10 border-l-2 border-l-[#c5ff4e]"
+                    ? "bg-primary/10 border-l-2 border-l-primary"
                     : "hover:bg-[#FAFAFA] border-l-2 border-l-transparent"
                 )}
               >

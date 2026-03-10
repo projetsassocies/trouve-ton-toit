@@ -350,7 +350,7 @@ export default function LeadActivityTimeline({ leadId }) {
         <h2 className="font-semibold">Historique des échanges</h2>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="sm" className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl">
+            <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
               <Plus className="w-4 h-4 mr-2" />
               Ajouter
             </Button>

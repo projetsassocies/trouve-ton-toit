@@ -75,7 +75,7 @@ export default function BottomSummaryBar({ className }) {
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <Percent className="w-4 h-4 text-[#095237]" />
+        <Percent className="w-4 h-4 text-secondary" />
         <span className="text-sm font-medium text-[#1a1a1a]">
           {stats.conversionRate}% Taux de conversion
         </span>

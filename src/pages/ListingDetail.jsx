@@ -543,7 +543,7 @@ export default function ListingDetail() {
                         <p className="text-xs text-[#999999] mb-1">Minimum</p>
                         <p className="text-xl font-semibold">{formatPrice(listing.estimation_min)}</p>
                       </div>
-                      <div className="flex-1 min-w-[140px] p-4 rounded-xl bg-[#c5ff4e]/20 border border-[#c5ff4e]/40">
+                      <div className="flex-1 min-w-[140px] p-4 rounded-xl bg-primary/20 border border-primary/40">
                         <p className="text-xs text-[#999999] mb-1">Estimation médiane</p>
                         <p className="text-xl font-semibold">
                           {formatPrice(Math.round((listing.estimation_min + listing.estimation_max) / 2))}

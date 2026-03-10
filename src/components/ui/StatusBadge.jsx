@@ -6,13 +6,13 @@ const statusConfig = {
   nouveau: { label: 'Nouveau', bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
   contacte: { label: 'Contacté', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
   en_negociation: { label: 'En négo', bg: 'bg-purple-50', text: 'text-purple-700', dot: 'bg-purple-500' },
-  converti: { label: 'Converti', bg: 'bg-[#F9FFED]', text: 'text-black', dot: 'bg-[#c5ff4e]' },
+  converti: { label: 'Converti', bg: 'bg-primary/10', text: 'text-foreground', dot: 'bg-primary' },
   perdu: { label: 'Perdu', bg: 'bg-rose-50', text: 'text-rose-700', dot: 'bg-rose-500' },
   
   // Listing statuses
   brouillon: { label: 'Brouillon', bg: 'bg-gray-50', text: 'text-gray-700', dot: 'bg-gray-400' },
   en_cours: { label: 'En cours', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
-  publie: { label: 'Publié', bg: 'bg-[#F9FFED]', text: 'text-black', dot: 'bg-[#c5ff4e]' },
+  publie: { label: 'Publié', bg: 'bg-primary/10', text: 'text-foreground', dot: 'bg-primary' },
   vendu: { label: 'Vendu', bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
 };
 

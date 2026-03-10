@@ -131,7 +131,7 @@ export default function Listings() {
                 Sélectionner
               </Button>
               <Link to={createPageUrl('AddListing')}>
-                <Button className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl h-10 px-4 text-sm font-medium">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-10 px-4 text-sm font-medium">
                   <Plus className="w-4 h-4 mr-2" />
                   Ajouter un bien
                 </Button>
@@ -220,7 +220,7 @@ export default function Listings() {
           <p className="text-[#999999] font-medium">Aucun bien trouvé</p>
           <p className="text-sm text-[#CCCCCC] mt-1">Modifiez vos filtres ou ajoutez un nouveau bien</p>
           <Link to={createPageUrl('AddListing')}>
-            <Button className="mt-4 bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl">
+            <Button className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
               <Plus className="w-4 h-4 mr-2" />
               Ajouter un bien
             </Button>

@@ -207,7 +207,7 @@ export default function LeadDetail() {
               <Button 
                 onClick={handleSave}
                 disabled={updateMutation.isPending}
-                className="bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Enregistrer

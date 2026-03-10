@@ -150,7 +150,7 @@ export default function MatchResultsPanel({
         <Button
           onClick={onRunMatching}
           disabled={isMatching}
-          className="w-full mt-3 bg-[#c5ff4e] hover:bg-[#b5ef3e] text-black rounded-xl h-9 text-sm font-medium"
+          className="w-full mt-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-9 text-sm font-medium"
         >
           {isMatching ? (
             <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -165,7 +165,7 @@ export default function MatchResultsPanel({
       <div className="flex-1 overflow-y-auto">
         {isMatching ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-[#c5ff4e] mb-3" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
             <p className="text-sm text-[#999999]">Analyse des correspondances...</p>
           </div>
         ) : matchResults.length === 0 ? (
