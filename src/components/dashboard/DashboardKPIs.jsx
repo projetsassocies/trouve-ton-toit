@@ -222,8 +222,8 @@ export default function DashboardKPIs({ className }) {
 
   return (
     <div className={cn('space-y-5', className)}>
-      {/* Période : tabs comme sur la capture - Aujourd'hui avec underline vert */}
-      <div className="flex gap-0 border-b border-[#EBEBEB]">
+      {/* Période : tabs - Aujourd'hui / Semaine / Mois */}
+      <div className="flex gap-0 border-b border-border">
         {PERIODS.map((p) => (
           <button
             key={p.id}
@@ -231,8 +231,8 @@ export default function DashboardKPIs({ className }) {
             className={cn(
               'px-5 py-2.5 text-sm font-medium transition-colors relative -mb-px',
               period === p.id
-                ? 'text-[#095237] border-b-2 border-[#095237]'
-                : 'text-[#6b6b6b] hover:text-[#1a1a1a] border-b-2 border-transparent'
+                ? 'text-secondary border-b-2 border-secondary'
+                : 'text-muted-foreground hover:text-foreground border-b-2 border-transparent'
             )}
           >
             {p.label}
@@ -240,7 +240,7 @@ export default function DashboardKPIs({ className }) {
         ))}
       </div>
 
-      {/* 5 cartes blanches épurées, sans shadow */}
+      {/* 5 cartes KPIs */}
       <div
         className="flex flex-wrap gap-4"
         role="region"
@@ -256,21 +256,21 @@ export default function DashboardKPIs({ className }) {
               key={key}
               className={cn(
                 'flex flex-col gap-3 p-5 rounded-2xl border min-w-[130px]',
-                'bg-white border-[#EBEBEB]'
+                'bg-card border-border'
               )}
             >
               <div className="flex items-start justify-between gap-2">
-                <div className="w-10 h-10 rounded-full bg-[#F5F5F5] flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-[#095237]" />
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-secondary" />
                 </div>
                 {delta !== 0 && (
-                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#095237] text-white">
+                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
                     {deltaStr}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#6b6b6b]">{config.label}</p>
-              <p className="text-2xl font-bold text-[#1a1a1a] leading-none">
+              <p className="text-xs text-muted-foreground">{config.label}</p>
+              <p className="text-2xl font-bold text-foreground leading-none">
                 {config.isPercent ? `${value}%` : value}
               </p>
             </div>
