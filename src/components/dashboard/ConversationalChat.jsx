@@ -115,7 +115,7 @@ export default function ConversationalChat({
       type="button"
       onClick={handleSend}
       disabled={isProcessing || !inputValue.trim()}
-      className="w-10 h-10 rounded-full bg-[#c5ff4e] hover:bg-[#b8f045] text-[#1a1a1a] flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-50"
+      className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-50"
     >
       {isProcessing ? (
         <Loader2 className="w-5 h-5 animate-spin" />
@@ -260,7 +260,7 @@ export default function ConversationalChat({
         {messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center p-4">
             {greetingText && (
-              <p className="text-sm sm:text-base text-[#1a1a1a] font-medium text-center">
+              <p className="text-sm sm:text-base text-foreground font-medium text-center">
                 {greetingText}
               </p>
             )}
@@ -273,8 +273,8 @@ export default function ConversationalChat({
                   <div className={cn(
                     "max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
                     msg.role === 'user'
-                      ? "bg-[#095237] text-white rounded-br-md"
-                      : "bg-[#F5F5F5] text-[#1a1a1a] rounded-bl-md"
+                      ? "bg-secondary text-secondary-foreground rounded-br-md"
+                      : "bg-muted text-foreground rounded-bl-md"
                   )}>
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
@@ -284,11 +284,11 @@ export default function ConversationalChat({
             ))}
             {isProcessing && (
               <div className="flex justify-start">
-                <div className="bg-[#F5F5F5] rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
                   <div className="flex gap-1.5">
-                    <span className="w-2 h-2 bg-[#9CA3AF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-[#9CA3AF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-[#9CA3AF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -302,11 +302,11 @@ export default function ConversationalChat({
           <div className="relative flex">
             {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
               <div
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#9ca3af] pointer-events-none pr-12 overflow-hidden max-w-[calc(100%-3rem)]"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none pr-12 overflow-hidden max-w-[calc(100%-3rem)]"
                 aria-hidden
               >
                 {typingPlaceholder}
-                <span className="inline-block w-0.5 h-4 bg-[#9ca3af] ml-0.5 animate-pulse align-middle" />
+                <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
               </div>
             )}
             <input
@@ -316,7 +316,7 @@ export default function ConversationalChat({
               onBlur={() => setInputFocused(false)}
               onKeyDown={handleKeyDown}
               placeholder="Posez votre question..."
-              className="flex-1 h-12 rounded-xl bg-white border border-[#e8e8e8] text-sm px-4 text-[#1a1a1a] placeholder:text-[#9ca3af] outline-none focus:border-[#c5ff4e]/50"
+              className="flex-1 h-12 rounded-xl bg-card border border-border text-sm px-4 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               disabled={isProcessing}
             />
           </div>

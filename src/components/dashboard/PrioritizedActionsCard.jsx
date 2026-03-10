@@ -16,6 +16,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { format, startOfDay, isToday, isTomorrow, isPast } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -282,123 +284,129 @@ export default function PrioritizedActionsCard({ formatPrice, className }) {
 
   if (actions.length === 0) {
     return (
-      <div
-        className={cn(
-          'bg-white rounded-2xl border border-[#EBEBEB] p-6',
-          className
-        )}
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <Target className="w-5 h-5 text-[#095237]" />
-          <h2 className="font-semibold text-[#1a1a1a]">Actions prioritaires</h2>
-        </div>
-        <div className="py-12 text-center">
-          <Target className="w-12 h-12 text-[#CCCCCC] mx-auto mb-3" />
-          <p className="text-sm text-[#6b6b6b]">Aucune action prioritaire pour le moment</p>
-        </div>
-      </div>
+      <Card className={className}>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Target className="w-5 h-5 text-secondary" />
+            <h2 className="font-semibold">Actions prioritaires</h2>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="py-12 text-center">
+            <Target className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">Aucune action prioritaire pour le moment</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   const Icon = currentAction.icon;
+  const priorityStyle = currentAction.isUrgent
+    ? { label: 'Urgent', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400', dotColor: 'bg-red-500' }
+    : { label: 'Important', color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400', dotColor: 'bg-orange-500' };
 
   return (
-    <div
-      className={cn(
-        'bg-white rounded-2xl border border-[#EBEBEB] overflow-hidden',
-        className
-      )}
-    >
-      <div className="p-4 border-b border-[#EBEBEB] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Target className="w-5 h-5 text-[#095237]" />
-          <h2 className="font-semibold text-[#1a1a1a]">Actions prioritaires</h2>
-          <span className="px-2 py-0.5 rounded-full bg-[#dcfce7] dark:bg-[#14532d] text-[#166534] dark:text-[#86efac] text-xs font-medium">
-            {actions.length} à traiter
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-            disabled={!canGoPrev}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <span className="text-xs text-[#666] dark:text-[#999] px-2">
-            {currentIndex + 1}/{actions.length}
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setCurrentIndex((i) => Math.min(actions.length - 1, i + 1))}
-            disabled={!canGoNext}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="p-4">
-        <div className="rounded-xl border border-[#EBEBEB] p-5 bg-[#FAFAFA]">
-          <div className="flex items-start gap-3 mb-3">
-            {currentAction.isUrgent && (
-              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-xs font-medium">
-                Urgent
-              </span>
-            )}
-            <Icon className="w-5 h-5 text-[#095237] flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-[#1a1a1a]">
-                {currentAction.title}
-              </h3>
+    <Card className={cn('relative overflow-hidden', className)}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-secondary" />
+            <h3 className="font-semibold">Actions prioritaires</h3>
+            <Badge className="ml-2 bg-primary text-primary-foreground hover:bg-primary/90">
+              {actions.length} à traiter
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {currentIndex + 1} / {actions.length}
+            </span>
+            <div className="flex gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+                disabled={!canGoPrev}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCurrentIndex((i) => Math.min(actions.length - 1, i + 1))}
+                disabled={!canGoNext}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-          <p className="text-sm text-[#6b6b6b] mb-3">{currentAction.context}</p>
-          <p className="text-xs text-[#095237] font-medium mb-4">
-            Pourquoi maintenant : {currentAction.pourquoiMaintenant}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={handleTraite}
-              className="bg-[#095237] hover:bg-[#074029] text-white"
-            >
-              <Check className="w-4 h-4 mr-1" />
-              {currentAction.primaryLabel}
-            </Button>
-            {currentAction.secondaryHref ? (
-              <Link to={currentAction.secondaryHref}>
-                <Button variant="outline" size="sm">
-                  {currentAction.secondaryLabel === 'Appeler maintenant' && (
-                    <Phone className="w-3.5 h-3.5 mr-1" />
-                  )}
-                  {currentAction.secondaryLabel}
-                </Button>
-              </Link>
-            ) : (
-              <Button variant="outline" size="sm">
-                {currentAction.secondaryLabel}
-              </Button>
-            )}
-          </div>
         </div>
-        <div className="flex justify-center gap-1 mt-3">
+      </CardHeader>
+      <CardContent>
+        <div className="relative">
+          <div className="absolute -bottom-1 -right-1 h-full w-full rounded-lg border bg-muted/30 -z-10" />
+          <div className="absolute -bottom-2 -right-2 h-full w-full rounded-lg border bg-muted/20 -z-20" />
+          <Card className="relative">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-lg bg-secondary/10 dark:bg-white/10">
+                    <Icon className="h-6 w-6 text-secondary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className={cn('text-xs', priorityStyle.color)}>
+                        <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1.5', priorityStyle.dotColor)} />
+                        {priorityStyle.label}
+                      </Badge>
+                    </div>
+                    <h4 className="text-lg font-semibold mb-2">{currentAction.title}</h4>
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-foreground mb-4 leading-relaxed">{currentAction.context}</p>
+              <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-medium">Pourquoi maintenant :</span>
+                <span>{currentAction.pourquoiMaintenant}</span>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                  onClick={handleTraite}
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  {currentAction.primaryLabel}
+                </Button>
+                {currentAction.secondaryHref ? (
+                  <Link to={currentAction.secondaryHref}>
+                    <Button variant="outline">
+                      {currentAction.secondaryLabel === 'Appeler maintenant' && <Phone className="w-4 h-4 mr-1" />}
+                      {currentAction.secondaryLabel}
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button variant="outline">{currentAction.secondaryLabel}</Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="flex justify-center gap-2 mt-4">
           {actions.map((_, i) => (
-            <div
+            <button
               key={i}
+              onClick={() => setCurrentIndex(i)}
               className={cn(
-                'w-2 h-2 rounded-full transition-colors',
-                i === currentIndex
-                  ? 'bg-[#095237]'
-                  : 'bg-[#E0E0E0]'
+                'h-2 rounded-full transition-all',
+                i === currentIndex ? 'w-8 bg-secondary' : 'w-2 bg-muted-foreground/30'
               )}
+              aria-label={`Action ${i + 1}`}
             />
           ))}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

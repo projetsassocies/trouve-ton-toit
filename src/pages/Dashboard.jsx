@@ -6,7 +6,6 @@ import TodaySchedule from '@/components/dashboard/TodaySchedule';
 import MyTodoList from '@/components/dashboard/MyTodoList';
 import LeadsPipelineCompact from '@/components/dashboard/LeadsPipelineCompact';
 import BottomSummaryBar from '@/components/dashboard/BottomSummaryBar';
-import RecentProperties from '@/components/dashboard/RecentProperties';
 
 const formatPrice = (price) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price);
@@ -29,7 +28,6 @@ export default function Dashboard() {
         <div className="space-y-6">
           <TodaySchedule />
           <MyTodoList />
-          <RecentProperties />
         </div>
       </div>
 

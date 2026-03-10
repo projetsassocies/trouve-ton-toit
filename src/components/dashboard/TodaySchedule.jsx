@@ -4,10 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
-import { Calendar, Video, MapPin, Phone } from 'lucide-react';
+import { Calendar, Video, MapPin, Phone, ChevronRight } from 'lucide-react';
 import { format, isToday } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 const eventTypeConfig = {
@@ -44,43 +45,50 @@ export default function TodaySchedule({ className }) {
 
   if (isLoading) {
     return (
-      <div className={cn('bg-white rounded-2xl border border-[#EBEBEB] p-4', className)}>
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar className="w-5 h-5 text-[#095237]" />
-          <h2 className="font-semibold text-[#111] dark:text-white">Aujourd'hui</h2>
-        </div>
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16 rounded-xl" />
-          ))}
-        </div>
-      </div>
+      <Card className={className}>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-secondary" />
+            <h2 className="font-semibold">Aujourd'hui</h2>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-16 rounded-xl" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className={cn('bg-white rounded-2xl border border-[#EBEBEB] overflow-hidden', className)}>
-      <div className="p-4 border-b border-[#EBEBEB] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-[#095237]" />
-          <h2 className="font-semibold text-[#1a1a1a]">Aujourd'hui</h2>
+    <Card className={className}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-secondary" />
+            <h3 className="font-semibold">Emploi du temps</h3>
+          </div>
+          {todayEvents.length > 0 && (
+            <Badge className="bg-primary text-primary-foreground">
+              {todayEvents.length} rendez-vous
+            </Badge>
+          )}
         </div>
-        {todayEvents.length > 0 && (
-          <span className="px-2 py-0.5 rounded-full bg-[#dcfce7] dark:bg-[#14532d] text-[#166534] dark:text-[#86efac] text-xs font-medium">
-            {todayEvents.length} rendez-vous
-          </span>
-        )}
-      </div>
-      <div className="p-3">
+      </CardHeader>
+      <CardContent>
         {todayEvents.length === 0 ? (
           <div className="py-8 text-center">
-            <Calendar className="w-10 h-10 text-[#CCCCCC] mx-auto mb-2" />
-            <p className="text-sm text-[#6b6b6b]">Aucun rendez-vous aujourd'hui</p>
+            <Calendar className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Aucun rendez-vous aujourd'hui</p>
             <Link
               to={createPageUrl('Activity')}
-              className="text-xs text-[#095237] hover:underline mt-1 inline-block"
+              className="text-sm text-secondary hover:underline mt-2 inline-flex items-center gap-1"
             >
               Voir l'activité
+              <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
         ) : (
@@ -96,29 +104,32 @@ export default function TodaySchedule({ className }) {
                 <Link
                   key={event.id}
                   to={createPageUrl('Activity')}
-                  className="flex gap-3 p-3 rounded-xl hover:bg-[#FAFAFA] transition-colors"
+                  className="group flex gap-3 p-3 rounded-lg border border-border bg-card hover:bg-secondary/10 hover:border-secondary/30 transition-colors"
                 >
                   <div className="flex flex-col items-center min-w-[44px]">
-                    <span className="text-sm font-medium text-[#1a1a1a]">
+                    <span className="text-sm font-medium text-foreground">
                       {format(eventDate, 'HH:mm')}
                     </span>
-                    <span className="text-[10px] text-[#6b6b6b]">{duration}</span>
+                    <span className="text-[10px] text-muted-foreground">{duration}</span>
                   </div>
-                  <Icon className="w-4 h-4 text-[#095237] flex-shrink-0 mt-0.5" />
+                  <div className="p-2 rounded-lg bg-secondary/10 group-hover:bg-secondary/20">
+                    <Icon className="w-4 h-4 text-secondary" />
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-[#1a1a1a] truncate">
+                    <p className="font-medium text-sm text-foreground truncate">
                       {event.title}
                     </p>
-                    <p className="text-xs text-[#6b6b6b] truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {event.description || config.label}
                     </p>
                   </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-secondary flex-shrink-0" />
                 </Link>
               );
             })}
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
