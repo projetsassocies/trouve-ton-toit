@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   MessageCircle, Loader2, Trash2, Pencil,
-  Plus, Search, ArrowRight, History
+  Plus, Search, ArrowRight, History, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -147,117 +147,147 @@ export default function ConversationalChat({
 
   return (
     <div className="relative w-full flex flex-col">
-      {/* History panel - smooth slide-in overlay */}
+      {/* Overlay - clic ferme le panneau */}
       <div
         className={cn(
           "fixed inset-0 z-40 bg-black/20 transition-opacity duration-300",
           sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
         onClick={() => setSidebarOpen(false)}
+        aria-hidden
       />
-        <div
-          className={cn(
-          "absolute inset-y-0 left-0 z-50 w-[260px] sm:w-[280px] max-w-[85vw] bg-white flex flex-col flex-shrink-0 transition-transform duration-300 ease-out",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+
+      {/* Panneau Historique - slide depuis la DROITE */}
+      <div
+        className={cn(
+          "fixed inset-y-0 right-0 z-50 w-[320px] sm:w-[360px] max-w-[90vw] bg-white shadow-xl flex flex-col transition-transform duration-300 ease-out",
+          sidebarOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
-          <div className="p-3 space-y-2">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <h3 className="text-lg font-semibold text-foreground">Historique</h3>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(false)}
+            className="rounded-full h-8 w-8"
+            aria-label="Fermer"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto flex flex-col">
+          <div className="p-4 space-y-3">
             <button
               onClick={onNewConversation}
-              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-secondary hover:bg-secondary/90 text-secondary-foreground text-sm font-medium transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg bg-secondary hover:bg-secondary/90 text-secondary-foreground text-sm font-medium transition-colors"
             >
               <Plus className="w-4 h-4" />
               Nouvelle conversation
             </button>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Rechercher..."
-                className="h-9 pl-9 text-xs bg-white border-[#E5E7EB] rounded-lg"
+                className="h-9 pl-9 text-sm"
               />
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-2 pb-2">
+          <div className="flex-1 overflow-y-auto px-4 pb-4">
             {loadingConversations ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-4 h-4 animate-spin text-[#9CA3AF]" />
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
             ) : filteredConversations.length === 0 ? (
-              <div className="text-center py-8">
-                <MessageCircle className="w-5 h-5 text-[#D1D5DB] mx-auto mb-2" />
-                <p className="text-xs text-[#9CA3AF]">
-                  {searchQuery ? 'Aucun resultat' : 'Aucune conversation'}
+              <div className="text-center py-12">
+                <MessageCircle className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">
+                  {searchQuery ? 'Aucun résultat' : 'Aucune conversation'}
                 </p>
               </div>
             ) : (
-              <div className="space-y-0.5">
-                {filteredConversations.map(conv => (
-                  <div
-                    key={conv.id}
-                    onMouseEnter={() => setHoveredConvId(conv.id)}
-                    onMouseLeave={() => setHoveredConvId(null)}
-                    onClick={() => onSelectConversation(conv)}
-                    className={cn(
-                      "group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors relative",
-                      activeConversationId === conv.id
-                        ? "bg-[#fafafa]"
-                        : "hover:bg-[#fafafa]"
-                    )}
-                  >
-                    <div className="flex-1 min-w-0">
-                      {renamingId === conv.id ? (
-                        <input
-                          ref={renameInputRef}
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleRename(conv.id);
-                            if (e.key === 'Escape') setRenamingId(null);
-                          }}
-                          onBlur={() => handleRename(conv.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-full text-xs bg-transparent border-b border-secondary outline-none py-0.5"
-                        />
-                      ) : (
-                        <>
-                          <p className="text-xs font-medium text-[#374151] truncate">
-                            {getTitle(conv)}
-                          </p>
-                          <p className="text-[10px] text-[#9CA3AF] mt-0.5">
-                            {formatRelativeDate(conv.updated_date || conv.created_date)}
-                            {conv.messages?.length > 0 && ` · ${conv.messages.length} msg`}
-                          </p>
-                        </>
-                      )}
-                    </div>
+              <div className="space-y-4">
+                {(() => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const yesterday = new Date(today);
+                  yesterday.setDate(yesterday.getDate() - 1);
+                  const weekAgo = new Date(today);
+                  weekAgo.setDate(weekAgo.getDate() - 7);
 
-                    {hoveredConvId === conv.id && renamingId !== conv.id && (
-                      <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => { setRenamingId(conv.id); setRenameValue(getTitle(conv)); }}
-                          className="p-1 rounded hover:bg-[#E5E7EB] transition-colors"
-                          title="Renommer"
-                        >
-                          <Pencil className="w-3 h-3 text-[#6B7280]" />
-                        </button>
-                        <button
-                          onClick={() => onDeleteConversation(conv.id)}
-                          className="p-1 rounded hover:bg-rose-100 transition-colors"
-                          title="Supprimer"
-                        >
-                          <Trash2 className="w-3 h-3 text-[#6B7280] hover:text-rose-600" />
-                        </button>
+                  const groups = { today: [], yesterday: [], week: [], older: [] };
+                  filteredConversations.forEach(conv => {
+                    const d = new Date(conv.updated_date || conv.created_date || 0);
+                    d.setHours(0, 0, 0, 0);
+                    if (d.getTime() >= today.getTime()) groups.today.push(conv);
+                    else if (d.getTime() >= yesterday.getTime()) groups.yesterday.push(conv);
+                    else if (d.getTime() >= weekAgo.getTime()) groups.week.push(conv);
+                    else groups.older.push(conv);
+                  });
+
+                  const formatTimestamp = (dateStr) => {
+                    const d = new Date(dateStr);
+                    const today = new Date();
+                    const isToday = d.toDateString() === today.toDateString();
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const isYesterday = d.toDateString() === yesterday.toDateString();
+                    if (isToday) return `Aujourd'hui, ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+                    if (isYesterday) return `Hier, ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+                    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                  };
+
+                  const getDescription = (conv) => {
+                    const firstUserMsg = (conv.messages || []).find(m => m.role === 'user');
+                    if (firstUserMsg) return firstUserMsg.content.substring(0, 60) + (firstUserMsg.content.length > 60 ? '...' : '');
+                    return 'Nouvelle conversation';
+                  };
+
+                  const renderGroup = (label, items) =>
+                    items.length > 0 && (
+                      <div key={label}>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{label}</p>
+                        <div className="space-y-2">
+                          {items.map(conv => (
+                            <div
+                              key={conv.id}
+                              onClick={() => { onSelectConversation(conv); setSidebarOpen(false); }}
+                              className={cn(
+                                "flex gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-muted/50",
+                                activeConversationId === conv.id ? "border-primary bg-primary/5" : "border-border"
+                              )}
+                            >
+                              <MessageCircle className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{getTitle(conv)}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{getDescription(conv)}</p>
+                                <p className="text-[11px] text-muted-foreground mt-1">{formatTimestamp(conv.updated_date || conv.created_date)}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))}
+                    );
+
+                  return (
+                    <>
+                      {renderGroup("Aujourd'hui", groups.today)}
+                      {renderGroup("Hier", groups.yesterday)}
+                      {renderGroup("7 derniers jours", groups.week)}
+                      {renderGroup("Plus ancien", groups.older)}
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>
         </div>
+      </div>
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {!useCardLayout && activeConversationId && (
