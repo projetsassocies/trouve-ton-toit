@@ -221,7 +221,7 @@ export default function DashboardKPIs({ className }) {
   }
 
   return (
-    <div className={cn('space-y-5 w-full pb-6 border-b border-border', className)}>
+    <div className={cn('space-y-5 w-full', className)}>
       {/* Période : tabs - Aujourd'hui / Semaine / Mois */}
       <div className="flex gap-0 border-b border-border w-full">
         {PERIODS.map((p) => (
