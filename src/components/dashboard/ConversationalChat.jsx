@@ -25,8 +25,7 @@ export default function ConversationalChat({
   placeholderPrompts = [],
   inputPrefix,
   renderAboveInput,
-  renderSuggestions,
-  renderInputExtras,
+  renderBelowInput,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [renamingId, setRenamingId] = useState(null);
@@ -116,12 +115,12 @@ export default function ConversationalChat({
       type="button"
       onClick={handleSend}
       disabled={isProcessing || !inputValue.trim()}
-      className="h-10 w-10 flex-shrink-0 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors disabled:opacity-50"
+      className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-50"
     >
       {isProcessing ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader2 className="w-5 h-5 animate-spin" />
       ) : (
-        <ArrowRight className="h-4 w-4" />
+        <ArrowRight className="w-5 h-5" />
       )}
     </button>
   );
@@ -130,13 +129,13 @@ export default function ConversationalChat({
     <button
       type="button"
       onClick={() => setSidebarOpen(prev => !prev)}
-      className="h-10 w-10 flex-shrink-0 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground flex items-center justify-center transition-colors border border-border"
+      className="w-10 h-10 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground flex items-center justify-center flex-shrink-0 transition-colors border border-border"
       title={sidebarOpen ? "Masquer l'historique" : "Historique des conversations"}
     >
       {sidebarOpen ? (
-        <PanelLeftClose className="h-4 w-4" />
+        <PanelLeftClose className="w-4 h-4" />
       ) : (
-        <PanelLeftOpen className="h-4 w-4" />
+        <PanelLeftOpen className="w-4 h-4" />
       )}
     </button>
   );
@@ -267,15 +266,15 @@ export default function ConversationalChat({
         {messages.length === 0 ? (
           <div className="flex-1 min-h-[60px]" aria-hidden />
         ) : (
-          <div ref={messagesContainerRef} className="flex-1 max-h-[400px] overflow-y-auto p-4 space-y-3 min-h-0 mb-3">
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-3 p-4">
             {messages.map((msg, idx) => (
               <div key={idx}>
                 <div className={cn("flex", msg.role === 'user' ? "justify-end" : "justify-start")}>
                   <div className={cn(
-                    "p-3 rounded-lg text-sm leading-relaxed",
+                    "max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
                     msg.role === 'user'
-                      ? "max-w-[85%] ml-auto bg-secondary text-secondary-foreground"
-                      : "max-w-[85%] bg-muted text-foreground"
+                      ? "bg-secondary text-secondary-foreground rounded-br-md"
+                      : "bg-muted text-foreground rounded-bl-md"
                   )}>
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
@@ -285,7 +284,7 @@ export default function ConversationalChat({
             ))}
             {isProcessing && (
               <div className="flex justify-start">
-                <div className="max-w-[85%] p-3 rounded-lg bg-muted text-foreground">
+                <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
                   <div className="flex gap-1.5">
                     <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -299,41 +298,36 @@ export default function ConversationalChat({
 
         {renderAboveInput}
 
-        <div className="flex flex-col pb-3">
-          {/* Suggestions rapides (chips) - juste AU-DESSUS de l'input */}
-          {renderSuggestions && (
-            <div className="mb-3">
-              {typeof renderSuggestions === 'function' ? renderSuggestions() : renderSuggestions}
+        <div className="flex flex-col gap-3 pt-3">
+          <div className="relative flex">
+            {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
+              <div
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none pr-12 overflow-hidden max-w-[calc(100%-3rem)]"
+                aria-hidden
+              >
+                {typingPlaceholder}
+                <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
+              </div>
+            )}
+            <input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              onKeyDown={handleKeyDown}
+              placeholder=""
+              className="flex-1 h-12 rounded-xl bg-card border border-border text-sm px-4 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              disabled={isProcessing}
+            />
+          </div>
+
+          {renderBelowInput && (
+            <div>
+              {typeof renderBelowInput === 'function'
+                ? renderBelowInput({ sendButton, historyButton })
+                : renderBelowInput}
             </div>
           )}
-
-          {/* Input zone : [History] [Tabs] [Input] [Send] */}
-          <div className={cn("flex flex-row gap-2 items-center", renderSuggestions && "mt-3")}>
-            {historyButton}
-            {renderInputExtras && (typeof renderInputExtras === 'function' ? renderInputExtras() : renderInputExtras)}
-            <div className="relative flex-1 min-w-0">
-              {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
-                <div
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none pr-12 overflow-hidden max-w-[calc(100%-3rem)]"
-                  aria-hidden
-                >
-                  {typingPlaceholder}
-                  <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
-                </div>
-              )}
-              <input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
-                onKeyDown={handleKeyDown}
-                placeholder=""
-                className="w-full h-10 rounded-lg bg-card border border-border text-sm px-4 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                disabled={isProcessing}
-              />
-            </div>
-            {sendButton}
-          </div>
         </div>
       </div>
     </div>

@@ -38,58 +38,61 @@ function TabsContent({ fullWidth }) {
   const { activeTab, setActiveTab, activeLead, activeListing, switchToAssistant } = useChatContext();
   const greeting = getChatGreeting(user);
 
-  const renderSuggestions = () => (
-    <div className="flex flex-wrap gap-2">
-      {QUICK_ACTIONS.map((action) => {
-        const Icon = action.icon;
-        if (action.link) {
+  const renderBelowInput = ({ sendButton, historyButton }) => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        {historyButton}
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
           return (
-            <Link
-              key={action.label}
-              to={createPageUrl(action.link)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors"
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              )}
             >
-              <Icon className="w-4 h-4 text-muted-foreground" />
-              {action.label}
-            </Link>
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
           );
-        }
-        return (
-          <button
-            key={action.label}
-            onClick={() => switchToAssistant(action.prompt)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors"
-          >
-            <Icon className="w-4 h-4 text-muted-foreground" />
-            {action.label}
-          </button>
-        );
-      })}
-    </div>
-  );
+        })}
+        <div className="flex-1" />
+        {sendButton}
+      </div>
 
-  const renderInputExtras = () => (
-    <>
-      {TABS.map((tab) => {
-        const Icon = tab.icon;
-        const isActive = activeTab === tab.id;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors',
-              isActive
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            )}
-          >
-            <Icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        );
-      })}
-    </>
+      <div className="flex flex-wrap gap-2 justify-center">
+        {QUICK_ACTIONS.map((action) => {
+          const Icon = action.icon;
+          if (action.link) {
+            return (
+              <Link
+                key={action.label}
+                to={createPageUrl(action.link)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors"
+              >
+                <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                {action.label}
+              </Link>
+            );
+          }
+          return (
+            <button
+              key={action.label}
+              onClick={() => switchToAssistant(action.prompt)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors"
+            >
+              <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+              {action.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 
   return (
@@ -99,14 +102,13 @@ function TabsContent({ fullWidth }) {
           {getAISuggestion()}
         </h2>
         <div className="min-w-0">
-          {activeTab === 'lead' && <LeadChatTab greetingText={greeting} renderSuggestions={renderSuggestions} renderInputExtras={renderInputExtras} />}
+          {activeTab === 'lead' && <LeadChatTab greetingText={greeting} renderBelowInput={renderBelowInput} />}
           {activeTab === 'chat' && (
             <AssistantChatTab
               activeLead={activeLead}
               activeListing={activeListing}
               greetingText={greeting}
-              renderSuggestions={renderSuggestions}
-              renderInputExtras={renderInputExtras}
+              renderBelowInput={renderBelowInput}
             />
           )}
         </div>
