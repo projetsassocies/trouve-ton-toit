@@ -269,7 +269,7 @@ export default function ConversationalChat({
         )}
 
         {messages.length === 0 ? (
-          <div className="flex-1 min-h-[60px]" aria-hidden />
+          <div className={cn("flex-shrink-0", useCardLayout ? "min-h-0" : "min-h-[60px]")} aria-hidden />
         ) : (
           <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-3 p-4">
             {messages.map((msg, idx) => (
@@ -307,16 +307,8 @@ export default function ConversationalChat({
           <>
             <Card className="w-full max-w-4xl mb-6 flex-shrink-0">
               <div className="p-6">
-                <div className="relative">
-                  {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
-                    <div
-                      className="absolute left-0 top-0 text-lg text-muted-foreground pointer-events-none pr-12 overflow-hidden max-w-full"
-                      aria-hidden
-                    >
-                      {typingPlaceholder}
-                      <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
-                    </div>
-                  )}
+                <div className="relative min-h-[120px]">
+                  {/* Textarea : zone unique pour animation ET saisie */}
                   <textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
@@ -326,8 +318,20 @@ export default function ConversationalChat({
                     placeholder=""
                     rows={4}
                     disabled={isProcessing}
-                    className="w-full min-h-[120px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-lg transition-all"
+                    className="w-full min-h-[120px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-lg transition-all py-3"
                   />
+                  {/* Animation overlay : même position que le texte, pointer-events-none pour que les clics atteignent le textarea */}
+                  {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
+                    <div
+                      className="absolute inset-0 flex items-start pt-3 text-lg text-muted-foreground pointer-events-none overflow-hidden"
+                      aria-hidden
+                    >
+                      <span className="truncate max-w-full pr-12">
+                        {typingPlaceholder}
+                        <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t">
                   {renderBarContent({ sendButton, historyButton })}
