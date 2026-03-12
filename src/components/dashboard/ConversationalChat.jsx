@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   MessageCircle, Loader2, Trash2, Pencil,
-  Plus, Search, PanelLeftClose, PanelLeftOpen, ArrowRight
+  Plus, Search, ArrowRight, History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useTypingPlaceholder } from '@/hooks/useTypingPlaceholder';
 
@@ -26,6 +27,8 @@ export default function ConversationalChat({
   inputPrefix,
   renderAboveInput,
   renderBelowInput,
+  renderBarContent,
+  renderSuggestions,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [renamingId, setRenamingId] = useState(null);
@@ -108,40 +111,42 @@ export default function ConversationalChat({
       e.preventDefault();
       handleSend();
     }
+    // Shift+Enter = nouvelle ligne (textarea)
   };
 
   const sendButton = (
-    <button
+    <Button
       type="button"
+      size="icon"
       onClick={handleSend}
       disabled={isProcessing || !inputValue.trim()}
-      className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-50"
+      className="rounded-full bg-accent hover:bg-accent/90 text-white flex-shrink-0 disabled:opacity-50"
     >
       {isProcessing ? (
-        <Loader2 className="w-5 h-5 animate-spin" />
+        <Loader2 className="h-5 w-5 animate-spin" />
       ) : (
-        <ArrowRight className="w-5 h-5" />
+        <ArrowRight className="h-5 w-5" />
       )}
-    </button>
+    </Button>
   );
 
   const historyButton = (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={() => setSidebarOpen(prev => !prev)}
-      className="w-10 h-10 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground flex items-center justify-center flex-shrink-0 transition-colors border border-border"
+      className="rounded-full"
       title={sidebarOpen ? "Masquer l'historique" : "Historique des conversations"}
     >
-      {sidebarOpen ? (
-        <PanelLeftClose className="w-4 h-4" />
-      ) : (
-        <PanelLeftOpen className="w-4 h-4" />
-      )}
-    </button>
+      <History className="h-5 w-5" />
+    </Button>
   );
 
+  const useCardLayout = !!renderBarContent;
+
   return (
-    <div className="relative flex overflow-hidden h-[280px] sm:h-[320px] w-full rounded-xl bg-muted/20">
+    <div className="relative w-full flex flex-col">
       {/* History panel - smooth slide-in overlay */}
       <div
         className={cn(
@@ -298,37 +303,75 @@ export default function ConversationalChat({
 
         {renderAboveInput}
 
-        <div className="flex flex-col gap-3 pt-3">
-          <div className="relative flex">
-            {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
-              <div
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none pr-12 overflow-hidden max-w-[calc(100%-3rem)]"
-                aria-hidden
-              >
-                {typingPlaceholder}
-                <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
+        {renderBarContent ? (
+          <>
+            <Card className="w-full max-w-4xl mb-6 flex-shrink-0">
+              <div className="p-6">
+                <div className="relative">
+                  {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
+                    <div
+                      className="absolute left-0 top-0 text-lg text-muted-foreground pointer-events-none pr-12 overflow-hidden max-w-full"
+                      aria-hidden
+                    >
+                      {typingPlaceholder}
+                      <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
+                    </div>
+                  )}
+                  <textarea
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onFocus={() => setInputFocused(true)}
+                    onBlur={() => setInputFocused(false)}
+                    onKeyDown={handleKeyDown}
+                    placeholder=""
+                    rows={4}
+                    disabled={isProcessing}
+                    className="w-full min-h-[120px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-lg transition-all"
+                  />
+                </div>
+                <div className="flex items-center justify-between pt-4 border-t">
+                  {renderBarContent({ sendButton, historyButton })}
+                </div>
+              </div>
+            </Card>
+            {renderSuggestions && (
+              <div className="flex items-center gap-3 justify-center flex-wrap w-full">
+                {typeof renderSuggestions === 'function' ? renderSuggestions() : renderSuggestions}
               </div>
             )}
-            <input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
-              onKeyDown={handleKeyDown}
-              placeholder=""
-              className="flex-1 h-12 rounded-xl bg-card border border-border text-sm px-4 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              disabled={isProcessing}
-            />
-          </div>
-
-          {renderBelowInput && (
-            <div>
-              {typeof renderBelowInput === 'function'
-                ? renderBelowInput({ sendButton, historyButton })
-                : renderBelowInput}
+          </>
+        ) : (
+          <div className="flex flex-col gap-3 pt-3">
+            <div className="relative flex">
+              {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
+                <div
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none pr-12 overflow-hidden max-w-[calc(100%-3rem)]"
+                  aria-hidden
+                >
+                  {typingPlaceholder}
+                  <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
+                </div>
+              )}
+              <input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+                onKeyDown={handleKeyDown}
+                placeholder=""
+                className="flex-1 h-12 rounded-xl bg-card border border-border text-sm px-4 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                disabled={isProcessing}
+              />
             </div>
-          )}
-        </div>
+            {renderBelowInput && (
+              <div>
+                {typeof renderBelowInput === 'function'
+                  ? renderBelowInput({ sendButton, historyButton })
+                  : renderBelowInput}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
