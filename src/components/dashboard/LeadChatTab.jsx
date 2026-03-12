@@ -54,7 +54,7 @@ CATEGORIES : CHAUD >= 75, TIEDE 40-74, FROID < 40
 Pour property_type : studio, t1, t2, t3, t4, t5, maison, villa, loft
 "ready" = true si au minimum un nom et une ville sont identifies`;
 
-export default function LeadChatTab({ greetingText, renderBelowInput }) {
+export default function LeadChatTab({ greetingText, renderSuggestions, renderInputExtras }) {
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [loadingConversations, setLoadingConversations] = useState(false);
@@ -399,7 +399,8 @@ export default function LeadChatTab({ greetingText, renderBelowInput }) {
         "SMS client : recherche appart centre-ville Bordeaux",
       ], [])}
       inputPlaceholder="Colle un message client ou décris un lead..."
-      renderBelowInput={renderBelowInput}
+      renderSuggestions={renderSuggestions}
+      renderInputExtras={renderInputExtras}
     />
   );
 }

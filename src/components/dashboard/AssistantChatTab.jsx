@@ -219,7 +219,7 @@ function ToolResultSummary({ name, data }) {
   }
 }
 
-export default function AssistantChatTab({ activeLead, activeListing, greetingText, renderBelowInput }) {
+export default function AssistantChatTab({ activeLead, activeListing, greetingText, renderSuggestions, renderInputExtras }) {
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [loadingConversations, setLoadingConversations] = useState(false);
@@ -429,7 +429,8 @@ export default function AssistantChatTab({ activeLead, activeListing, greetingTe
         "Stats de conversion ce mois",
       ], [])}
       inputPlaceholder="Demande-moi ce que tu veux..."
-      renderBelowInput={renderBelowInput}
+      renderSuggestions={renderSuggestions}
+      renderInputExtras={renderInputExtras}
     />
   );
 }
