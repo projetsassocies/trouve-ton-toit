@@ -270,7 +270,7 @@ export default function ConversationalChat({
 
         {renderBarContent ? (
           <>
-            <Card className="w-full max-w-4xl mb-6 flex-shrink-0 min-h-[400px] max-h-[70vh] flex flex-col overflow-hidden">
+            <Card className="w-full max-w-4xl mb-6 flex-shrink-0 min-h-[320px] max-h-[50vh] flex flex-col overflow-hidden">
               <div className="p-6 flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden">
                 {/* Zone unique : conversation OU animation - une seule zone qui se transforme */}
                 <div
@@ -323,8 +323,8 @@ export default function ConversationalChat({
                   )}
                 </div>
 
-                {/* Textarea : zone de saisie, min 120px - intégrée au flux de la conversation */}
-                <div className="relative min-h-[120px] flex-shrink-0 pt-4 border-t border-border/50">
+                {/* Textarea : zone de saisie - hauteur réduite */}
+                <div className="relative min-h-[56px] flex-shrink-0 pt-3 border-t border-border/50">
                   <textarea
                     data-chat-textarea
                     value={inputValue}
@@ -333,13 +333,13 @@ export default function ConversationalChat({
                     onBlur={() => setInputFocused(false)}
                     onKeyDown={handleKeyDown}
                     placeholder={inputFocused ? "Écrivez votre message..." : ""}
-                    rows={4}
+                    rows={2}
                     disabled={isProcessing}
-                    className="w-full min-h-[120px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-lg py-3"
+                    className="w-full min-h-[56px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-base py-2"
                   />
                   {!inputValue && !inputFocused && messages.length > 0 && (
                     <div
-                      className="absolute inset-0 flex items-center pt-4 pl-0 text-base text-muted-foreground pointer-events-none"
+                      className="absolute inset-0 flex items-center pt-3 pl-0 text-base text-muted-foreground pointer-events-none"
                       aria-hidden
                     >
                       <span>Écrivez votre message...</span>
@@ -432,3 +432,4 @@ export default function ConversationalChat({
     </div>
   );
 }
+
