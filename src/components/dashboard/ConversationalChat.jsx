@@ -270,59 +270,52 @@ export default function ConversationalChat({
 
         {renderBarContent ? (
           <>
-            <Card className="w-full max-w-4xl mb-6 flex-shrink-0">
-              <div className="p-6">
-                {/* Messages : à l'intérieur de la Card */}
-                {messages.length > 0 && (
-                  <div ref={messagesContainerRef} className="overflow-y-auto max-h-[240px] space-y-3 mb-4 pr-1">
-                    {messages.map((msg, idx) => (
-                      <div key={idx}>
-                        <div className={cn("flex", msg.role === 'user' ? "justify-end" : "justify-start")}>
-                          <div className={cn(
-                            "max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
-                            msg.role === 'user'
-                              ? "bg-secondary text-secondary-foreground rounded-br-md"
-                              : "bg-muted text-foreground rounded-bl-md"
-                          )}>
-                            <p className="whitespace-pre-wrap">{msg.content}</p>
+            <Card className="w-full max-w-4xl mb-6 flex-shrink-0 min-h-[380px] flex flex-col">
+              <div className="p-6 flex flex-col flex-1 min-h-0">
+                {/* Zone unique : conversation OU animation - une seule zone qui se transforme */}
+                <div
+                  ref={messagesContainerRef}
+                  className={cn(
+                    "flex-1 min-h-0 overflow-y-auto flex flex-col",
+                    messages.length === 0 && "justify-center"
+                  )}
+                >
+                  {messages.length > 0 ? (
+                    <div className="space-y-3 pr-1">
+                      {messages.map((msg, idx) => (
+                        <div key={idx}>
+                          <div className={cn("flex", msg.role === 'user' ? "justify-end" : "justify-start")}>
+                            <div className={cn(
+                              "max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
+                              msg.role === 'user'
+                                ? "bg-secondary text-secondary-foreground rounded-br-md"
+                                : "bg-muted text-foreground rounded-bl-md"
+                            )}>
+                              <p className="whitespace-pre-wrap">{msg.content}</p>
+                            </div>
+                          </div>
+                          {renderMessageExtra && renderMessageExtra(msg, idx)}
+                        </div>
+                      ))}
+                      {isProcessing && (
+                        <div className="flex justify-start">
+                          <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
+                            <div className="flex gap-1.5">
+                              <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                              <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                              <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            </div>
                           </div>
                         </div>
-                        {renderMessageExtra && renderMessageExtra(msg, idx)}
-                      </div>
-                    ))}
-                    {isProcessing && (
-                      <div className="flex justify-start">
-                        <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
-                          <div className="flex gap-1.5">
-                            <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Textarea : zone unique pour animation ET saisie */}
-                <div className="relative min-h-[120px]">
-                  <textarea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onFocus={() => setInputFocused(true)}
-                    onBlur={() => setInputFocused(false)}
-                    onKeyDown={handleKeyDown}
-                    placeholder=""
-                    rows={4}
-                    disabled={isProcessing}
-                    className="w-full min-h-[120px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-lg transition-all py-3"
-                  />
-                  {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
+                      )}
+                    </div>
+                  ) : (
+                    /* Pas de messages : animation typing au centre de la même zone */
                     <div
-                      className="absolute inset-0 flex items-start pt-3 text-lg text-muted-foreground pointer-events-none overflow-hidden"
-                      aria-hidden
+                      className="flex items-center justify-center min-h-[120px] text-lg text-muted-foreground cursor-text"
+                      onClick={() => document.querySelector('[data-chat-textarea]')?.focus()}
                     >
-                      <span className="truncate max-w-full pr-12">
+                      <span className="truncate max-w-full px-2">
                         {typingPlaceholder}
                         <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
                       </span>
@@ -330,8 +323,32 @@ export default function ConversationalChat({
                   )}
                 </div>
 
+                {/* Textarea : zone de saisie, min 120px - intégrée au flux de la conversation */}
+                <div className="relative min-h-[120px] flex-shrink-0 pt-4 border-t border-border/50">
+                  <textarea
+                    data-chat-textarea
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onFocus={() => setInputFocused(true)}
+                    onBlur={() => setInputFocused(false)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={inputFocused ? "Écrivez votre message..." : ""}
+                    rows={4}
+                    disabled={isProcessing}
+                    className="w-full min-h-[120px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-lg py-3"
+                  />
+                  {!inputValue && !inputFocused && messages.length > 0 && (
+                    <div
+                      className="absolute inset-0 flex items-center pt-4 pl-0 text-base text-muted-foreground pointer-events-none"
+                      aria-hidden
+                    >
+                      <span>Écrivez votre message...</span>
+                    </div>
+                  )}
+                </div>
+
                 {/* Barre du bas */}
-                <div className="flex items-center justify-between pt-4 border-t">
+                <div className="flex items-center justify-between pt-4 border-t flex-shrink-0">
                   {renderBarContent({ sendButton, historyButton })}
                 </div>
               </div>
