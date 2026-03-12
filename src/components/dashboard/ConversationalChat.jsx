@@ -270,8 +270,8 @@ export default function ConversationalChat({
 
         {renderBarContent ? (
           <>
-            <Card className="w-full max-w-4xl mb-6 flex-shrink-0 min-h-[380px] flex flex-col">
-              <div className="p-6 flex flex-col flex-1 min-h-0">
+            <Card className="w-full max-w-4xl mb-6 flex-shrink-0 min-h-[400px] max-h-[70vh] flex flex-col overflow-hidden">
+              <div className="p-6 flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden">
                 {/* Zone unique : conversation OU animation - une seule zone qui se transforme */}
                 <div
                   ref={messagesContainerRef}
