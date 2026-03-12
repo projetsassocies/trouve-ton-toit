@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  MessageCircle, Loader2, Send, Trash2, Pencil,
+  MessageCircle, Loader2, Trash2, Pencil,
   Plus, Search, PanelLeftClose, PanelLeftOpen, ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -125,8 +125,23 @@ export default function ConversationalChat({
     </button>
   );
 
+  const historyButton = (
+    <button
+      type="button"
+      onClick={() => setSidebarOpen(prev => !prev)}
+      className="w-10 h-10 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground flex items-center justify-center flex-shrink-0 transition-colors border border-border"
+      title={sidebarOpen ? "Masquer l'historique" : "Historique des conversations"}
+    >
+      {sidebarOpen ? (
+        <PanelLeftClose className="w-4 h-4" />
+      ) : (
+        <PanelLeftOpen className="w-4 h-4" />
+      )}
+    </button>
+  );
+
   return (
-    <div className="relative flex overflow-hidden h-[280px] sm:h-[320px] w-full">
+    <div className="relative flex overflow-hidden h-[280px] sm:h-[320px] w-full rounded-xl bg-muted/20">
       {/* History panel - smooth slide-in overlay */}
       <div
         className={cn(
@@ -240,31 +255,16 @@ export default function ConversationalChat({
         </div>
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <div className="flex items-center px-2 py-1.5 min-h-0">
-          <button
-            onClick={() => setSidebarOpen(prev => !prev)}
-            className="p-1.5 rounded-lg hover:bg-[#F3F4F6] transition-colors flex-shrink-0"
-            title={sidebarOpen ? "Masquer l'historique" : "Historique des conversations"}
-          >
-            {sidebarOpen
-              ? <PanelLeftClose className="w-4 h-4 text-[#6B7280]" />
-              : <PanelLeftOpen className="w-4 h-4 text-[#6B7280]" />}
-          </button>
-          {activeConversationId && (
-            <p className="text-xs text-[#9CA3AF] ml-2 truncate">
+        {activeConversationId && (
+          <div className="flex items-center px-2 py-1 min-h-0 flex-shrink-0">
+            <p className="text-xs text-muted-foreground truncate">
               {getTitle(conversations.find(c => c.id === activeConversationId) || {})}
             </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {messages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center p-4">
-            {greetingText && (
-              <p className="text-sm sm:text-base text-foreground font-medium text-center">
-                {greetingText}
-              </p>
-            )}
-          </div>
+          <div className="flex-1 min-h-[60px]" aria-hidden />
         ) : (
           <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-3 p-4">
             {messages.map((msg, idx) => (
@@ -315,7 +315,7 @@ export default function ConversationalChat({
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
               onKeyDown={handleKeyDown}
-              placeholder="Posez votre question..."
+              placeholder=""
               className="flex-1 h-12 rounded-xl bg-card border border-border text-sm px-4 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               disabled={isProcessing}
             />
@@ -324,7 +324,7 @@ export default function ConversationalChat({
           {renderBelowInput && (
             <div>
               {typeof renderBelowInput === 'function'
-                ? renderBelowInput({ sendButton })
+                ? renderBelowInput({ sendButton, historyButton })
                 : renderBelowInput}
             </div>
           )}

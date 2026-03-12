@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  UserPlus, MessageCircle, Clock,
+  UserPlus, MessageCircle,
   Monitor, FileText, BarChart3, Globe, MoreHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,7 +9,6 @@ import { ChatContextProvider, useChatContext } from '@/contexts/ChatContext';
 import { useAuth } from '@/lib/AuthContext';
 import { getChatGreeting } from '@/lib/chatGreeting';
 import { createPageUrl } from '@/utils';
-import { Card } from '@/components/ui/card';
 import LeadChatTab from './LeadChatTab';
 import AssistantChatTab from './AssistantChatTab';
 
@@ -39,10 +38,10 @@ function TabsContent({ fullWidth }) {
   const { activeTab, setActiveTab, activeLead, activeListing, switchToAssistant } = useChatContext();
   const greeting = getChatGreeting(user);
 
-  const renderBelowInput = ({ sendButton }) => (
+  const renderBelowInput = ({ sendButton, historyButton }) => (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        {historyButton}
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -66,7 +65,7 @@ function TabsContent({ fullWidth }) {
         {sendButton}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 justify-center">
         {QUICK_ACTIONS.map((action) => {
           const Icon = action.icon;
           if (action.link) {
@@ -99,22 +98,20 @@ function TabsContent({ fullWidth }) {
   return (
     <div className={cn("w-full min-w-0", !fullWidth && "max-w-[1200px] mx-auto")}>
       <div className="space-y-6">
-        <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
+        <h2 className="text-2xl sm:text-3xl font-semibold text-foreground text-center">
           {getAISuggestion()}
         </h2>
-        <Card className="overflow-hidden">
-          <div className="p-4 sm:p-6">
-            {activeTab === 'lead' && <LeadChatTab greetingText={greeting} renderBelowInput={renderBelowInput} />}
-            {activeTab === 'chat' && (
-              <AssistantChatTab
-                activeLead={activeLead}
-                activeListing={activeListing}
-                greetingText={greeting}
-                renderBelowInput={renderBelowInput}
-              />
-            )}
-          </div>
-        </Card>
+        <div className="min-w-0">
+          {activeTab === 'lead' && <LeadChatTab greetingText={greeting} renderBelowInput={renderBelowInput} />}
+          {activeTab === 'chat' && (
+            <AssistantChatTab
+              activeLead={activeLead}
+              activeListing={activeListing}
+              greetingText={greeting}
+              renderBelowInput={renderBelowInput}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
