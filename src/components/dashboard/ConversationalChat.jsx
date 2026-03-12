@@ -260,7 +260,7 @@ export default function ConversationalChat({
         </div>
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        {activeConversationId && (
+        {!useCardLayout && activeConversationId && (
           <div className="flex items-center px-2 py-1 min-h-0 flex-shrink-0">
             <p className="text-xs text-muted-foreground truncate">
               {getTitle(conversations.find(c => c.id === activeConversationId) || {})}
@@ -268,8 +268,84 @@ export default function ConversationalChat({
           </div>
         )}
 
+        {renderBarContent ? (
+          <>
+            <Card className="w-full max-w-4xl mb-6 flex-shrink-0">
+              <div className="p-6">
+                {/* Messages : à l'intérieur de la Card */}
+                {messages.length > 0 && (
+                  <div ref={messagesContainerRef} className="overflow-y-auto max-h-[240px] space-y-3 mb-4 pr-1">
+                    {messages.map((msg, idx) => (
+                      <div key={idx}>
+                        <div className={cn("flex", msg.role === 'user' ? "justify-end" : "justify-start")}>
+                          <div className={cn(
+                            "max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
+                            msg.role === 'user'
+                              ? "bg-secondary text-secondary-foreground rounded-br-md"
+                              : "bg-muted text-foreground rounded-bl-md"
+                          )}>
+                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                          </div>
+                        </div>
+                        {renderMessageExtra && renderMessageExtra(msg, idx)}
+                      </div>
+                    ))}
+                    {isProcessing && (
+                      <div className="flex justify-start">
+                        <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
+                          <div className="flex gap-1.5">
+                            <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Textarea : zone unique pour animation ET saisie */}
+                <div className="relative min-h-[120px]">
+                  <textarea
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onFocus={() => setInputFocused(true)}
+                    onBlur={() => setInputFocused(false)}
+                    onKeyDown={handleKeyDown}
+                    placeholder=""
+                    rows={4}
+                    disabled={isProcessing}
+                    className="w-full min-h-[120px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-lg transition-all py-3"
+                  />
+                  {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
+                    <div
+                      className="absolute inset-0 flex items-start pt-3 text-lg text-muted-foreground pointer-events-none overflow-hidden"
+                      aria-hidden
+                    >
+                      <span className="truncate max-w-full pr-12">
+                        {typingPlaceholder}
+                        <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Barre du bas */}
+                <div className="flex items-center justify-between pt-4 border-t">
+                  {renderBarContent({ sendButton, historyButton })}
+                </div>
+              </div>
+            </Card>
+            {renderSuggestions && (
+              <div className="flex items-center gap-3 justify-center flex-wrap w-full">
+                {typeof renderSuggestions === 'function' ? renderSuggestions() : renderSuggestions}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
         {messages.length === 0 ? (
-          <div className={cn("flex-shrink-0", useCardLayout ? "min-h-0" : "min-h-[60px]")} aria-hidden />
+          <div className="flex-shrink-0 min-h-[60px]" aria-hidden />
         ) : (
           <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-3 p-4">
             {messages.map((msg, idx) => (
@@ -303,48 +379,6 @@ export default function ConversationalChat({
 
         {renderAboveInput}
 
-        {renderBarContent ? (
-          <>
-            <Card className="w-full max-w-4xl mb-6 flex-shrink-0">
-              <div className="p-6">
-                <div className="relative min-h-[120px]">
-                  {/* Textarea : zone unique pour animation ET saisie */}
-                  <textarea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onFocus={() => setInputFocused(true)}
-                    onBlur={() => setInputFocused(false)}
-                    onKeyDown={handleKeyDown}
-                    placeholder=""
-                    rows={4}
-                    disabled={isProcessing}
-                    className="w-full min-h-[120px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-lg transition-all py-3"
-                  />
-                  {/* Animation overlay : même position que le texte, pointer-events-none pour que les clics atteignent le textarea */}
-                  {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
-                    <div
-                      className="absolute inset-0 flex items-start pt-3 text-lg text-muted-foreground pointer-events-none overflow-hidden"
-                      aria-hidden
-                    >
-                      <span className="truncate max-w-full pr-12">
-                        {typingPlaceholder}
-                        <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse align-middle" />
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t">
-                  {renderBarContent({ sendButton, historyButton })}
-                </div>
-              </div>
-            </Card>
-            {renderSuggestions && (
-              <div className="flex items-center gap-3 justify-center flex-wrap w-full">
-                {typeof renderSuggestions === 'function' ? renderSuggestions() : renderSuggestions}
-              </div>
-            )}
-          </>
-        ) : (
           <div className="flex flex-col gap-3 pt-3">
             <div className="relative flex">
               {!inputValue && !inputFocused && typingPlaceholder !== undefined && (
