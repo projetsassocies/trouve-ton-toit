@@ -205,15 +205,15 @@ export default function DashboardKPIs({ className }) {
 
   if (isLoading) {
     return (
-      <div className={cn('space-y-4', className)}>
+      <div className={cn('space-y-4 w-full', className)}>
         <div className="flex gap-2">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-9 w-24 rounded-lg" />
           ))}
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 w-full">
           {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-24 w-[140px] rounded-xl" />
+            <Skeleton key={i} className="h-24 min-w-0 rounded-xl" />
           ))}
         </div>
       </div>
@@ -221,9 +221,9 @@ export default function DashboardKPIs({ className }) {
   }
 
   return (
-    <div className={cn('space-y-5', className)}>
+    <div className={cn('space-y-5 w-full pb-6 border-b border-border', className)}>
       {/* Période : tabs - Aujourd'hui / Semaine / Mois */}
-      <div className="flex gap-0 border-b border-border">
+      <div className="flex gap-0 border-b border-border w-full">
         {PERIODS.map((p) => (
           <button
             key={p.id}
@@ -240,9 +240,9 @@ export default function DashboardKPIs({ className }) {
         ))}
       </div>
 
-      {/* 5 cartes KPIs */}
+      {/* 5 cartes KPIs - pleine largeur comme séparation entre chat et infos */}
       <div
-        className="flex flex-wrap gap-4"
+        className="flex flex-wrap lg:flex-nowrap gap-4 w-full min-w-0"
         role="region"
         aria-label="Statistiques KPIs"
       >
@@ -255,7 +255,7 @@ export default function DashboardKPIs({ className }) {
             <div
               key={key}
               className={cn(
-                'flex flex-col gap-3 p-5 rounded-2xl border min-w-[130px]',
+                'flex flex-col gap-3 p-5 rounded-2xl border min-w-0 flex-1 basis-0 lg:basis-0',
                 'bg-card border-border'
               )}
             >
