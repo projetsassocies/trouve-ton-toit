@@ -426,6 +426,7 @@ export default function ConversationalChat({
               </div>
             )}
           </div>
+        </>
         )}
       </div>
     </div>
