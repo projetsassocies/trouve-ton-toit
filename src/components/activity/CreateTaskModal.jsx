@@ -88,10 +88,10 @@ export default function CreateTaskModal({ open, onClose, task, prefilledLeadId }
   const linkedItems = linkedToType === 'lead' ? leads : linkedToType === 'listing' ? listings : [];
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent className="rounded-2xl max-w-lg">
         <DialogHeader>
-          <DialogTitle>{task ? 'Modifier la tâche' : '✅ Créer une tâche'}</DialogTitle>
+          <DialogTitle>{task ? 'Modifier la tâche' : 'Créer une tâche'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

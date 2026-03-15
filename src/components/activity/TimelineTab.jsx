@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Phone, Mail, FileText, CheckCircle2, Calendar, Search, Filter, MessageSquare, Target, CheckCircle, XCircle } from 'lucide-react';
+import { Phone, Mail, FileText, CheckCircle2, Calendar, Search, Filter, MessageSquare, Target, CheckCircle, XCircle, User, Home } from 'lucide-react';
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
@@ -159,7 +159,7 @@ export default function TimelineTab() {
         </div>
         <h3 className="font-semibold mb-2">Aucune activité pour le moment</h3>
         <p className="text-sm text-[#999999]">
-          Commencez par ajouter un appel, un email, une note, une tâche ou un événement
+          Ajoutez une note, une tâche ou un événement (depuis l&apos;onglet correspondant ou une fiche Lead)
         </p>
       </div>
     );
@@ -168,7 +168,7 @@ export default function TimelineTab() {
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-[#E5E5E5] p-4">
+      <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
         <div className="flex gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999]" />
@@ -186,16 +186,16 @@ export default function TimelineTab() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les types</SelectItem>
-              <SelectItem value="call">📞 Appels</SelectItem>
-              <SelectItem value="email">📧 Emails</SelectItem>
-              <SelectItem value="sms">💬 SMS</SelectItem>
-              <SelectItem value="visite">🏠 Visites</SelectItem>
-              <SelectItem value="matching_proposition">🎯 Biens proposés</SelectItem>
-              <SelectItem value="matching_accepte">✅ Biens acceptés</SelectItem>
-              <SelectItem value="matching_refuse">❌ Biens refusés</SelectItem>
-              <SelectItem value="note">📝 Notes</SelectItem>
-              <SelectItem value="task">✅ Tâches</SelectItem>
-              <SelectItem value="event">📅 Événements</SelectItem>
+              <SelectItem value="call"><Phone className="w-3.5 h-3.5 mr-2 inline" /> Appels</SelectItem>
+              <SelectItem value="email"><Mail className="w-3.5 h-3.5 mr-2 inline" /> Emails</SelectItem>
+              <SelectItem value="sms"><MessageSquare className="w-3.5 h-3.5 mr-2 inline" /> SMS</SelectItem>
+              <SelectItem value="visite"><Calendar className="w-3.5 h-3.5 mr-2 inline" /> Visites</SelectItem>
+              <SelectItem value="matching_proposition"><Target className="w-3.5 h-3.5 mr-2 inline" /> Biens proposés</SelectItem>
+              <SelectItem value="matching_accepte"><CheckCircle className="w-3.5 h-3.5 mr-2 inline" /> Biens acceptés</SelectItem>
+              <SelectItem value="matching_refuse"><XCircle className="w-3.5 h-3.5 mr-2 inline" /> Biens refusés</SelectItem>
+              <SelectItem value="note"><FileText className="w-3.5 h-3.5 mr-2 inline" /> Notes</SelectItem>
+              <SelectItem value="task"><CheckCircle2 className="w-3.5 h-3.5 mr-2 inline" /> Tâches</SelectItem>
+              <SelectItem value="event"><Calendar className="w-3.5 h-3.5 mr-2 inline" /> Événements</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -205,8 +205,8 @@ export default function TimelineTab() {
       <div className="space-y-8">
         {Object.entries(groupedItems).map(([dateLabel, items]) => (
           <div key={dateLabel}>
-            <h3 className="text-sm font-semibold text-[#666666] mb-4">{dateLabel}</h3>
-            <div className="relative space-y-4 pl-8 before:absolute before:left-2 before:top-0 before:bottom-0 before:w-px before:bg-[#E5E5E5]">
+            <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">{dateLabel}</h3>
+            <div className="relative space-y-3 pl-6 before:absolute before:left-[11px] before:top-4 before:bottom-4 before:w-px before:bg-neutral-200">
               {items.map(item => {
                 const config = typeConfig[item.type] || typeConfig.note;
                 const Icon = config.icon;
@@ -214,26 +214,24 @@ export default function TimelineTab() {
                 const displayContent = item.content || item.description;
 
                 return (
-                  <div key={`${item.itemType}-${item.id}`} className="relative">
+                  <div key={`${item.itemType}-${item.id}`} className="relative flex gap-3">
                     <div
                       className={cn(
-                        'absolute -left-6 w-4 h-4 rounded-full border-2 border-white',
+                        'absolute left-0 w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5',
                         config.bg
                       )}
-                    >
-                      <div className={cn('w-full h-full rounded-full', config.bg)} />
-                    </div>
+                    />
 
-                    <div className="bg-white rounded-xl border border-[#E5E5E5] p-4 hover:shadow-sm transition-shadow">
+                    <div className="flex-1 min-w-0 bg-white rounded-lg border border-neutral-100 p-3 hover:border-neutral-200 transition-colors">
                       <div className="flex items-start gap-3">
                         <div
                           className={cn(
-                            'w-10 h-10 rounded-lg flex items-center justify-center border',
+                            'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
                             config.bg,
-                            config.border
+                            config.color
                           )}
                         >
-                          <Icon className={cn('w-5 h-5', config.color)} />
+                          <Icon className="w-4 h-4" />
                         </div>
 
                         <div className="flex-1 min-w-0">
@@ -256,8 +254,9 @@ export default function TimelineTab() {
                               </Badge>
                             )}
                             {item.itemType === 'event' && item.date && (
-                              <span className="text-xs text-[#666666]">
-                                📅 {format(new Date(item.date), 'dd MMM HH:mm', { locale: fr })}
+                              <span className="text-xs text-neutral-500 flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {format(new Date(item.date), 'dd MMM HH:mm', { locale: fr })}
                               </span>
                             )}
                           </div>
@@ -276,8 +275,12 @@ export default function TimelineTab() {
                                   `id=${item.linked_to_id}`
                                 )}
                               >
-                                <Badge variant="outline" className="hover:bg-[#F5F5F5]">
-                                  {item.linked_to_type === 'lead' ? '👤' : '🏠'}{' '}
+                                <Badge variant="outline" className="hover:bg-neutral-50 gap-1">
+                                  {item.linked_to_type === 'lead' ? (
+                                    <User className="w-3 h-3" />
+                                  ) : (
+                                    <Home className="w-3 h-3" />
+                                  )}
                                   {item.linked_to_type === 'lead'
                                     ? `${linkedItem.first_name} ${linkedItem.last_name}`
                                     : linkedItem.title}

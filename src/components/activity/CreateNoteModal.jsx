@@ -113,10 +113,10 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
   const linkedItems = linkedToType === 'lead' ? leads : linkedToType === 'listing' ? listings : [];
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent className="rounded-2xl max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{note ? 'Modifier la note' : '📝 Créer une note'}</DialogTitle>
+          <DialogTitle>{note ? 'Modifier la note' : 'Créer une note'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

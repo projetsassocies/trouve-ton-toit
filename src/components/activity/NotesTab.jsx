@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Pin, FileText } from 'lucide-react';
+import { Search, Pin, FileText, User, Home } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -158,12 +158,15 @@ function NoteCard({ note, linkedItem, onClick }) {
           
           <div className="flex items-center gap-2 flex-wrap">
             {linkedItem && (
-              <Badge variant="outline" className="text-xs">
-                {note.linked_to_type === 'lead' ? '👤' : '🏠'} {
-                  note.linked_to_type === 'lead'
-                    ? `${linkedItem.first_name} ${linkedItem.last_name}`
-                    : linkedItem.title
-                }
+              <Badge variant="outline" className="text-xs flex items-center gap-1 w-fit">
+                {note.linked_to_type === 'lead' ? (
+                  <User className="w-3 h-3" />
+                ) : (
+                  <Home className="w-3 h-3" />
+                )}{' '}
+                {note.linked_to_type === 'lead'
+                  ? `${linkedItem.first_name} ${linkedItem.last_name}`
+                  : linkedItem.title}
               </Badge>
             )}
             {note.tags?.map(tag => (

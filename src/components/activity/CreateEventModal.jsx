@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Home, Phone, Users, FileSignature, Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function CreateEventModal({ open, onClose, event, prefilledLeadId }) {
@@ -143,11 +144,11 @@ export default function CreateEventModal({ open, onClose, event, prefilledLeadId
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="visit">🏠 Visite</SelectItem>
-                <SelectItem value="call">📞 Appel</SelectItem>
-                <SelectItem value="meeting">🤝 Réunion</SelectItem>
-                <SelectItem value="signing">📄 Signature</SelectItem>
-                <SelectItem value="other">📅 Autre</SelectItem>
+                <SelectItem value="visit"><Home className="w-3.5 h-3.5 mr-2 inline" /> Visite</SelectItem>
+                <SelectItem value="call"><Phone className="w-3.5 h-3.5 mr-2 inline" /> Appel</SelectItem>
+                <SelectItem value="meeting"><Users className="w-3.5 h-3.5 mr-2 inline" /> Réunion</SelectItem>
+                <SelectItem value="signing"><FileSignature className="w-3.5 h-3.5 mr-2 inline" /> Signature</SelectItem>
+                <SelectItem value="other"><CalendarIcon className="w-3.5 h-3.5 mr-2 inline" /> Autre</SelectItem>
               </SelectContent>
             </Select>
           </div>

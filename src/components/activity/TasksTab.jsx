@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { LayoutGrid, List, AlertCircle } from 'lucide-react';
+import { LayoutGrid, List, AlertCircle, User, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -174,12 +174,15 @@ export default function TasksTab() {
                             </Badge>
                             
                             {linkedItem && (
-                              <Badge variant="outline" className="text-xs">
-                                {task.linked_to_type === 'lead' ? '👤' : '🏠'} {
-                                  task.linked_to_type === 'lead'
-                                    ? `${linkedItem.first_name} ${linkedItem.last_name}`
-                                    : linkedItem.title
-                                }
+                              <Badge variant="outline" className="text-xs flex items-center gap-1 w-fit">
+                                {task.linked_to_type === 'lead' ? (
+                                  <User className="w-3 h-3" />
+                                ) : (
+                                  <Home className="w-3 h-3" />
+                                )}{' '}
+                                {task.linked_to_type === 'lead'
+                                  ? `${linkedItem.first_name} ${linkedItem.last_name}`
+                                  : linkedItem.title}
                               </Badge>
                             )}
                           </div>
@@ -232,12 +235,15 @@ export default function TasksTab() {
                         </span>
                       )}
                       {linkedItem && (
-                        <Badge variant="outline" className="text-xs">
-                          {task.linked_to_type === 'lead' ? '👤' : '🏠'} {
-                            task.linked_to_type === 'lead'
-                              ? `${linkedItem.first_name} ${linkedItem.last_name}`
-                              : linkedItem.title
-                          }
+                        <Badge variant="outline" className="text-xs flex items-center gap-1 w-fit">
+                          {task.linked_to_type === 'lead' ? (
+                            <User className="w-3 h-3" />
+                          ) : (
+                            <Home className="w-3 h-3" />
+                          )}{' '}
+                          {task.linked_to_type === 'lead'
+                            ? `${linkedItem.first_name} ${linkedItem.last_name}`
+                            : linkedItem.title}
                         </Badge>
                       )}
                     </div>
