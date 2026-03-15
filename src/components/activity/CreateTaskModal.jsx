@@ -73,6 +73,7 @@ export default function CreateTaskModal({ open, onClose, task, prefilledLeadId }
       title,
       description,
       priority,
+      status: 'todo', // Pour que la tâche apparaisse dans la section Tâches
       due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
       linked_to_type: linkedToType || undefined,
       linked_to_id: linkedToId || undefined,

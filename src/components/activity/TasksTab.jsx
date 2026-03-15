@@ -15,14 +15,20 @@ const priorityConfig = {
   urgent: { label: 'Urgent', color: 'bg-red-600', textColor: 'text-red-600', bgLight: 'bg-red-50' },
   high: { label: 'Important', color: 'bg-orange-600', textColor: 'text-orange-600', bgLight: 'bg-orange-50' },
   normal: { label: 'Normal', color: 'bg-blue-600', textColor: 'text-blue-600', bgLight: 'bg-blue-50' },
+  medium: { label: 'Normal', color: 'bg-blue-600', textColor: 'text-blue-600', bgLight: 'bg-blue-50' },
   low: { label: 'Bas', color: 'bg-gray-400', textColor: 'text-gray-600', bgLight: 'bg-gray-50' },
 };
 
 const statusColumns = {
-  todo: { label: 'À faire', color: 'border-gray-300' },
-  in_progress: { label: 'En cours', color: 'border-blue-400' },
-  completed: { label: 'Terminé', color: 'border-primary' },
+  todo: { label: 'À faire', color: 'border-gray-300', statuses: ['todo', 'pending'] },
+  in_progress: { label: 'En cours', color: 'border-blue-400', statuses: ['in_progress'] },
+  completed: { label: 'Terminé', color: 'border-primary', statuses: ['completed'] },
 };
+
+const statusDisplayMap = { ...statusColumns, pending: statusColumns.todo };
+
+const getStatusConfig = (status) => statusColumns[status] || statusColumns.todo;
+const getPriorityConfig = (priority) => priorityConfig[priority] || priorityConfig.normal;
 
 export default function TasksTab() {
   const [view, setView] = useState('kanban');
@@ -125,7 +131,7 @@ export default function TasksTab() {
       {view === 'kanban' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {Object.entries(statusColumns).map(([status, config]) => {
-            const statusTasks = tasks.filter(t => t.status === status);
+            const statusTasks = tasks.filter(t => (config.statuses || [status]).includes(t.status));
             
             return (
               <div key={status} className="space-y-3">
@@ -138,7 +144,7 @@ export default function TasksTab() {
                 
                 <div className="space-y-3">
                   {statusTasks.map(task => {
-                    const priorityConf = priorityConfig[task.priority];
+                    const priorityConf = getPriorityConfig(task.priority);
                     const linkedItem = getLinkedItem(task);
                     const overdue = isOverdue(task.due_date);
                     
@@ -207,7 +213,8 @@ export default function TasksTab() {
       {view === 'list' && (
         <div className="bg-white rounded-2xl border border-[#E5E5E5] divide-y divide-[#E5E5E5]">
           {tasks.map(task => {
-            const priorityConf = priorityConfig[task.priority];
+            const priorityConf = getPriorityConfig(task.priority);
+            const statusConf = getStatusConfig(task.status);
             const linkedItem = getLinkedItem(task);
             const overdue = isOverdue(task.due_date);
             
@@ -227,7 +234,7 @@ export default function TasksTab() {
                         {priorityConf.label}
                       </Badge>
                       <Badge variant="secondary" className="text-xs">
-                        {statusColumns[task.status].label}
+                        {statusConf.label}
                       </Badge>
                       {task.due_date && !isNaN(new Date(task.due_date).getTime()) && (
                         <span className={cn("text-xs", overdue ? "text-red-600 font-medium" : "text-[#666666]")}>

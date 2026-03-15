@@ -13,7 +13,7 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isPinned, setIsPinned] = useState(false);
-  const [linkedToType, setLinkedToType] = useState(prefilledLeadId ? 'lead' : '');
+  const [linkedToType, setLinkedToType] = useState(prefilledLeadId ? 'lead' : 'none');
   const [linkedToId, setLinkedToId] = useState(prefilledLeadId || '');
   const [tags, setTags] = useState('');
   const queryClient = useQueryClient();
@@ -33,14 +33,14 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
       setTitle(note.title || '');
       setContent(note.content || '');
       setIsPinned(note.is_pinned || false);
-      setLinkedToType(note.linked_to_type || '');
+      setLinkedToType(note.linked_to_type || 'none');
       setLinkedToId(note.linked_to_id || '');
       setTags(note.tags?.join(', ') || '');
     } else {
       setTitle('');
       setContent('');
       setIsPinned(false);
-      setLinkedToType(prefilledLeadId ? 'lead' : '');
+      setLinkedToType(prefilledLeadId ? 'lead' : 'none');
       setLinkedToId(prefilledLeadId || '');
       setTags('');
     }
@@ -98,8 +98,8 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
       title,
       content,
       is_pinned: isPinned,
-      linked_to_type: linkedToType || undefined,
-      linked_to_id: linkedToId || undefined,
+      linked_to_type: (linkedToType && linkedToType !== 'none') ? linkedToType : undefined,
+      linked_to_id: (linkedToType && linkedToType !== 'none' && linkedToId) ? linkedToId : undefined,
       tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
     };
 
@@ -111,6 +111,7 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
   };
 
   const linkedItems = linkedToType === 'lead' ? leads : linkedToType === 'listing' ? listings : [];
+  const effectiveLinkedToType = linkedToType && linkedToType !== 'none' ? linkedToType : '';
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
@@ -161,16 +162,17 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">Non lié</SelectItem>
                   <SelectItem value="lead">Lead</SelectItem>
                   <SelectItem value="listing">Bien</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {linkedToType && (
+            {effectiveLinkedToType && (
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  {linkedToType === 'lead' ? 'Lead' : 'Bien'}
+                  {effectiveLinkedToType === 'lead' ? 'Lead' : 'Bien'}
                 </label>
                 <Select value={linkedToId} onValueChange={setLinkedToId}>
                   <SelectTrigger className="rounded-xl">
@@ -180,7 +182,7 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
                     {linkedItems.map(item => (
                       <SelectItem key={item.id} value={item.id}>
                         {linkedToType === 'lead' 
-                          ? `${item.first_name} ${item.last_name}`
+                          ? `${item.first_name || ''} ${item.last_name || ''}`.trim() || item.email
                           : item.title
                         }
                       </SelectItem>
