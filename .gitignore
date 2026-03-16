@@ -33,8 +33,3 @@ dist-ssr
 dvf-extracted/
 valeursfoncieres*.txt
 valeursfoncieres*.txt.zip
-
-# Fichiers DVF (trop volumineux pour GitHub)
-dvf-extracted/
-valeursfoncieres*.txt
-valeursfoncieres*.txt.zip
