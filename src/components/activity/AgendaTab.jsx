@@ -8,8 +8,10 @@ import {
   ChevronRight,
   Calendar as CalendarIcon,
   Home,
+  MapPin,
   Phone,
   Users,
+  User,
   FileSignature,
 } from 'lucide-react';
 import {
@@ -167,7 +169,10 @@ export default function AgendaTab() {
               </div>
             )}
             {event.location && (
-              <p className="text-xs text-[#999999] mb-2">📍 {event.location}</p>
+              <p className="text-xs text-neutral-500 mb-2 flex items-center gap-1">
+                <MapPin className="w-3 h-3 shrink-0" />
+                {event.location}
+              </p>
             )}
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2">
@@ -175,8 +180,12 @@ export default function AgendaTab() {
                   {typeConf.label}
                 </Badge>
                 {linkedItem && (
-                  <Badge variant="outline" className="text-xs">
-                    {event.linked_to_type === 'lead' ? '👤' : '🏠'}{' '}
+                  <Badge variant="outline" className="text-xs flex items-center gap-1 w-fit">
+                    {event.linked_to_type === 'lead' ? (
+                      <User className="w-3 h-3" />
+                    ) : (
+                      <Home className="w-3 h-3" />
+                    )}
                     {event.linked_to_type === 'lead'
                       ? `${linkedItem.first_name} ${linkedItem.last_name}`
                       : linkedItem.title}
@@ -283,20 +292,31 @@ export default function AgendaTab() {
                   key={day.toISOString()}
                   onClick={() => setSelectedDate(day)}
                   className={cn(
-                    'aspect-square p-2 rounded-lg border transition-all relative',
-                    !isCurrentMonth && 'text-[#CCCCCC]',
-                    isCurrentMonth && 'hover:bg-[#FAFAFA]',
-                    isSelected && 'border-blue-600 bg-blue-50',
-                    isTodayDate && !isSelected && 'border-blue-600',
-                    !isSelected && !isTodayDate && 'border-[#E5E5E5]'
+                    'min-h-[80px] p-2 rounded-lg border transition-all text-left flex flex-col gap-1',
+                    !isCurrentMonth && 'text-neutral-300',
+                    isCurrentMonth && 'text-neutral-900 hover:bg-neutral-50',
+                    isSelected && 'border-primary bg-primary/5 ring-1 ring-primary/20',
+                    isTodayDate && !isSelected && 'border-primary/60 bg-primary/5',
+                    !isSelected && !isTodayDate && 'border-neutral-200'
                   )}
                 >
-                  <div className="text-sm font-medium">{format(day, 'd')}</div>
+                  <div className="text-sm font-medium flex-shrink-0">{format(day, 'd')}</div>
                   {dayEvents.length > 0 && (
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
-                      {dayEvents.slice(0, 3).map((_, i) => (
-                        <div key={i} className="w-1 h-1 rounded-full bg-blue-600" />
+                    <div className="flex-1 flex flex-col gap-0.5 overflow-hidden">
+                      {dayEvents.slice(0, 2).map((ev) => (
+                        <div
+                          key={ev.id}
+                          className="text-[10px] font-medium text-neutral-700 truncate px-1.5 py-0.5 rounded bg-neutral-100"
+                          title={ev.title}
+                        >
+                          {ev.title}
+                        </div>
                       ))}
+                      {dayEvents.length > 2 && (
+                        <div className="text-[10px] text-neutral-500 px-1.5">
+                          +{dayEvents.length - 2}
+                        </div>
+                      )}
                     </div>
                   )}
                 </button>

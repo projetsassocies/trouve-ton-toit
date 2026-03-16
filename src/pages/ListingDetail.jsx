@@ -143,7 +143,7 @@ export default function ListingDetail() {
   };
 
   const handleGenerateEstimation = async () => {
-    if (!listing?.surface || listing.surface <= 0) {
+    if (!listing?.surface || Number(listing.surface) <= 0) {
       toast.error('La surface du bien est requise pour l\'estimation');
       return;
     }
@@ -157,7 +157,8 @@ export default function ListingDetail() {
         longitude: listing.longitude,
         surface: listing.surface,
         property_type: listing.property_type,
-        postal_code: listing.postal_code
+        postal_code: listing.postal_code,
+        amenities: listing.amenities || []
       });
 
       if (response?.error) {
@@ -170,13 +171,17 @@ export default function ListingDetail() {
         estimation_max: response.estimation_max,
         estimation_prix_m2: response.prix_m2,
         estimation_date: new Date().toISOString(),
-        estimation_source: response.source
+        estimation_source: response.source,
+        ventes_comparables: response.ventes_comparables || null,
+        estimation_explication: response.estimation_explication || null
       });
 
       setActiveTab('estimation');
+      toast.success('Estimation enregistrée');
     } catch (error) {
-      toast.error('Erreur lors de l\'estimation');
-      console.error(error);
+      const msg = error?.message || error?.error || 'Erreur lors de l\'estimation';
+      toast.error(typeof msg === 'string' ? msg : 'Erreur lors de l\'estimation');
+      console.error('[getPropertyEstimation]', error);
     } finally {
       setLoadingEstimation(false);
     }
@@ -559,10 +564,44 @@ export default function ListingDetail() {
                         Prix de référence : {listing.estimation_prix_m2.toLocaleString('fr-FR')} €/m²
                         {listing.estimation_source && (
                           <span className="ml-2">
-                            (source : {listing.estimation_source === 'dvf' ? 'données DVF' : 'référentiel départemental'})
+                            (source : {listing.estimation_source === 'dvf_local' ? 'données DVF locales' : listing.estimation_source === 'dvf' ? 'données DVF' : 'référentiel départemental'})
                           </span>
                         )}
                       </p>
+                    )}
+                    {listing.estimation_explication && (
+                      <div className="p-4 rounded-xl bg-[#F8F8F8] border border-[#E5E5E5]">
+                        <p className="text-sm text-[#666666] italic">{listing.estimation_explication}</p>
+                      </div>
+                    )}
+                    {listing.ventes_comparables?.length > 0 && (
+                      <div className="space-y-2">
+                        <h3 className="font-semibold text-sm">Ventes comparables</h3>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="text-left text-[#999999] border-b border-[#E5E5E5]">
+                                <th className="py-2 pr-4">Date</th>
+                                <th className="py-2 pr-4">Type</th>
+                                <th className="py-2 pr-4">Surface</th>
+                                <th className="py-2 pr-4">Prix</th>
+                                <th className="py-2">€/m²</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {listing.ventes_comparables.slice(0, 8).map((v, i) => (
+                                <tr key={i} className="border-b border-[#E5E5E5]/50">
+                                  <td className="py-2 pr-4">{v.date || '-'}</td>
+                                  <td className="py-2 pr-4">{v.type_local || '-'}</td>
+                                  <td className="py-2 pr-4">{v.surface_reelle_bati} m²</td>
+                                  <td className="py-2 pr-4">{formatPrice(v.valeur_fonciere)}</td>
+                                  <td className="py-2">{v.prix_m2?.toLocaleString('fr-FR') ?? '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     )}
                   </div>
                 ) : (

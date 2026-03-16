@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS listings (
   estimation_prix_m2 NUMERIC,
   estimation_date TIMESTAMPTZ,
   estimation_source TEXT,
+  ventes_comparables JSONB,
+  estimation_explication TEXT,
   energy_class TEXT,
   ges_class TEXT,
   year_built INTEGER,

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Phone, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function CreateActivityModal({ open, onClose, type, prefilledLeadId }) {
@@ -59,8 +60,8 @@ export default function CreateActivityModal({ open, onClose, type, prefilledLead
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="rounded-2xl max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {type === 'call' ? '📞 Ajouter un appel' : '📧 Ajouter un email'}
+          <DialogTitle className="flex items-center gap-2">
+            {type === 'call' ? <><Phone className="w-4 h-4" /> Ajouter un appel</> : <><Mail className="w-4 h-4" /> Ajouter un email</>}
           </DialogTitle>
         </DialogHeader>
 
