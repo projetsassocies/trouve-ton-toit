@@ -3,3 +3,8 @@ enabled = true
 
 [edge_runtime]
 enabled = true
+
+# Désactive la vérification JWT au niveau gateway pour que les requêtes OPTIONS
+# (preflight CORS) atteignent la fonction. L'authentification est gérée dans le code.
+[functions.getPropertyEstimation]
+verify_jwt = false

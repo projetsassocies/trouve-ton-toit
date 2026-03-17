@@ -14,7 +14,8 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "supabase:link": "supabase link --project-ref iiwmtzorwwanjrnhsrah"
+    "supabase:link": "supabase link --project-ref iiwmtzorwwanjrnhsrah",
+    "deploy:estimation": "supabase functions deploy getPropertyEstimation --no-verify-jwt"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
