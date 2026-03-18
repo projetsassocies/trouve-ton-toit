@@ -19,7 +19,7 @@ export default function ScoreBreakdown({ details, compact = false }) {
           <div key={key} className="space-y-0.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-[#666666] flex items-center gap-1.5">
-                {iconName && CRITERIA_ICONS[iconName] && <CRITERIA_ICONS[iconName] className="w-3.5 h-3.5 shrink-0" />}
+                {iconName && CRITERIA_ICONS[iconName] ? (() => { const Ic = CRITERIA_ICONS[iconName]; return <Ic className="w-3.5 h-3.5 shrink-0" />; })() : null}
                 {label}
               </span>
               <span className="font-medium tabular-nums">
