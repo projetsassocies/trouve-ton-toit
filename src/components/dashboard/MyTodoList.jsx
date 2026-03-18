@@ -98,7 +98,7 @@ export default function MyTodoList({ className }) {
                       toggleMutation.mutate({ id: task.id, completed: !!checked })
                     }
                     disabled={toggleMutation.isPending}
-                    className="flex-shrink-0 h-4 w-4 rounded border-border data-[state=checked]:bg-muted-foreground/80 data-[state=checked]:border-muted-foreground/80"
+                    className="flex-shrink-0 h-4 w-4 rounded border-border data-[state=checked]:bg-secondary data-[state=checked]:border-secondary data-[state=checked]:text-secondary-foreground"
                   />
                   <div className="flex-1 min-w-0">
                     <p
