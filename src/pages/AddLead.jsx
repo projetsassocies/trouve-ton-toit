@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { AMENITIES } from '@/lib/amenity-criteria';
 import { toast } from 'sonner';
 import {
   Select,
@@ -42,6 +43,7 @@ export default function AddLead() {
     source: 'autre',
     status: 'nouveau',
     notes: '',
+    blocking_criteria: [],
     // Locataire
     garantie_type: '',
     date_entree_souhaitee: '',
@@ -375,6 +377,38 @@ export default function AddLead() {
                   onChange={(e) => setFormData({...formData, rooms_min: e.target.value})}
                   className="rounded-xl"
                 />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-sm text-[#999999] mb-1.5 block">Critères bloquants</label>
+                <div className="flex flex-wrap gap-2">
+                  {AMENITIES.map((item) => {
+                    const Icon = item.icon;
+                    const selected = (formData.blocking_criteria || []).map((c) => c.toLowerCase().trim()).includes(item.value);
+                    return (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() => {
+                          const current = formData.blocking_criteria || [];
+                          const next = selected
+                            ? current.filter((c) => c.toLowerCase().trim() !== item.value)
+                            : [...current, item.value];
+                          setFormData({ ...formData, blocking_criteria: next });
+                        }}
+                        className={cn(
+                          "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all",
+                          selected
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-white text-[#666666] border-[#E5E5E5] hover:border-[#CCCCCC]"
+                        )}
+                      >
+                        <Icon className="w-4 h-4" strokeWidth={1.5} />
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-[#999999] mt-1">Critères indispensables (parking, ascenseur, balcon...)</p>
               </div>
             </div>
           </div>

@@ -550,6 +550,37 @@ export default function LeadDetail() {
                       />
                       <label htmlFor="dossier_location_complet" className="text-sm cursor-pointer">Dossier complet</label>
                     </div>
+                    <div className="col-span-2">
+                      <label className="text-sm text-[#999999] mb-1.5 block">Critères bloquants</label>
+                      <div className="flex flex-wrap gap-2">
+                        {AMENITIES.map((item) => {
+                          const Icon = item.icon;
+                          const selected = (editData.blocking_criteria || []).map((c) => c.toLowerCase().trim()).includes(item.value);
+                          return (
+                            <button
+                              key={item.value}
+                              type="button"
+                              onClick={() => {
+                                const current = editData.blocking_criteria || [];
+                                const next = selected
+                                  ? current.filter((c) => c.toLowerCase().trim() !== item.value)
+                                  : [...current, item.value];
+                                setEditData({ ...editData, blocking_criteria: next });
+                              }}
+                              className={cn(
+                                "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all",
+                                selected
+                                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                                  : "bg-white text-[#666666] border-[#E5E5E5] hover:border-[#CCCCCC]"
+                              )}
+                            >
+                              <Icon className="w-4 h-4" strokeWidth={1.5} />
+                              {item.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </>
                 )}
                 {(editData.lead_type === 'vendeur') && (
