@@ -147,8 +147,8 @@ export default function Layout({ children, currentPageName }) {
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Logo + Collapse */}
-          <div className="flex h-16 items-center border-b border-border justify-between px-4 gap-2">
+          {/* Logo + Collapse - h-[72px] pour aligner avec le header */}
+          <div className="flex h-[72px] min-h-[72px] items-center border-b border-border justify-between px-4 gap-2 shrink-0">
             {!sidebarCollapsed && (
               <span className="font-semibold text-lg tracking-tight truncate flex-1 min-w-0">TrouveTonToit</span>
             )}
@@ -267,21 +267,21 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className={cn('min-h-screen pt-16 lg:pt-0', mainMargin)}>
-        {/* Header - fixed pour rester visible au scroll (sticky cassé par overflow des ancêtres) */}
+        {/* Header - fixed, h-[72px] pour aligner la bordure avec la sidebar */}
         <header
           className={cn(
-            'fixed z-40 right-0 border-b border-border bg-card',
+            'fixed z-40 right-0 h-[72px] min-h-[72px] flex items-center border-b border-border bg-card',
             'top-16 lg:top-0',
             sidebarCollapsed ? 'lg:left-16' : 'lg:left-60',
             'left-0'
           )}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-8 py-4">
-            <div>
-              <h1 className="text-2xl font-semibold">{greetingMessage.greeting}</h1>
-              <p className="text-sm text-muted-foreground">{greetingMessage.motivation}</p>
+          <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 px-4 lg:px-8 py-3">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-semibold truncate">{greetingMessage.greeting}</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{greetingMessage.motivation}</p>
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <GlobalSearch leads={leads} listings={listings} compact />
               <ThemeToggle />
               <NotificationPopover user={user} />
@@ -289,8 +289,8 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </header>
 
-        {/* Page Content - padding-top pour compenser le header fixed */}
-        <div className="p-4 lg:p-8 max-w-[100vw] pt-28 overflow-x-hidden">
+        {/* Page Content - pt-[104px] = 72px header + 32px espacement */}
+        <div className="p-4 lg:p-8 max-w-[100vw] pt-[104px] overflow-x-hidden">
           {children}
         </div>
       </main>
