@@ -5,7 +5,6 @@ import PrioritizedActionsCard from '@/components/dashboard/PrioritizedActionsCar
 import TodaySchedule from '@/components/dashboard/TodaySchedule';
 import MyTodoList from '@/components/dashboard/MyTodoList';
 import LeadsPipelineCompact from '@/components/dashboard/LeadsPipelineCompact';
-import BottomSummaryBar from '@/components/dashboard/BottomSummaryBar';
 
 const formatPrice = (price) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price);
@@ -30,9 +29,6 @@ export default function Dashboard() {
           <MyTodoList />
         </div>
       </div>
-
-      {/* Bottom Summary Bar */}
-      <BottomSummaryBar />
     </div>
   );
 }
