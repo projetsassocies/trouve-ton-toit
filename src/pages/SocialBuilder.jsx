@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import QRCode from 'qrcode';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -149,12 +149,12 @@ export default function SocialBuilder() {
 
   const { data: configs = [], isLoading } = useQuery({
     queryKey: ['social-config'],
-    queryFn: () => base44.entities.SocialPageConfig.list(),
+    queryFn: () => api.entities.SocialPageConfig.list(),
   });
 
   const { data: allListings = [] } = useQuery({
     queryKey: ['all-listings'],
-    queryFn: () => base44.entities.Listing.list('-created_date'),
+    queryFn: () => api.entities.Listing.list('-created_date'),
   });
 
   const existingConfig = configs[0];
@@ -256,9 +256,9 @@ export default function SocialBuilder() {
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (existingConfig) {
-        return base44.entities.SocialPageConfig.update(existingConfig.id, data);
+        return api.entities.SocialPageConfig.update(existingConfig.id, data);
       } else {
-        return base44.entities.SocialPageConfig.create(data);
+        return api.entities.SocialPageConfig.create(data);
       }
     },
     onSuccess: () => {
@@ -303,7 +303,7 @@ export default function SocialBuilder() {
     if (!file) return;
 
     setUploading(true);
-    const result = await base44.integrations.Core.UploadFile({ file });
+    const result = await api.integrations.Core.UploadFile({ file });
     setFormData(prev => ({ ...prev, profile_picture: result.file_url }));
     setUploading(false);
   };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -20,12 +20,12 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list(),
+    queryFn: () => api.entities.Lead.list(),
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings'],
-    queryFn: () => base44.entities.Listing.list(),
+    queryFn: () => api.entities.Listing.list(),
   });
 
   useEffect(() => {
@@ -47,11 +47,11 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
   }, [note, open, prefilledLeadId]);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Note.create(data),
+    mutationFn: (data) => api.entities.Note.create(data),
     onSuccess: async (newNote) => {
       queryClient.invalidateQueries(['notes']);
       
-      await base44.entities.Activity.create({
+      await api.entities.Activity.create({
         type: 'note',
         title: newNote.title,
         content: newNote.content,
@@ -64,7 +64,7 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
       if (newNote.linked_to_type === 'lead' && newNote.linked_to_id) {
         const lead = leads.find(l => l.id === newNote.linked_to_id);
         if (lead) {
-          await base44.entities.Notification.create({
+          await api.entities.Notification.create({
             type: 'info',
             title: `Nouvelle note ajoutée`,
             message: `Une note "${newNote.title}" a été ajoutée au lead ${lead.first_name} ${lead.last_name}`,
@@ -80,7 +80,7 @@ export default function CreateNoteModal({ open, onClose, note, prefilledLeadId }
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Note.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Note.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['notes']);
       toast.success('Note modifiée');

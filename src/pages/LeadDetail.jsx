@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -34,6 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import EditableLeadTypeBadge from '@/components/leads/EditableLeadTypeBadge';
 import EditableCategorieBadge from '@/components/leads/EditableCategorieBadge';
 import EditableStatusBadge from '@/components/leads/EditableStatusBadge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,7 +64,7 @@ export default function LeadDetail() {
   const { data: lead, isLoading } = useQuery({
     queryKey: ['lead', leadId],
     queryFn: async () => {
-      const leads = await base44.entities.Lead.filter({ id: leadId });
+      const leads = await api.entities.Lead.filter({ id: leadId });
       return leads[0];
     },
     enabled: !!leadId,
@@ -71,7 +72,7 @@ export default function LeadDetail() {
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings', user?.email],
-    queryFn: () => base44.entities.Listing.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Listing.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
@@ -81,27 +82,26 @@ export default function LeadDetail() {
       const updatedData = { ...data };
       if (data.score !== undefined && data.score !== null) {
         const score = Number(data.score);
-        if (score >= 75) {
-          updatedData.categorie = 'CHAUD';
-        } else if (score >= 40) {
-          updatedData.categorie = 'TIEDE';
+        const isLocataire = data.lead_type === 'locataire';
+        if (score >= 76) {
+          updatedData.categorie = isLocataire ? 'URGENT' : 'CHAUD';
+        } else if (score >= 41) {
+          updatedData.categorie = isLocataire ? 'ACTIF' : 'TIEDE';
         } else {
-          updatedData.categorie = 'FROID';
+          updatedData.categorie = isLocataire ? 'EN_VEILLE' : 'FROID';
         }
         updatedData.date_scoring = new Date().toISOString();
       }
       // Calculer le score si la catégorie change (pour les badges éditables)
       if (data.categorie && !data.score) {
-        if (data.categorie === 'CHAUD') {
-          updatedData.score = 80;
-        } else if (data.categorie === 'TIEDE') {
-          updatedData.score = 55;
-        } else if (data.categorie === 'FROID') {
-          updatedData.score = 25;
-        }
-        updatedData.date_scoring = new Date().toISOString();
+        const hot = ['CHAUD', 'URGENT'].includes(data.categorie);
+        const mid = ['TIEDE', 'ACTIF'].includes(data.categorie);
+        if (hot) updatedData.score = 80;
+        else if (mid) updatedData.score = 55;
+        else updatedData.score = 25;
+        if (data.categorie) updatedData.date_scoring = new Date().toISOString();
       }
-      return base44.entities.Lead.update(leadId, updatedData);
+      return api.entities.Lead.update(leadId, updatedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lead', leadId] });
@@ -111,11 +111,11 @@ export default function LeadDetail() {
   });
 
   const handleUpdateLead = (id, data) => {
-    updateMutation.mutate(data);
+    updateMutation.mutate({ ...data, lead_type: data.lead_type ?? lead?.lead_type });
   };
 
   const deleteMutation = useMutation({
-    mutationFn: () => base44.entities.Lead.delete(leadId),
+    mutationFn: () => api.entities.Lead.delete(leadId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       navigate(createPageUrl('Leads'));
@@ -301,9 +301,11 @@ export default function LeadDetail() {
             )}
           </div>
 
-          {/* Search Criteria */}
+          {/* Search Criteria / Bien à vendre */}
           <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
-            <h2 className="font-semibold mb-4">Critères de recherche</h2>
+            <h2 className="font-semibold mb-4">
+              {lead.lead_type === 'vendeur' ? 'Bien à vendre' : 'Critères de recherche'}
+            </h2>
             
             {isEditing ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -374,6 +376,8 @@ export default function LeadDetail() {
                     className="rounded-xl"
                   />
                 </div>
+                {(editData.lead_type === 'acheteur' || !editData.lead_type) && (
+                <>
                 <div>
                   <label className="text-sm text-[#999999] mb-1.5 block">Statut du financement</label>
                   <Select 
@@ -455,6 +459,100 @@ export default function LeadDetail() {
                   />
                   <p className="text-xs text-[#999999] mt-1">Séparez les critères par des points-virgules (;)</p>
                 </div>
+                </>
+                )}
+                {(editData.lead_type === 'locataire') && (
+                  <>
+                    <div>
+                      <label className="text-sm text-[#999999] mb-1.5 block">Loyer max (€/mois)</label>
+                      <Input
+                        type="number"
+                        value={editData.loyer_cible_max || ''}
+                        onChange={(e) => setEditData({...editData, loyer_cible_max: e.target.value ? Number(e.target.value) : ''})}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#999999] mb-1.5 block">Revenus nets mensuels (€)</label>
+                      <Input
+                        type="number"
+                        value={editData.revenus_mensuels_nets || ''}
+                        onChange={(e) => setEditData({...editData, revenus_mensuels_nets: e.target.value ? Number(e.target.value) : ''})}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#999999] mb-1.5 block">Date d&apos;entrée souhaitée</label>
+                      <Input
+                        type="date"
+                        value={editData.date_entree_souhaitee || ''}
+                        onChange={(e) => setEditData({...editData, date_entree_souhaitee: e.target.value})}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#999999] mb-1.5 block">Garantie</label>
+                      <Select
+                        value={editData.garantie_type || ''}
+                        onValueChange={(v) => setEditData({...editData, garantie_type: v})}
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="visale">Visale</SelectItem>
+                          <SelectItem value="cautioneo">Cautionéo</SelectItem>
+                          <SelectItem value="physique">Garant physique</SelectItem>
+                          <SelectItem value="aucune">Aucune</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-2 col-span-2">
+                      <Checkbox
+                        id="preavis_pose"
+                        checked={!!editData.preavis_pose}
+                        onCheckedChange={(v) => setEditData({...editData, preavis_pose: !!v})}
+                      />
+                      <label htmlFor="preavis_pose" className="text-sm cursor-pointer">Préavis posé</label>
+                    </div>
+                    <div className="flex items-center gap-2 col-span-2">
+                      <Checkbox
+                        id="dossier_location_complet"
+                        checked={!!editData.dossier_location_complet}
+                        onCheckedChange={(v) => setEditData({...editData, dossier_location_complet: !!v})}
+                      />
+                      <label htmlFor="dossier_location_complet" className="text-sm cursor-pointer">Dossier complet</label>
+                    </div>
+                  </>
+                )}
+                {(editData.lead_type === 'vendeur') && (
+                  <div className="col-span-2 flex flex-wrap gap-6">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="mandat_signe"
+                        checked={!!editData.mandat_signe}
+                        onCheckedChange={(v) => setEditData({...editData, mandat_signe: !!v})}
+                      />
+                      <label htmlFor="mandat_signe" className="text-sm cursor-pointer">Mandat signé</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="estimation_demandee"
+                        checked={!!editData.estimation_demandee}
+                        onCheckedChange={(v) => setEditData({...editData, estimation_demandee: !!v})}
+                      />
+                      <label htmlFor="estimation_demandee" className="text-sm cursor-pointer">Estimation demandée</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="bien_sous_compromis"
+                        checked={!!editData.bien_sous_compromis}
+                        onCheckedChange={(v) => setEditData({...editData, bien_sous_compromis: !!v})}
+                      />
+                      <label htmlFor="bien_sous_compromis" className="text-sm cursor-pointer">Bien sous compromis</label>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4">
@@ -560,6 +658,29 @@ export default function LeadDetail() {
                     </div>
                   </div>
                 )}
+                {lead.lead_type === 'locataire' && (lead.loyer_cible_max || lead.revenus_mensuels_nets || lead.date_entree_souhaitee || lead.garantie_type || lead.preavis_pose || lead.dossier_location_complet) && (
+                  <div className="flex flex-col gap-3 col-span-2 pt-2 border-t border-[#E5E5E5]">
+                    <p className="text-xs font-medium text-[#999999]">Dossier location</p>
+                    <div className="flex flex-wrap gap-4">
+                      {lead.loyer_cible_max && <span className="text-sm"><span className="text-[#999999]">Loyer max :</span> {formatPrice(lead.loyer_cible_max)}/mois</span>}
+                      {lead.revenus_mensuels_nets && <span className="text-sm"><span className="text-[#999999]">Revenus :</span> {formatPrice(lead.revenus_mensuels_nets)}/mois</span>}
+                      {lead.date_entree_souhaitee && <span className="text-sm"><span className="text-[#999999]">Entrée :</span> {format(new Date(lead.date_entree_souhaitee), 'dd/MM/yyyy', { locale: fr })}</span>}
+                      {lead.garantie_type && <span className="text-sm"><span className="text-[#999999]">Garantie :</span> {lead.garantie_type === 'visale' ? 'Visale' : lead.garantie_type === 'cautioneo' ? 'Cautionéo' : lead.garantie_type === 'physique' ? 'Garant physique' : lead.garantie_type}</span>}
+                      {lead.preavis_pose && <span className="text-sm text-green-600">Préavis posé</span>}
+                      {lead.dossier_location_complet && <span className="text-sm text-green-600">Dossier complet</span>}
+                    </div>
+                  </div>
+                )}
+                {lead.lead_type === 'vendeur' && (lead.mandat_signe || lead.estimation_demandee || lead.bien_sous_compromis) && (
+                  <div className="flex flex-col gap-2 col-span-2 pt-2 border-t border-[#E5E5E5]">
+                    <p className="text-xs font-medium text-[#999999]">Projet vente</p>
+                    <div className="flex flex-wrap gap-3">
+                      {lead.mandat_signe && <span className="text-sm text-green-600">Mandat signé</span>}
+                      {lead.estimation_demandee && <span className="text-sm text-green-600">Estimation demandée</span>}
+                      {lead.bien_sous_compromis && <span className="text-sm text-green-600">Bien sous compromis</span>}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -604,6 +725,7 @@ export default function LeadDetail() {
                       <EditableCategorieBadge
                         leadId={lead.id}
                         currentCategorie={lead.categorie}
+                        leadType={lead.lead_type}
                         onUpdate={handleUpdateLead}
                       />
                     </div>

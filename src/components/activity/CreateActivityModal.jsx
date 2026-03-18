@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -18,16 +18,16 @@ export default function CreateActivityModal({ open, onClose, type, prefilledLead
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list(),
+    queryFn: () => api.entities.Lead.list(),
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings'],
-    queryFn: () => base44.entities.Listing.list(),
+    queryFn: () => api.entities.Listing.list(),
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Activity.create(data),
+    mutationFn: (data) => api.entities.Activity.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['activities']);
       toast.success('Activité créée');

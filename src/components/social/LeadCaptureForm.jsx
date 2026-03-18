@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -99,7 +99,7 @@ export default function LeadCaptureForm({ onClose, agentConfig, isPublic = false
           source: 'social_page',
           status: 'nouveau',
         };
-        const newLead = await base44.entities.Lead.create(fullLeadData);
+        const newLead = await api.entities.Lead.create(fullLeadData);
 
         if (formData.wants_appointment && formData.appointment_date) {
           const eventRecord = {
@@ -113,8 +113,8 @@ export default function LeadCaptureForm({ onClose, agentConfig, isPublic = false
             linked_to_type: 'lead',
             linked_to_id: newLead.id,
           };
-          await base44.entities.Event.create(eventRecord);
-          await base44.entities.Notification.create({
+          await api.entities.Event.create(eventRecord);
+          await api.entities.Notification.create({
             type: 'info',
             title: 'Nouvelle demande de rendez-vous',
             message: `${formData.first_name} ${formData.last_name} a demandé un ${formData.appointment_type.toLowerCase()} via la Social Page`,
@@ -122,7 +122,7 @@ export default function LeadCaptureForm({ onClose, agentConfig, isPublic = false
             read: false,
           });
         } else {
-          await base44.entities.Notification.create({
+          await api.entities.Notification.create({
             type: 'info',
             title: 'Nouveau lead capturé',
             message: `${formData.first_name} ${formData.last_name} a rempli le formulaire sur la Social Page`,

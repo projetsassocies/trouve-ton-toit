@@ -1,12 +1,5 @@
 /**
- * Compatibility shim — replaces the old @base44/sdk client.
- *
- * Exports a `base44` object whose `.entities`, `.auth`, `.functions`,
- * `.agents`, and `.appLogs` namespaces mirror the Base44 SDK surface
- * while delegating to Supabase under the hood.
- *
- * Pages and components that already import `{ base44 }` from this file
- * will keep working without any import changes.
+ * Client API TrouveTonToit — Supabase (CRUD, auth, fonctions)
  */
 import { supabase } from './supabaseClient'
 import { Core } from './integrations'
@@ -368,7 +361,7 @@ const appLogs = {
 
 const integrations = { Core }
 
-export const base44 = {
+export const api = {
   entities,
   auth,
   functions,

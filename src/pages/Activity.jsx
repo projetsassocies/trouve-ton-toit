@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -13,12 +13,12 @@ export default function Activity() {
 
   const { data: tasks = [] } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list(),
+    queryFn: () => api.entities.Task.list(),
   });
 
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list(),
+    queryFn: () => api.entities.Event.list(),
   });
 
   const todoCount = tasks.filter((t) => t.status === 'todo' || t.status === 'in_progress').length;

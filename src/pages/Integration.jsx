@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { ArrowLeft, Mail, Copy, CheckCircle2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ export default function Integration() {
   const handleToggle = async (checked) => {
     setIsEnabled(checked);
     try {
-      await base44.auth.updateMe({ email_lead_capture_enabled: checked });
+      await api.auth.updateMe({ email_lead_capture_enabled: checked });
       toast.success(`Intégration ${checked ? 'activée' : 'désactivée'}.`);
     } catch (e) {
       toast.error("Erreur lors de la sauvegarde.");

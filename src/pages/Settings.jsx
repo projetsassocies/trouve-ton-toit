@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useMutation } from '@tanstack/react-query';
 import { 
@@ -59,7 +59,7 @@ export default function Settings() {
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
-      await base44.auth.updateMe(data);
+      await api.auth.updateMe(data);
     },
     onSuccess: () => {
       toast.success('Paramètres enregistrés');

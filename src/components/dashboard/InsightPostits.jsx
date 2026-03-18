@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -69,18 +69,18 @@ export default function InsightPostits({ className, showExamplesWhenEmpty = true
 
   const { data: tasks = [] } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date'),
+    queryFn: () => api.entities.Task.list('-created_date'),
     enabled: !!user?.email,
   });
 
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list('-date'),
+    queryFn: () => api.entities.Event.list('-date'),
     enabled: !!user?.email,
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Task.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks']);
       queryClient.invalidateQueries(['activities']);
@@ -88,7 +88,7 @@ export default function InsightPostits({ className, showExamplesWhenEmpty = true
   });
 
   const updateEventMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Event.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Event.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['events']);
     },

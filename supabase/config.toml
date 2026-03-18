@@ -8,3 +8,6 @@ enabled = true
 # (preflight CORS) atteignent la fonction. L'authentification est gérée dans le code.
 [functions.getPropertyEstimation]
 verify_jwt = false
+
+[functions.leadScoring]
+verify_jwt = false

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery } from '@tanstack/react-query';
 import { MapPin, Maximize, ExternalLink, ChevronRight, Briefcase, QrCode, Home, MessageSquare } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,13 +12,13 @@ export default function SocialPage({ config: configProp, listings: listingsProp,
 
   const { data: configs = [], isLoading: configLoading } = useQuery({
     queryKey: ['social-config-public'],
-    queryFn: () => base44.entities.SocialPageConfig.list(),
+    queryFn: () => api.entities.SocialPageConfig.list(),
     enabled: !useProps,
   });
 
   const { data: allListings = [], isLoading: listingsLoading } = useQuery({
     queryKey: ['all-listings-public'],
-    queryFn: () => base44.entities.Listing.list('-created_date'),
+    queryFn: () => api.entities.Listing.list('-created_date'),
     enabled: !useProps,
   });
 

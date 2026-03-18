@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from 'lucide-react';
@@ -67,7 +67,7 @@ export default function AddListing() {
   const [uploading, setUploading] = useState(false);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Listing.create(data),
+    mutationFn: (data) => api.entities.Listing.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listings'] });
       navigate(createPageUrl('Listings'));
@@ -95,7 +95,7 @@ export default function AddListing() {
     setUploading(true);
     
     const uploadPromises = files.map(async (file) => {
-      const result = await base44.integrations.Core.UploadFile({ file });
+      const result = await api.integrations.Core.UploadFile({ file });
       return result.file_url;
     });
 

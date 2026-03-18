@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -24,12 +24,12 @@ export default function CreateEventModal({ open, onClose, event, prefilledLeadId
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list(),
+    queryFn: () => api.entities.Lead.list(),
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings'],
-    queryFn: () => base44.entities.Listing.list(),
+    queryFn: () => api.entities.Listing.list(),
   });
 
   useEffect(() => {
@@ -63,8 +63,8 @@ export default function CreateEventModal({ open, onClose, event, prefilledLeadId
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const event = await base44.entities.Event.create(data);
-      await base44.entities.Activity.create({
+      const event = await api.entities.Event.create(data);
+      await api.entities.Activity.create({
         type: 'event',
         title: `${data.type === 'call' ? 'Appel' : data.type === 'visit' ? 'Visite' : data.type === 'meeting' ? 'Réunion' : 'Événement'} programmé: ${data.title}`,
         description: data.description || null,
@@ -83,7 +83,7 @@ export default function CreateEventModal({ open, onClose, event, prefilledLeadId
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Event.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Event.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['events']);
       toast.success('Événement modifié');

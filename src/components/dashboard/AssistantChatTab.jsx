@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import {
   MessageCircle, Calendar, UserPen, ClipboardList, StickyNote,
   Activity, Search, BarChart3, Building2, CheckCircle2, AlertCircle,
@@ -249,7 +249,7 @@ export default function AssistantChatTab({ activeLead, activeListing, greetingTe
   const loadConversations = async () => {
     setLoadingConversations(true);
     try {
-      const list = await base44.agents.listConversations('assistant_trouvetontoit');
+      const list = await api.agents.listConversations('assistant_trouvetontoit');
       setConversations(list);
     } catch (err) {
       console.error('Failed to load conversations:', err);
@@ -272,7 +272,7 @@ export default function AssistantChatTab({ activeLead, activeListing, greetingTe
 
   const handleDeleteConversation = async (id) => {
     try {
-      await base44.agents.deleteConversation(id);
+      await api.agents.deleteConversation(id);
       setConversations(prev => prev.filter(c => c.id !== id));
       if (activeConversationId === id) handleNewConversation();
       toast.success('Conversation supprimee');
@@ -284,7 +284,7 @@ export default function AssistantChatTab({ activeLead, activeListing, greetingTe
   const handleRenameConversation = async (id, newTitle) => {
     try {
       const conv = conversations.find(c => c.id === id);
-      await base44.agents.updateConversation(id, {
+      await api.agents.updateConversation(id, {
         metadata: { ...conv?.metadata, title: newTitle }
       });
       setConversations(prev => prev.map(c =>
@@ -296,7 +296,7 @@ export default function AssistantChatTab({ activeLead, activeListing, greetingTe
   };
 
   const invokeLLM = async (params) => {
-    return await base44.functions.invoke('invoke-llm', params);
+    return await api.functions.invoke('invoke-llm', params);
   };
 
   const handleSendMessage = async (text) => {
@@ -310,7 +310,7 @@ export default function AssistantChatTab({ activeLead, activeListing, greetingTe
 
     try {
       if (!convId) {
-        const newConv = await base44.agents.createConversation({
+        const newConv = await api.agents.createConversation({
           agent_name: 'assistant_trouvetontoit',
           metadata: { title: text.substring(0, 50) + (text.length > 50 ? '...' : '') }
         });
@@ -345,7 +345,7 @@ export default function AssistantChatTab({ activeLead, activeListing, greetingTe
       const allMessages = [...updatedMessages, assistantMsg];
       setMessages(allMessages);
 
-      await base44.agents.updateConversation(convId, { messages: allMessages });
+      await api.agents.updateConversation(convId, { messages: allMessages });
 
       if (hasWriteAction) {
         queryClient.invalidateQueries({ queryKey: ['leads'] });

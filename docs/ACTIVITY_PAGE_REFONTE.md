@@ -15,7 +15,7 @@
 **Observation** : Les tâches s’affichent dans la Timeline et le dashboard. La section Tâches utilise la même query `['tasks']` et devrait être à jour après `invalidateQueries`. Si ce n’est pas le cas, vérifier :
 
 - Le tri : `Task.list('-created_date')` vs `Task.list()`
-- L’éventuel filtre `created_by` côté base44
+- L’éventuel filtre `created_by` côté API
 
 **Recommandation** : Harmoniser les query keys et les paramètres de tri sur l’ensemble des composants.
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,27 +38,27 @@ export default function TodayTab({ onNavigateToAgenda, onNavigateToTasks, onNavi
 
   const { data: events = [], isLoading: loadingEvents } = useQuery({
     queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list('-date'),
+    queryFn: () => api.entities.Event.list('-date'),
   });
 
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date'),
+    queryFn: () => api.entities.Task.list('-created_date'),
   });
 
   const { data: notes = [], isLoading: loadingNotes } = useQuery({
     queryKey: ['notes'],
-    queryFn: () => base44.entities.Note.list('-updated_date'),
+    queryFn: () => api.entities.Note.list('-updated_date'),
   });
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list(),
+    queryFn: () => api.entities.Lead.list(),
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings'],
-    queryFn: () => base44.entities.Listing.list(),
+    queryFn: () => api.entities.Listing.list(),
   });
 
   const todayEvents = events.filter((e) => {

@@ -1,15 +1,15 @@
-import { base44 } from './base44Client'
+import { api } from './apiClient'
 
-export const Lead = base44.entities.Lead
-export const Listing = base44.entities.Listing
-export const Activity = base44.entities.Activity
-export const Event = base44.entities.Event
-export const Task = base44.entities.Task
-export const Note = base44.entities.Note
-export const Notification = base44.entities.Notification
-export const SocialPageConfig = base44.entities.SocialPageConfig
-export const MatchingConfig = base44.entities.MatchingConfig
-export const Query = base44.entities.Query
-export const Match = base44.entities.Match
+export const Lead = api.entities.Lead
+export const Listing = api.entities.Listing
+export const Activity = api.entities.Activity
+export const Event = api.entities.Event
+export const Task = api.entities.Task
+export const Note = api.entities.Note
+export const Notification = api.entities.Notification
+export const SocialPageConfig = api.entities.SocialPageConfig
+export const MatchingConfig = api.entities.MatchingConfig
+export const Query = api.entities.Query
+export const Match = api.entities.Match
 
-export const User = base44.auth
+export const User = api.auth

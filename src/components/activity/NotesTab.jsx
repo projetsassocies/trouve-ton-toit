@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,17 +17,17 @@ export default function NotesTab() {
 
   const { data: notes = [], isLoading } = useQuery({
     queryKey: ['notes'],
-    queryFn: () => base44.entities.Note.list('-updated_date'),
+    queryFn: () => api.entities.Note.list('-updated_date'),
   });
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list(),
+    queryFn: () => api.entities.Lead.list(),
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings'],
-    queryFn: () => base44.entities.Listing.list(),
+    queryFn: () => api.entities.Listing.list(),
   });
 
   const getLinkedItem = (note) => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   Sparkles, 
@@ -39,7 +39,7 @@ export default function LeadExtractionAssistant() {
     setExtractedData(null);
 
     try {
-      const response = await base44.integrations.Core.InvokeLLM({
+      const response = await api.integrations.Core.InvokeLLM({
         prompt: `Tu es un assistant spécialisé dans l'extraction d'informations de leads immobiliers.
         
 Analyse le texte suivant et extrais toutes les informations pertinentes pour créer un lead immobilier.
@@ -105,7 +105,7 @@ Tu DOIS retourner UNIQUEMENT un objet JSON valide avec exactement cette structur
         notes: `${extractedData.notes || ''}\n\n--- Message original ---\n${inputText}`.trim()
       };
 
-      await base44.entities.Lead.create(leadData);
+      await api.entities.Lead.create(leadData);
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       toast.success('Lead créé avec succès !');
       

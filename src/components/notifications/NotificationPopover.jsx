@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell, Home, Users, Sparkles, CheckCircle2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,19 +22,19 @@ export default function NotificationPopover({ user }) {
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', user?.email],
-    queryFn: () => base44.entities.Notification.filter({ created_by: user.email }, '-created_date', 20),
+    queryFn: () => api.entities.Notification.filter({ created_by: user.email }, '-created_date', 20),
     enabled: !!user?.email,
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: (id) => base44.entities.Notification.update(id, { read: true }),
+    mutationFn: (id) => api.entities.Notification.update(id, { read: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
   const deleteNotificationMutation = useMutation({
-    mutationFn: (id) => base44.entities.Notification.delete(id),
+    mutationFn: (id) => api.entities.Notification.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       toast.success('Notification supprimée');
@@ -44,7 +44,7 @@ export default function NotificationPopover({ user }) {
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
       const unreadNotifs = notifications.filter(n => !n.read);
-      await Promise.all(unreadNotifs.map(n => base44.entities.Notification.update(n.id, { read: true })));
+      await Promise.all(unreadNotifs.map(n => api.entities.Notification.update(n.id, { read: true })));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });

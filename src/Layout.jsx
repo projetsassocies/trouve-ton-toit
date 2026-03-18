@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
 import GlobalSearch from '@/components/dashboard/GlobalSearch';
 import NotificationPopover from '@/components/notifications/NotificationPopover';
@@ -64,13 +64,13 @@ export default function Layout({ children, currentPageName }) {
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads', user?.email],
-    queryFn: () => base44.entities.Lead.filter({ created_by: user.email }, '-created_date', 50),
+    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date', 50),
     enabled: !!user?.email,
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings', user?.email],
-    queryFn: () => base44.entities.Listing.filter({ created_by: user.email }, '-created_date', 50),
+    queryFn: () => api.entities.Listing.filter({ created_by: user.email }, '-created_date', 50),
     enabled: !!user?.email,
   });
 

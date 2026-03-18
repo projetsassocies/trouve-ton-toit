@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import {
   UserPlus,
@@ -88,19 +88,19 @@ export default function DashboardKPIs({ className }) {
 
   const { data: leads = [], isLoading: leadsLoading } = useQuery({
     queryKey: ['leads', user?.email],
-    queryFn: () => base44.entities.Lead.filter({ created_by: user.email }, '-created_date', 500),
+    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date', 500),
     enabled: !!user?.email,
   });
 
   const { data: events = [], isLoading: eventsLoading } = useQuery({
     queryKey: ['events', user?.email],
-    queryFn: () => base44.entities.Event.filter({ created_by: user.email }, '-date', 200),
+    queryFn: () => api.entities.Event.filter({ created_by: user.email }, '-date', 200),
     enabled: !!user?.email,
   });
 
   const { data: matches = [], isLoading: matchesLoading } = useQuery({
     queryKey: ['matches', user?.email],
-    queryFn: () => base44.entities.Match.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Match.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 

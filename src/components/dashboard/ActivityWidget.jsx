@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
@@ -82,32 +82,32 @@ export default function ActivityWidget({ className }) {
   // Mêmes query keys que la page Activité / TimelineTab pour synchronisation CRM
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date'),
+    queryFn: () => api.entities.Task.list('-created_date'),
   });
 
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list('-date'),
+    queryFn: () => api.entities.Event.list('-date'),
   });
 
   const { data: activities = [] } = useQuery({
     queryKey: ['activities'],
-    queryFn: () => base44.entities.Activity.list('-created_date'),
+    queryFn: () => api.entities.Activity.list('-created_date'),
   });
 
   const { data: notes = [] } = useQuery({
     queryKey: ['notes'],
-    queryFn: () => base44.entities.Note.list('-updated_date'),
+    queryFn: () => api.entities.Note.list('-updated_date'),
   });
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list(),
+    queryFn: () => api.entities.Lead.list(),
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings'],
-    queryFn: () => base44.entities.Listing.list(),
+    queryFn: () => api.entities.Listing.list(),
   });
 
   const pendingTasks = tasks.filter((t) =>
@@ -200,11 +200,11 @@ export default function ActivityWidget({ className }) {
 
   const handleToggleComplete = async (task) => {
     if (task.status === 'completed') return;
-    await base44.entities.Task.update(task.id, {
+    await api.entities.Task.update(task.id, {
       status: 'completed',
       completed_at: new Date().toISOString(),
     });
-    await base44.entities.Activity.create({
+    await api.entities.Activity.create({
       type: 'task',
       title: `Tâche terminée: ${task.title}`,
       content: task.description,

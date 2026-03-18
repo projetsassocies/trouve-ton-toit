@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,12 +19,12 @@ export default function CreateTaskModal({ open, onClose, task, prefilledLeadId }
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list(),
+    queryFn: () => api.entities.Lead.list(),
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings'],
-    queryFn: () => base44.entities.Listing.list(),
+    queryFn: () => api.entities.Listing.list(),
   });
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function CreateTaskModal({ open, onClose, task, prefilledLeadId }
   }, [task, open, prefilledLeadId]);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Task.create(data),
+    mutationFn: (data) => api.entities.Task.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks']);
       toast.success('Tâche créée');
@@ -55,7 +55,7 @@ export default function CreateTaskModal({ open, onClose, task, prefilledLeadId }
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Task.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks']);
       toast.success('Tâche modifiée');

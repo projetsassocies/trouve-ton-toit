@@ -335,32 +335,57 @@ function calculateScoreVendeur(
 
 // ═══════════════════════════════════════════════════════════
 // Handler principal
+// Accepte : 1) format Supabase Webhook { type, table, record, old_record }
+//           2) format legacy { event: { entity_name, entity_id } }
 // ═══════════════════════════════════════════════════════════
 
 Deno.serve(async (req) => {
   try {
-    const { event } = await req.json()
+    const body = await req.json() as Record<string, unknown>
     let leadId: string | undefined
 
-    if (event.entity_name === 'Lead') {
-      leadId = event.entity_id
-    } else {
-      const tableName = entityTableMap[event.entity_name]
-      if (!tableName) {
-        return Response.json({ error: `Unknown entity: ${event.entity_name}` }, { status: 400 })
-      }
-      const { data: entity, error: entityError } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('id', event.entity_id)
-        .single()
-
-      if (entityError) return Response.json({ error: entityError.message }, { status: 500 })
-      if ((entity as LeadData).linked_to_type === 'lead') {
-        leadId = (entity as LeadData).linked_to_id as string
+    // Format Supabase Database Webhook
+    if (body.type && body.table) {
+      const table = String(body.table)
+      const record = (body.record || body.old_record) as Record<string, unknown> | null
+      if (table === 'leads' && record?.id) {
+        leadId = String(record.id)
+      } else if (['activities', 'events', 'tasks', 'notes'].includes(table) && record) {
+        if (record.linked_to_type === 'lead' && record.linked_to_id) {
+          leadId = String(record.linked_to_id)
+        } else {
+          return Response.json({ message: 'Not linked to a lead' }, { status: 200 })
+        }
       } else {
-        return Response.json({ message: 'Not linked to a lead' }, { status: 200 })
+        return Response.json({ message: 'Table not relevant for scoring' }, { status: 200 })
       }
+    }
+    // Format legacy (event.entity_name, event.entity_id)
+    else if (body.event) {
+      const event = body.event as Record<string, unknown>
+      const entityName = String(event.entity_name || '')
+      const entityId = event.entity_id as string | undefined
+      if (!entityId) return Response.json({ error: 'Missing entity_id' }, { status: 400 })
+
+      if (entityName === 'Lead') {
+        leadId = entityId
+      } else {
+        const tableName = entityTableMap[entityName]
+        if (!tableName) return Response.json({ error: `Unknown entity: ${entityName}` }, { status: 400 })
+        const { data: entity, error: entityError } = await supabase
+          .from(tableName)
+          .select('linked_to_id, linked_to_type')
+          .eq('id', entityId)
+          .single()
+        if (entityError) return Response.json({ error: entityError.message }, { status: 500 })
+        if ((entity as LeadData).linked_to_type === 'lead') {
+          leadId = (entity as LeadData).linked_to_id as string
+        } else {
+          return Response.json({ message: 'Not linked to a lead' }, { status: 200 })
+        }
+      }
+    } else {
+      return Response.json({ error: 'Invalid payload format' }, { status: 400 })
     }
 
     if (!leadId) return Response.json({ error: 'No lead ID found' }, { status: 400 })

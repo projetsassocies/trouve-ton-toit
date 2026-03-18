@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,7 +69,7 @@ export default function EditListing() {
   const { data: listing, isLoading } = useQuery({
     queryKey: ['listing', listingId],
     queryFn: async () => {
-      const listings = await base44.entities.Listing.filter({ id: listingId });
+      const listings = await api.entities.Listing.filter({ id: listingId });
       return listings[0];
     },
     enabled: !!listingId,
@@ -99,7 +99,7 @@ export default function EditListing() {
   }, [listing]);
 
   const updateMutation = useMutation({
-    mutationFn: (data) => base44.entities.Listing.update(listingId, data),
+    mutationFn: (data) => api.entities.Listing.update(listingId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listings'] });
       queryClient.invalidateQueries({ queryKey: ['listing', listingId] });
@@ -129,7 +129,7 @@ export default function EditListing() {
     setUploading(true);
     
     const uploadPromises = files.map(async (file) => {
-      const result = await base44.integrations.Core.UploadFile({ file });
+      const result = await api.integrations.Core.UploadFile({ file });
       return result.file_url;
     });
 

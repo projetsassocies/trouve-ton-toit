@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/lib/AuthContext';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { SendEmail, SendSMS } from '@/api/integrations';
 import {
@@ -58,19 +58,19 @@ export default function Matching() {
   // --- Data queries ---
   const { data: leads = [], isLoading: leadsLoading } = useQuery({
     queryKey: ['leads', user?.email],
-    queryFn: () => base44.entities.Lead.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
     queryKey: ['listings', user?.email],
-    queryFn: () => base44.entities.Listing.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Listing.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
   const { data: matchRecords = [], isLoading: matchesLoading } = useQuery({
     queryKey: ['matches', user?.email],
-    queryFn: () => base44.entities.Match.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Match.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
@@ -185,9 +185,9 @@ export default function Matching() {
     for (const { item: listing, score, details } of results) {
       const existing = matchRecords.find(m => m.lead_id === lead.id && m.listing_id === listing.id);
       if (existing) {
-        await base44.entities.Match.update(existing.id, { score, score_details: details });
+        await api.entities.Match.update(existing.id, { score, score_details: details });
       } else {
-        await base44.entities.Match.create({
+        await api.entities.Match.create({
           lead_id: lead.id,
           listing_id: listing.id,
           score,
@@ -199,7 +199,7 @@ export default function Matching() {
     }
     // Also update legacy fields on lead
     const matchedIds = results.map(r => r.item.id);
-    await base44.entities.Lead.update(lead.id, {
+    await api.entities.Lead.update(lead.id, {
       matched_listings: matchedIds,
       match_score: results[0]?.score || 0,
     });
@@ -211,9 +211,9 @@ export default function Matching() {
     for (const { item: lead, score, details } of results) {
       const existing = matchRecords.find(m => m.lead_id === lead.id && m.listing_id === listing.id);
       if (existing) {
-        await base44.entities.Match.update(existing.id, { score, score_details: details });
+        await api.entities.Match.update(existing.id, { score, score_details: details });
       } else {
-        await base44.entities.Match.create({
+        await api.entities.Match.create({
           lead_id: lead.id,
           listing_id: listing.id,
           score,
@@ -253,15 +253,15 @@ export default function Matching() {
       if (newStatus === 'propose') updates.proposed_date = new Date().toISOString();
       if (newStatus === 'visite_planifiee' || newStatus === 'visite_effectuee') updates.visit_date = new Date().toISOString();
       if (newStatus === 'accepte' || newStatus === 'refuse') updates.decision_date = new Date().toISOString();
-      await base44.entities.Match.update(matchId, updates);
+      await api.entities.Match.update(matchId, updates);
 
       // Sync lead status
       if (leadId) {
-        const lead = await base44.entities.Lead.get(leadId);
+        const lead = await api.entities.Lead.get(leadId);
         if (lead) {
           const newLeadStatus = getLeadStatusFromMatchStatus(lead.status || 'nouveau', newStatus);
           if (newLeadStatus !== (lead.status || 'nouveau')) {
-            await base44.entities.Lead.update(leadId, { status: newLeadStatus });
+            await api.entities.Lead.update(leadId, { status: newLeadStatus });
           }
         }
       }
@@ -277,7 +277,7 @@ export default function Matching() {
         const activityConfig = activityLabels[newStatus];
         if (activityConfig) {
           try {
-            await base44.entities.Activity.create({
+            await api.entities.Activity.create({
               type: activityConfig.type,
               title: activityConfig.title,
               ...(note && { description: note }),
@@ -335,7 +335,7 @@ export default function Matching() {
     }
     try {
       await SendEmail({ to: lead.email, subject, html: body.replace(/\n/g, '<br/>') });
-      await base44.entities.Activity.create({
+      await api.entities.Activity.create({
         type: 'email',
         title: `Email envoyé : ${subject}`,
         description: `Proposition de bien : ${listing?.title || 'Bien'}`,
@@ -365,7 +365,7 @@ export default function Matching() {
     }
     try {
       await SendSMS({ to: lead.phone, message: body });
-      await base44.entities.Activity.create({
+      await api.entities.Activity.create({
         type: 'sms',
         title: `SMS envoyé : proposition de bien`,
         description: `Bien proposé : ${listing?.title || 'Bien'}`,
@@ -387,7 +387,7 @@ export default function Matching() {
     const listing = mode === 'lead-to-listing' ? matchResults.find(r => r.item.id === selectedMatchId)?.item : selectedListing;
     const visitDatetime = new Date(`${date}T${time}`);
     try {
-      await base44.entities.Activity.create({
+      await api.entities.Activity.create({
         type: 'visite',
         title: `Visite : ${lead?.first_name} ${lead?.last_name} — ${listing?.title || 'Bien'}`,
         description: `Visite programmée le ${visitDatetime.toLocaleDateString('fr-FR')} à ${time}`,
@@ -413,7 +413,7 @@ export default function Matching() {
       const existing = record.notes || '';
       const timestamp = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
       const newNotes = existing ? `${existing}\n\n[${timestamp}] ${text}` : `[${timestamp}] ${text}`;
-      await base44.entities.Match.update(record.id, { notes: newNotes });
+      await api.entities.Match.update(record.id, { notes: newNotes });
       queryClient.invalidateQueries({ queryKey: ['matches'] });
       toast.success('Note ajoutée');
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { UserPlus, MapPin, Euro, Check, Building2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -72,7 +72,7 @@ export default function LeadChatTab({ greetingText, renderBarContent, renderSugg
   const loadConversations = async () => {
     setLoadingConversations(true);
     try {
-      const list = await base44.agents.listConversations('lead_extractor');
+      const list = await api.agents.listConversations('lead_extractor');
       setConversations(list);
     } catch (err) {
       console.error('Failed to load lead conversations:', err);
@@ -95,7 +95,7 @@ export default function LeadChatTab({ greetingText, renderBarContent, renderSugg
 
   const handleDeleteConversation = async (id) => {
     try {
-      await base44.agents.deleteConversation(id);
+      await api.agents.deleteConversation(id);
       setConversations(prev => prev.filter(c => c.id !== id));
       if (activeConversationId === id) handleNewConversation();
       toast.success('Conversation supprimee');
@@ -107,7 +107,7 @@ export default function LeadChatTab({ greetingText, renderBarContent, renderSugg
   const handleRenameConversation = async (id, newTitle) => {
     try {
       const conv = conversations.find(c => c.id === id);
-      await base44.agents.updateConversation(id, {
+      await api.agents.updateConversation(id, {
         metadata: { ...conv?.metadata, title: newTitle }
       });
       setConversations(prev => prev.map(c =>
@@ -129,7 +129,7 @@ export default function LeadChatTab({ greetingText, renderBarContent, renderSugg
 
     try {
       if (!convId) {
-        const newConv = await base44.agents.createConversation({
+        const newConv = await api.agents.createConversation({
           agent_name: 'lead_extractor',
           metadata: { title: text.substring(0, 50) + (text.length > 50 ? '...' : '') }
         });
@@ -147,7 +147,7 @@ export default function LeadChatTab({ greetingText, renderBarContent, renderSugg
         }),
       ];
 
-      const aiContent = await base44.integrations.Core.InvokeLLM({
+      const aiContent = await api.integrations.Core.InvokeLLM({
         messages: openaiMessages,
         response_json_schema: { type: 'object' },
       });
@@ -168,7 +168,7 @@ export default function LeadChatTab({ greetingText, renderBarContent, renderSugg
       const allMessages = [...updatedMessages, assistantMsg];
       setMessages(allMessages);
 
-      await base44.agents.updateConversation(convId, { messages: allMessages });
+      await api.agents.updateConversation(convId, { messages: allMessages });
 
       setConversations(prev => {
         const exists = prev.find(c => c.id === convId);
@@ -217,7 +217,7 @@ export default function LeadChatTab({ greetingText, renderBarContent, renderSugg
         date_scoring: new Date().toISOString()
       };
 
-      const createdLead = await base44.entities.Lead.create(leadData);
+      const createdLead = await api.entities.Lead.create(leadData);
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       setActiveLead(createdLead);
       pushAction({ type: 'lead_created', lead: createdLead });
@@ -227,7 +227,7 @@ export default function LeadChatTab({ greetingText, renderBarContent, renderSugg
 
       if (activeConversationId) {
         const conv = conversations.find(c => c.id === activeConversationId);
-        await base44.agents.updateConversation(activeConversationId, {
+        await api.agents.updateConversation(activeConversationId, {
           metadata: { ...conv?.metadata, createdLeadIds: [...newCreated], status: 'created' }
         });
       }

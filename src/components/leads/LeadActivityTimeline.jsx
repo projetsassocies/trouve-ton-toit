@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { 
@@ -94,7 +94,7 @@ export default function LeadActivityTimeline({ leadId }) {
   const { data: activities = [] } = useQuery({
     queryKey: ['activities', leadId],
     queryFn: async () => {
-      const allActivities = await base44.entities.Activity.filter({
+      const allActivities = await api.entities.Activity.filter({
         linked_to_type: 'lead',
         linked_to_id: leadId,
       }, '-created_date');
@@ -107,7 +107,7 @@ export default function LeadActivityTimeline({ leadId }) {
   const { data: tasks = [] } = useQuery({
     queryKey: ['tasks', leadId],
     queryFn: async () => {
-      const allTasks = await base44.entities.Task.filter({
+      const allTasks = await api.entities.Task.filter({
         linked_to_type: 'lead',
         linked_to_id: leadId,
       }, '-created_date');
@@ -120,7 +120,7 @@ export default function LeadActivityTimeline({ leadId }) {
   const { data: notes = [] } = useQuery({
     queryKey: ['notes', leadId],
     queryFn: async () => {
-      const allNotes = await base44.entities.Note.filter({
+      const allNotes = await api.entities.Note.filter({
         linked_to_type: 'lead',
         linked_to_id: leadId,
       }, '-created_date');
@@ -133,7 +133,7 @@ export default function LeadActivityTimeline({ leadId }) {
   const { data: events = [] } = useQuery({
     queryKey: ['events', leadId],
     queryFn: async () => {
-      const allEvents = await base44.entities.Event.filter({
+      const allEvents = await api.entities.Event.filter({
         linked_to_type: 'lead',
         linked_to_id: leadId,
       }, '-created_date');
@@ -143,7 +143,7 @@ export default function LeadActivityTimeline({ leadId }) {
   });
 
   const deleteActivityMutation = useMutation({
-    mutationFn: (id) => base44.entities.Activity.delete(id),
+    mutationFn: (id) => api.entities.Activity.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['activities', leadId]);
       toast.success('Activité supprimée');
@@ -151,7 +151,7 @@ export default function LeadActivityTimeline({ leadId }) {
   });
 
   const deleteTaskMutation = useMutation({
-    mutationFn: (id) => base44.entities.Task.delete(id),
+    mutationFn: (id) => api.entities.Task.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks', leadId]);
       queryClient.invalidateQueries(['tasks']);
@@ -160,7 +160,7 @@ export default function LeadActivityTimeline({ leadId }) {
   });
 
   const deleteNoteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Note.delete(id),
+    mutationFn: (id) => api.entities.Note.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['notes', leadId]);
       queryClient.invalidateQueries(['notes']);
@@ -169,7 +169,7 @@ export default function LeadActivityTimeline({ leadId }) {
   });
 
   const deleteEventMutation = useMutation({
-    mutationFn: (id) => base44.entities.Event.delete(id),
+    mutationFn: (id) => api.entities.Event.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['events', leadId]);
       queryClient.invalidateQueries(['events']);

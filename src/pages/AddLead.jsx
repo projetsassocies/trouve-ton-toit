@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Checkbox } from '@/components/ui/checkbox';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Save, User, ShoppingCart, Key, AlertCircle } from 'lucide-react';
@@ -41,6 +42,18 @@ export default function AddLead() {
     source: 'autre',
     status: 'nouveau',
     notes: '',
+    // Locataire
+    garantie_type: '',
+    date_entree_souhaitee: '',
+    preavis_pose: false,
+    revenus_mensuels_nets: '',
+    loyer_cible_max: '',
+    dossier_location_complet: false,
+    dossier_valide_agent: false,
+    // Vendeur
+    mandat_signe: false,
+    estimation_demandee: false,
+    bien_sous_compromis: false,
   });
 
   // Vérifier les doublons par email
@@ -48,7 +61,7 @@ export default function AddLead() {
     queryKey: ['duplicate-check-email', emailToCheck, user?.email],
     queryFn: async () => {
       if (!emailToCheck || !user?.email) return [];
-      const leads = await base44.entities.Lead.filter({ 
+      const leads = await api.entities.Lead.filter({ 
         email: emailToCheck,
         created_by: user.email 
       });
@@ -62,7 +75,7 @@ export default function AddLead() {
     queryKey: ['duplicate-check-phone', phoneToCheck, user?.email],
     queryFn: async () => {
       if (!phoneToCheck || !user?.email) return [];
-      const allLeads = await base44.entities.Lead.filter({ 
+      const allLeads = await api.entities.Lead.filter({ 
         created_by: user.email 
       });
       // Filtrer côté client car on ne peut pas filtrer sur phone avec normalisation
@@ -80,7 +93,7 @@ export default function AddLead() {
   }, []);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Lead.create(data),
+    mutationFn: (data) => api.entities.Lead.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       navigate(createPageUrl('Leads'));
@@ -106,6 +119,16 @@ export default function AddLead() {
       surface_min: formData.surface_min ? Number(formData.surface_min) : undefined,
       surface_max: formData.surface_max ? Number(formData.surface_max) : undefined,
       rooms_min: formData.rooms_min ? Number(formData.rooms_min) : undefined,
+      revenus_mensuels_nets: formData.revenus_mensuels_nets ? Number(formData.revenus_mensuels_nets) : undefined,
+      loyer_cible_max: formData.loyer_cible_max ? Number(formData.loyer_cible_max) : undefined,
+      date_entree_souhaitee: formData.date_entree_souhaitee || undefined,
+      garantie_type: formData.garantie_type || undefined,
+      preavis_pose: formData.lead_type === 'locataire' ? formData.preavis_pose : undefined,
+      dossier_location_complet: formData.lead_type === 'locataire' ? formData.dossier_location_complet : undefined,
+      dossier_valide_agent: formData.lead_type === 'locataire' ? formData.dossier_valide_agent : undefined,
+      mandat_signe: formData.lead_type === 'vendeur' ? formData.mandat_signe : undefined,
+      estimation_demandee: formData.lead_type === 'vendeur' ? formData.estimation_demandee : undefined,
+      bien_sous_compromis: formData.lead_type === 'vendeur' ? formData.bien_sous_compromis : undefined,
     };
     createMutation.mutate(data);
   };
@@ -357,6 +380,77 @@ export default function AddLead() {
           </div>
         )}
 
+        {/* Dossier Location (Locataire) */}
+        {formData.lead_type === 'locataire' && (
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold mb-4">Dossier location</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-[#999999] mb-1.5 block">Loyer max souhaité (€/mois)</label>
+                <Input
+                  type="number"
+                  value={formData.loyer_cible_max}
+                  onChange={(e) => setFormData({...formData, loyer_cible_max: e.target.value})}
+                  placeholder="Ex. 900"
+                  className="rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-[#999999] mb-1.5 block">Revenus nets mensuels (€)</label>
+                <Input
+                  type="number"
+                  value={formData.revenus_mensuels_nets}
+                  onChange={(e) => setFormData({...formData, revenus_mensuels_nets: e.target.value})}
+                  placeholder="Ex. 2500"
+                  className="rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-[#999999] mb-1.5 block">Date d&apos;entrée souhaitée</label>
+                <Input
+                  type="date"
+                  value={formData.date_entree_souhaitee}
+                  onChange={(e) => setFormData({...formData, date_entree_souhaitee: e.target.value})}
+                  className="rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-[#999999] mb-1.5 block">Garantie</label>
+                <Select
+                  value={formData.garantie_type}
+                  onValueChange={(v) => setFormData({...formData, garantie_type: v})}
+                >
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="visale">Visale</SelectItem>
+                    <SelectItem value="cautioneo">Cautionéo</SelectItem>
+                    <SelectItem value="physique">Garant physique</SelectItem>
+                    <SelectItem value="aucune">Aucune</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2 sm:col-span-2">
+                <Checkbox
+                  id="preavis_pose"
+                  checked={formData.preavis_pose}
+                  onCheckedChange={(v) => setFormData({...formData, preavis_pose: !!v})}
+                />
+                <label htmlFor="preavis_pose" className="text-sm cursor-pointer">Préavis déjà posé</label>
+              </div>
+              <div className="flex items-center gap-2 sm:col-span-2">
+                <Checkbox
+                  id="dossier_location_complet"
+                  checked={formData.dossier_location_complet}
+                  onCheckedChange={(v) => setFormData({...formData, dossier_location_complet: !!v})}
+                />
+                <label htmlFor="dossier_location_complet" className="text-sm cursor-pointer">Dossier complet (pièces d&apos;identité, bulletins, garantie)</label>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Seller Info */}
         {formData.lead_type === 'vendeur' && (
           <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
@@ -402,6 +496,32 @@ export default function AddLead() {
                   placeholder="Prix de vente"
                   className="rounded-xl"
                 />
+              </div>
+              <div className="sm:col-span-2 flex flex-wrap gap-6 pt-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="mandat_signe"
+                    checked={formData.mandat_signe}
+                    onCheckedChange={(v) => setFormData({...formData, mandat_signe: !!v})}
+                  />
+                  <label htmlFor="mandat_signe" className="text-sm cursor-pointer">Mandat signé</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="estimation_demandee"
+                    checked={formData.estimation_demandee}
+                    onCheckedChange={(v) => setFormData({...formData, estimation_demandee: !!v})}
+                  />
+                  <label htmlFor="estimation_demandee" className="text-sm cursor-pointer">Estimation demandée</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="bien_sous_compromis"
+                    checked={formData.bien_sous_compromis}
+                    onCheckedChange={(v) => setFormData({...formData, bien_sous_compromis: !!v})}
+                  />
+                  <label htmlFor="bien_sous_compromis" className="text-sm cursor-pointer">Bien déjà sous compromis</label>
+                </div>
               </div>
             </div>
           </div>

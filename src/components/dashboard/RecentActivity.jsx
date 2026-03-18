@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { 
   Phone, 
   Mail, 
@@ -36,13 +36,13 @@ const activityConfig = {
 export default function RecentActivity({ user }) {
   const { data: allActivities = [], isLoading: loadingActivities } = useQuery({
     queryKey: ['recent-activities', user?.email],
-    queryFn: () => base44.entities.Activity.filter({ created_by: user.email }, '-created_date', 20),
+    queryFn: () => api.entities.Activity.filter({ created_by: user.email }, '-created_date', 20),
     enabled: !!user?.email,
   });
 
   const { data: allEvents = [], isLoading: loadingEvents } = useQuery({
     queryKey: ['recent-events', user?.email],
-    queryFn: () => base44.entities.Event.filter({ created_by: user.email }, '-created_date', 10),
+    queryFn: () => api.entities.Event.filter({ created_by: user.email }, '-created_date', 10),
     enabled: !!user?.email,
   });
 

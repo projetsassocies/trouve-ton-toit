@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
 import { Users, ChevronRight, Flame } from 'lucide-react';
@@ -23,13 +23,13 @@ export default function LeadsPipelineCompact({ formatPrice, className }) {
 
   const { data: leads = [], isLoading: leadsLoading } = useQuery({
     queryKey: ['leads', user?.email],
-    queryFn: () => base44.entities.Lead.filter({ created_by: user.email }, '-created_date', 200),
+    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date', 200),
     enabled: !!user?.email,
   });
 
   const { data: matches = [] } = useQuery({
     queryKey: ['matches', user?.email],
-    queryFn: () => base44.entities.Match.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Match.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 

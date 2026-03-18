@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,21 +57,21 @@ export default function AgendaTab() {
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list('-date'),
+    queryFn: () => api.entities.Event.list('-date'),
   });
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list(),
+    queryFn: () => api.entities.Lead.list(),
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings'],
-    queryFn: () => base44.entities.Listing.list(),
+    queryFn: () => api.entities.Listing.list(),
   });
 
   const updateEventMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Event.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Event.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['events']);
       queryClient.invalidateQueries(['activities']);
@@ -83,7 +83,7 @@ export default function AgendaTab() {
       id: event.id,
       data: { status: 'completed' },
     });
-    await base44.entities.Activity.create({
+    await api.entities.Activity.create({
       type: 'event',
       title: `Événement terminé: ${event.title}`,
       content: event.description,

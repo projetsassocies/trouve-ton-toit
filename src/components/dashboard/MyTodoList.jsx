@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -15,13 +15,13 @@ export default function MyTodoList({ className }) {
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date'),
+    queryFn: () => api.entities.Task.list('-created_date'),
     enabled: !!user?.email,
   });
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, completed }) =>
-      base44.entities.Task.update(id, {
+      api.entities.Task.update(id, {
         status: completed ? 'completed' : 'todo',
         completed_at: completed ? new Date().toISOString() : null,
       }),

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { X, Sparkles, Home, Users } from 'lucide-react';
@@ -16,7 +16,7 @@ export default function NotificationToast({ user }) {
     // Charger les notifications non lues
     const loadNotifications = async () => {
       try {
-        const unreadNotifs = await base44.entities.Notification.filter(
+        const unreadNotifs = await api.entities.Notification.filter(
           { created_by: user.email, read: false },
           '-created_date',
           10
@@ -30,7 +30,7 @@ export default function NotificationToast({ user }) {
     loadNotifications();
 
     // S'abonner aux nouvelles notifications en temps réel
-    const unsubscribe = base44.entities.Notification.subscribe((event) => {
+    const unsubscribe = api.entities.Notification.subscribe((event) => {
       if (event.type === 'create' && event.data.created_by === user.email && !event.data.read) {
         setNotifications(prev => [event.data, ...prev]);
         // Afficher la notification
@@ -53,7 +53,7 @@ export default function NotificationToast({ user }) {
 
   const markAsRead = async (notifId) => {
     try {
-      await base44.entities.Notification.update(notifId, { read: true });
+      await api.entities.Notification.update(notifId, { read: true });
       setVisibleNotifs(prev => prev.filter(id => id !== notifId));
     } catch (error) {
       console.error('Error marking notification as read:', error);

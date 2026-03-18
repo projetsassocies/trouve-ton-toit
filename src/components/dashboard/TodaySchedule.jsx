@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
 import {
@@ -55,7 +55,7 @@ export default function TodaySchedule({ className }) {
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['events', user?.email],
-    queryFn: () => base44.entities.Event.filter({ created_by: user.email }, '-date', 200),
+    queryFn: () => api.entities.Event.filter({ created_by: user.email }, '-date', 200),
     enabled: !!user?.email,
   });
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Filter, Plus, ChevronRight, Phone, LayoutList, LayoutGrid, CheckSquare, Square, Trash2, X, Sparkles } from 'lucide-react';
@@ -36,12 +36,12 @@ export default function Leads() {
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ['leads', user?.email],
-    queryFn: () => base44.entities.Lead.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
   const updateLeadMutation = useMutation({
-    mutationFn: ({ leadId, data }) => base44.entities.Lead.update(leadId, data),
+    mutationFn: ({ leadId, data }) => api.entities.Lead.update(leadId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       toast.success('Lead mis à jour');
@@ -54,7 +54,7 @@ export default function Leads() {
   const deleteLeadsMutation = useMutation({
     mutationFn: async (leadIds) => {
       for (const id of leadIds) {
-        await base44.entities.Lead.delete(id);
+        await api.entities.Lead.delete(id);
       }
     },
     onSuccess: () => {
@@ -67,7 +67,7 @@ export default function Leads() {
 
   const cleanDuplicatesMutation = useMutation({
     mutationFn: async () => {
-      const response = await base44.functions.invoke('cleanDuplicateLeads', {});
+      const response = await api.functions.invoke('cleanDuplicateLeads', {});
       return response.data;
     },
     onSuccess: (data) => {
@@ -86,7 +86,7 @@ export default function Leads() {
   const updateStatusMutation = useMutation({
     mutationFn: async ({ leadIds, status }) => {
       for (const id of leadIds) {
-        await base44.entities.Lead.update(id, { status });
+        await api.entities.Lead.update(id, { status });
       }
     },
     onSuccess: () => {
@@ -104,7 +104,10 @@ export default function Leads() {
       lead.city?.toLowerCase().includes(search.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || lead.categorie === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || lead.categorie === categoryFilter ||
+      (categoryFilter === 'CHAUD' && lead.categorie === 'URGENT') ||
+      (categoryFilter === 'TIEDE' && lead.categorie === 'ACTIF') ||
+      (categoryFilter === 'FROID' && lead.categorie === 'EN_VEILLE');
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
@@ -121,11 +124,11 @@ export default function Leads() {
     // Calculer automatiquement le score en fonction de la catégorie
     const updatedData = { ...data };
     if (data.categorie) {
-      if (data.categorie === 'CHAUD') {
+      if (data.categorie === 'CHAUD' || data.categorie === 'URGENT') {
         updatedData.score = 80;
-      } else if (data.categorie === 'TIÈDE') {
+      } else if (data.categorie === 'TIEDE' || data.categorie === 'ACTIF') {
         updatedData.score = 55;
-      } else if (data.categorie === 'FROID') {
+      } else if (data.categorie === 'FROID' || data.categorie === 'EN_VEILLE') {
         updatedData.score = 25;
       }
       updatedData.date_scoring = new Date().toISOString();
@@ -271,9 +274,9 @@ export default function Leads() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Toutes les catégories</SelectItem>
-                  <SelectItem value="CHAUD">Chaud</SelectItem>
-                  <SelectItem value="TIÈDE">Tiède</SelectItem>
-                  <SelectItem value="FROID">Froid</SelectItem>
+                  <SelectItem value="CHAUD">Chaud / Urgent</SelectItem>
+                  <SelectItem value="TIEDE">Tiède / Actif</SelectItem>
+                  <SelectItem value="FROID">Froid / En veille</SelectItem>
                 </SelectContent>
               </Select>
             </>
@@ -361,7 +364,7 @@ export default function Leads() {
                       )}
                     </Link>
                     {lead.categorie && (
-                      <EditableCategorieBadge leadId={lead.id} currentCategorie={lead.categorie} onUpdate={handleUpdateLead} />
+                      <EditableCategorieBadge leadId={lead.id} currentCategorie={lead.categorie} leadType={lead.lead_type} onUpdate={handleUpdateLead} />
                     )}
                     <Link to={createPageUrl(`LeadDetail?id=${lead.id}`)} className="flex-shrink-0">
                       <ChevronRight className="w-5 h-5 text-[#CCCCCC]" />
@@ -391,7 +394,7 @@ export default function Leads() {
                     <span className="text-sm text-[#666666] truncate" title={lead.city}>{lead.city || '-'}</span>
                     <div className="flex justify-center">
                       {lead.categorie ? (
-                        <EditableCategorieBadge leadId={lead.id} currentCategorie={lead.categorie} onUpdate={handleUpdateLead} />
+                        <EditableCategorieBadge leadId={lead.id} currentCategorie={lead.categorie} leadType={lead.lead_type} onUpdate={handleUpdateLead} />
                       ) : <div />}
                     </div>
                     <div className="flex justify-center">

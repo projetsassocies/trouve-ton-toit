@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Filter, Plus, ChevronRight, MapPin, Maximize, Euro, CheckSquare, Square, Trash2, X } from 'lucide-react';
@@ -31,7 +31,7 @@ export default function Listings() {
 
   const { data: listings = [], isLoading } = useQuery({
     queryKey: ['listings', user?.email],
-    queryFn: () => base44.entities.Listing.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Listing.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
@@ -56,7 +56,7 @@ export default function Listings() {
   const deleteListingsMutation = useMutation({
     mutationFn: async (listingIds) => {
       for (const id of listingIds) {
-        await base44.entities.Listing.delete(id);
+        await api.entities.Listing.delete(id);
       }
     },
     onSuccess: () => {
@@ -70,7 +70,7 @@ export default function Listings() {
   const updateStatusMutation = useMutation({
     mutationFn: async ({ listingIds, status }) => {
       for (const id of listingIds) {
-        await base44.entities.Listing.update(id, { status });
+        await api.entities.Listing.update(id, { status });
       }
     },
     onSuccess: () => {

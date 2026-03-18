@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -66,36 +66,36 @@ export default function PrioritizedActionsCard({ formatPrice, className }) {
 
   const { data: tasks = [] } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date'),
+    queryFn: () => api.entities.Task.list('-created_date'),
     enabled: !!user?.email,
   });
 
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list('-date'),
+    queryFn: () => api.entities.Event.list('-date'),
     enabled: !!user?.email,
   });
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads', user?.email],
-    queryFn: () => base44.entities.Lead.filter({ created_by: user.email }, '-created_date', 100),
+    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date', 100),
     enabled: !!user?.email,
   });
 
   const { data: matches = [] } = useQuery({
     queryKey: ['matches', user?.email],
-    queryFn: () => base44.entities.Match.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Match.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
   const { data: activities = [] } = useQuery({
     queryKey: ['activities', user?.email],
-    queryFn: () => base44.entities.Activity.filter({ created_by: user.email }, '-created_date', 200),
+    queryFn: () => api.entities.Activity.filter({ created_by: user.email }, '-created_date', 200),
     enabled: !!user?.email,
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Task.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks']);
       queryClient.invalidateQueries(['activities']);
@@ -103,7 +103,7 @@ export default function PrioritizedActionsCard({ formatPrice, className }) {
   });
 
   const updateEventMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Event.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Event.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['events']);
     },

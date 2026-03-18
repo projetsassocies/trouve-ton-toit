@@ -1,5 +1,5 @@
 import { supabase } from '@/api/supabaseClient'
-import { base44 } from '@/api/base44Client'
+import { api } from '@/api/apiClient'
 
 // ─── OpenAI Function Calling Tool Definitions ────────────────────────────────
 
@@ -14,7 +14,7 @@ export const CRM_TOOLS = [
         type: 'object',
         properties: {
           city: { type: 'string', description: 'Filtrer par ville' },
-          categorie: { type: 'string', enum: ['CHAUD', 'TIEDE', 'FROID'], description: 'Catégorie du lead' },
+          categorie: { type: 'string', enum: ['CHAUD', 'TIEDE', 'FROID', 'URGENT', 'ACTIF', 'EN_VEILLE'], description: 'Catégorie du lead (vente: CHAUD/TIEDE/FROID, location: URGENT/ACTIF/EN_VEILLE)' },
           status: { type: 'string', enum: ['nouveau', 'contacte', 'en_negociation', 'converti', 'perdu'] },
           lead_type: { type: 'string', enum: ['acheteur', 'locataire', 'vendeur', 'bailleur'] },
           name_search: { type: 'string', description: 'Recherche par nom/prénom (partiel)' },
@@ -262,12 +262,12 @@ const toolHandlers = {
   },
 
   async get_lead_details(args) {
-    const lead = await base44.entities.Lead.get(args.lead_id)
+    const lead = await api.entities.Lead.get(args.lead_id)
     return { lead }
   },
 
   async get_listing_details(args) {
-    const listing = await base44.entities.Listing.get(args.listing_id)
+    const listing = await api.entities.Listing.get(args.listing_id)
     return { listing }
   },
 
@@ -309,6 +309,9 @@ const toolHandlers = {
           CHAUD: leads.filter(l => l.categorie === 'CHAUD').length,
           TIEDE: leads.filter(l => l.categorie === 'TIEDE').length,
           FROID: leads.filter(l => l.categorie === 'FROID').length,
+          URGENT: leads.filter(l => l.categorie === 'URGENT').length,
+          ACTIF: leads.filter(l => l.categorie === 'ACTIF').length,
+          EN_VEILLE: leads.filter(l => l.categorie === 'EN_VEILLE').length,
         },
         by_status: {
           nouveau: leads.filter(l => l.status === 'nouveau').length,
@@ -333,7 +336,7 @@ const toolHandlers = {
   },
 
   async find_matching_listings(args) {
-    const lead = await base44.entities.Lead.get(args.lead_id)
+    const lead = await api.entities.Lead.get(args.lead_id)
 
     let query = supabase.from('listings').select('id, title, price, city, surface, rooms, bedrooms, property_type, transaction_type, status, address')
 
@@ -358,7 +361,7 @@ const toolHandlers = {
   // ═══ WRITE HANDLERS ═══
 
   async create_event(args) {
-    const event = await base44.entities.Event.create({
+    const event = await api.entities.Event.create({
       title: args.title,
       type: args.type,
       date: args.date,
@@ -371,7 +374,7 @@ const toolHandlers = {
     })
 
     const typeLabel = args.type === 'call' ? 'Appel' : args.type === 'visit' ? 'Visite' : args.type === 'meeting' ? 'Réunion' : 'Événement'
-    await base44.entities.Activity.create({
+    await api.entities.Activity.create({
       type: 'event',
       title: `${typeLabel} programmé: ${args.title}`,
       description: args.description || null,
@@ -383,13 +386,13 @@ const toolHandlers = {
   },
 
   async update_lead(args) {
-    const updated = await base44.entities.Lead.update(args.lead_id, args.updates)
+    const updated = await api.entities.Lead.update(args.lead_id, args.updates)
     const changedFields = Object.keys(args.updates).join(', ')
     return { success: true, lead: updated, message: `Lead mis à jour (${changedFields})` }
   },
 
   async create_task(args) {
-    const task = await base44.entities.Task.create({
+    const task = await api.entities.Task.create({
       title: args.title,
       description: args.description || null,
       priority: args.priority || 'medium',
@@ -402,7 +405,7 @@ const toolHandlers = {
   },
 
   async add_note(args) {
-    const note = await base44.entities.Note.create({
+    const note = await api.entities.Note.create({
       content: args.content,
       linked_to_id: args.linked_to_id || null,
       linked_to_type: args.linked_to_type || null,
@@ -411,7 +414,7 @@ const toolHandlers = {
   },
 
   async add_activity(args) {
-    const activity = await base44.entities.Activity.create({
+    const activity = await api.entities.Activity.create({
       type: args.type,
       description: args.description,
       linked_to_id: args.linked_to_id || null,

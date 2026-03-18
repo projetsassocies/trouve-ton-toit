@@ -2,16 +2,24 @@ import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
-const CATEGORIES = [
+const CATEGORIES_VENTE = [
   { value: 'CHAUD', label: 'Chaud 🔥', color: 'bg-[#FEE2E2] text-[#EF4444]' },
-  { value: 'TIÈDE', label: 'Tiède ☀️', color: 'bg-[#FEF3C7] text-[#F59E0B]' },
+  { value: 'TIEDE', label: 'Tiède ☀️', color: 'bg-[#FEF3C7] text-[#F59E0B]' },
   { value: 'FROID', label: 'Froid ❄️', color: 'bg-[#DBEAFE] text-[#3B82F6]' },
 ];
 
-export default function EditableCategorieBadge({ leadId, currentCategorie, onUpdate }) {
+const CATEGORIES_LOCATION = [
+  { value: 'URGENT', label: 'Urgent 🚀', color: 'bg-[#FEE2E2] text-[#EF4444]' },
+  { value: 'ACTIF', label: 'Actif 🏃', color: 'bg-[#FEF3C7] text-[#F59E0B]' },
+  { value: 'EN_VEILLE', label: 'En veille ☁', color: 'bg-[#DBEAFE] text-[#3B82F6]' },
+];
+
+const ALL_CATEGORIES = [...CATEGORIES_VENTE, ...CATEGORIES_LOCATION];
+
+export default function EditableCategorieBadge({ leadId, currentCategorie, leadType, onUpdate }) {
   const [open, setOpen] = useState(false);
-  
-  const currentConfig = CATEGORIES.find(c => c.value === currentCategorie) || CATEGORIES[2];
+  const categories = leadType === 'locataire' ? CATEGORIES_LOCATION : CATEGORIES_VENTE;
+  const currentConfig = ALL_CATEGORIES.find((c) => c.value === currentCategorie) || categories[2];
 
   const handleSelect = (value) => {
     onUpdate(leadId, { categorie: value });
@@ -39,7 +47,7 @@ export default function EditableCategorieBadge({ leadId, currentCategorie, onUpd
         onClick={(e) => e.stopPropagation()}
       >
         <div className="space-y-0.5">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat.value}
               onClick={(e) => {

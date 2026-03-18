@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import {
   CalendarCheck,
@@ -45,13 +45,13 @@ export default function CompactStatsBar({ className }) {
 
   const { data: events = [], isLoading: eventsLoading } = useQuery({
     queryKey: ['events', user?.email],
-    queryFn: () => base44.entities.Event.filter({ created_by: user.email }, '-date', 100),
+    queryFn: () => api.entities.Event.filter({ created_by: user.email }, '-date', 100),
     enabled: !!user?.email,
   });
 
   const { data: matches = [], isLoading: matchesLoading } = useQuery({
     queryKey: ['matches', user?.email],
-    queryFn: () => base44.entities.Match.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Match.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 

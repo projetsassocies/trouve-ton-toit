@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -63,7 +63,7 @@ export default function ListingDetail() {
   const { data: listing, isLoading } = useQuery({
     queryKey: ['listing', listingId],
     queryFn: async () => {
-      const listings = await base44.entities.Listing.filter({ id: listingId });
+      const listings = await api.entities.Listing.filter({ id: listingId });
       return listings[0];
     },
     enabled: !!listingId,
@@ -71,12 +71,12 @@ export default function ListingDetail() {
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads', user?.email],
-    queryFn: () => base44.entities.Lead.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => base44.entities.Listing.delete(listingId),
+    mutationFn: () => api.entities.Listing.delete(listingId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listings'] });
       navigate(createPageUrl('Listings'));
@@ -84,7 +84,7 @@ export default function ListingDetail() {
   });
 
   const updateListingMutation = useMutation({
-    mutationFn: (data) => base44.entities.Listing.update(listingId, data),
+    mutationFn: (data) => api.entities.Listing.update(listingId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['listing', listingId] });
       if (variables.nearby_amenities !== undefined) {
@@ -117,7 +117,7 @@ export default function ListingDetail() {
 
     setLoadingAmenities(true);
     try {
-      const response = await base44.functions.invoke('getAmenities', { address: exactAddress });
+      const response = await api.functions.invoke('getAmenities', { address: exactAddress });
       
       if (response?.error) {
         toast.error(response.error);
@@ -151,7 +151,7 @@ export default function ListingDetail() {
     setLoadingEstimation(true);
     try {
       const address = exactAddress || [listing.address, listing.postal_code, listing.city].filter(Boolean).join(', ');
-      const response = await base44.functions.invoke('getPropertyEstimation', {
+      const response = await api.functions.invoke('getPropertyEstimation', {
         address: address || undefined,
         latitude: listing.latitude,
         longitude: listing.longitude,

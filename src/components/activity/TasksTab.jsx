@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,21 +38,21 @@ export default function TasksTab() {
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date'),
+    queryFn: () => api.entities.Task.list('-created_date'),
   });
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list(),
+    queryFn: () => api.entities.Lead.list(),
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['listings'],
-    queryFn: () => base44.entities.Listing.list(),
+    queryFn: () => api.entities.Listing.list(),
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Task.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks']);
       queryClient.invalidateQueries(['activities']);
@@ -67,7 +67,7 @@ export default function TasksTab() {
       updateData.completed_at = new Date().toISOString();
       
       // Create activity
-      await base44.entities.Activity.create({
+      await api.entities.Activity.create({
         type: 'task',
         title: `Tâche terminée: ${task.title}`,
         content: task.description,
