@@ -215,11 +215,11 @@ export function getScoreColorHex(score) {
 }
 
 export const SCORE_CRITERIA = [
-  { key: 'city', label: 'Ville', icon: '📍', weight: 30, colorClass: 'bg-purple-500' },
-  { key: 'budget', label: 'Budget', icon: '💰', weight: 25, colorClass: 'bg-blue-500' },
-  { key: 'property_type', label: 'Type', icon: '🏠', weight: 20, colorClass: 'bg-green-500' },
-  { key: 'rooms', label: 'Pièces', icon: '🚪', weight: 15, colorClass: 'bg-amber-500' },
-  { key: 'surface', label: 'Surface', icon: '📐', weight: 10, colorClass: 'bg-teal-500' },
+  { key: 'city', label: 'Ville', iconName: 'MapPin', weight: 30, colorClass: 'bg-purple-500' },
+  { key: 'budget', label: 'Budget', iconName: 'CircleDollarSign', weight: 25, colorClass: 'bg-blue-500' },
+  { key: 'property_type', label: 'Type', iconName: 'Home', weight: 20, colorClass: 'bg-green-500' },
+  { key: 'rooms', label: 'Pièces', iconName: 'DoorOpen', weight: 15, colorClass: 'bg-amber-500' },
+  { key: 'surface', label: 'Surface', iconName: 'Ruler', weight: 10, colorClass: 'bg-teal-500' },
 ];
 
 export const MATCH_STATUSES = {

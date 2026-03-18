@@ -2,9 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Mail, Phone, Home, MapPin } from 'lucide-react';
+import { Mail, Phone, Home, MapPin, Cloud, Activity, Zap, Snowflake, Sun, Flame } from 'lucide-react';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { LEAD_TYPE_VIEWS, KANBAN_COLUMNS } from '@/lib/scoring-constants';
+
+const CATEGORY_ICONS = { Cloud, Activity, Zap, Snowflake, Sun, Flame };
 
 export default function LeadsKanbanView({ leads, leadTypeView = LEAD_TYPE_VIEWS.TOUS, onUpdateLead }) {
   const columns = KANBAN_COLUMNS[leadTypeView] || KANBAN_COLUMNS[LEAD_TYPE_VIEWS.TOUS];
@@ -68,6 +70,9 @@ export default function LeadsKanbanView({ leads, leadTypeView = LEAD_TYPE_VIEWS.
                 <div className="bg-white border border-[#E5E5E5] rounded-t-xl px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${category.headerClass || ''}`}>
+                      {category.iconName && CATEGORY_ICONS[category.iconName] ? (
+                        <CATEGORY_ICONS[category.iconName] className="w-4 h-4" />
+                      ) : null}
                       {category.label}
                     </span>
                     <span className="text-sm font-medium text-[#999999]">

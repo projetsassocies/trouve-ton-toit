@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Filter, Plus, ChevronRight, Phone, LayoutList, LayoutGrid, CheckSquare, Square, Trash2, X, Sparkles } from 'lucide-react';
+import { Search, Filter, Plus, ChevronRight, Phone, LayoutList, LayoutGrid, CheckSquare, Square, Trash2, X, Sparkles, CircleDollarSign, Key } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -218,41 +224,6 @@ export default function Leads() {
             </Button>
           </Link>
         </div>
-        <div className="flex flex-wrap gap-2 hidden sm:flex">
-          {!selectionMode ? (
-            <>
-              <Button 
-                variant="outline" 
-                onClick={() => cleanDuplicatesMutation.mutate()}
-                disabled={cleanDuplicatesMutation.isPending}
-                className="border-[#E5E5E5] rounded-xl h-10 px-4 text-sm font-medium hover:bg-[#F5F5F5]"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Nettoyer les doublons
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectionMode(true)}
-                className="border-[#E5E5E5] rounded-xl h-10 px-4 text-sm font-medium hover:bg-[#F5F5F5]"
-              >
-                <CheckSquare className="w-4 h-4 mr-2" />
-                Sélectionner
-              </Button>
-            </>
-          ) : (
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSelectionMode(false);
-                setSelectedLeads([]);
-              }}
-              className="border-[#E5E5E5] rounded-xl h-10 px-4 text-sm font-medium hover:bg-[#F5F5F5]"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Annuler
-            </Button>
-          )}
-        </div>
         {/* Desktop only: duplicate Add button for consistency when not in selection mode */}
         {!selectionMode && (
           <Link to={createPageUrl('AddLead')} className="hidden sm:block">
@@ -275,47 +246,98 @@ export default function Leads() {
             className="pl-10 h-10 rounded-xl border-[#E5E5E5] focus:border-black focus:ring-0 w-full"
           />
         </div>
-        {/* Barre vues raccourcis */}
-        <div className="flex flex-wrap gap-2">
+        {/* Barre vues raccourcis - ordre: Tous | Achat/Vente | Locataires | icônes actions à droite */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => setLeadTypeView(LEAD_TYPE_VIEWS.LOCATAIRE)}
+            onClick={() => setLeadTypeView(LEAD_TYPE_VIEWS.TOUS)}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              leadTypeView === LEAD_TYPE_VIEWS.LOCATAIRE
-                ? 'bg-black text-white'
+              leadTypeView === LEAD_TYPE_VIEWS.TOUS
+                ? 'bg-secondary text-secondary-foreground'
                 : 'bg-white border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
             }`}
           >
-            <span>🔑</span>
-            <span>Locataires</span>
-            <span className="text-xs opacity-80">{countByView[LEAD_TYPE_VIEWS.LOCATAIRE]}</span>
+            <LayoutGrid className="w-4 h-4" />
+            <span>Tous</span>
+            <span className="text-xs opacity-80">{countByView[LEAD_TYPE_VIEWS.TOUS]}</span>
           </button>
           <button
             type="button"
             onClick={() => setLeadTypeView(LEAD_TYPE_VIEWS.ACHAT_VENTE)}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
               leadTypeView === LEAD_TYPE_VIEWS.ACHAT_VENTE
-                ? 'bg-black text-white'
+                ? 'bg-secondary text-secondary-foreground'
                 : 'bg-white border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
             }`}
           >
-            <span>💰</span>
+            <CircleDollarSign className="w-4 h-4" />
             <span>Achat / Vente</span>
             <span className="text-xs opacity-80">{countByView[LEAD_TYPE_VIEWS.ACHAT_VENTE]}</span>
           </button>
           <button
             type="button"
-            onClick={() => setLeadTypeView(LEAD_TYPE_VIEWS.TOUS)}
+            onClick={() => setLeadTypeView(LEAD_TYPE_VIEWS.LOCATAIRE)}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              leadTypeView === LEAD_TYPE_VIEWS.TOUS
-                ? 'bg-black text-white'
+              leadTypeView === LEAD_TYPE_VIEWS.LOCATAIRE
+                ? 'bg-secondary text-secondary-foreground'
                 : 'bg-white border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
             }`}
           >
-            <span>📋</span>
-            <span>Tous</span>
-            <span className="text-xs opacity-80">{countByView[LEAD_TYPE_VIEWS.TOUS]}</span>
+            <Key className="w-4 h-4" />
+            <span>Locataires</span>
+            <span className="text-xs opacity-80">{countByView[LEAD_TYPE_VIEWS.LOCATAIRE]}</span>
           </button>
+          </div>
+          <TooltipProvider delayDuration={200}>
+            <div className="flex items-center gap-2 ml-auto">
+              {!selectionMode ? (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => cleanDuplicatesMutation.mutate()}
+                        disabled={cleanDuplicatesMutation.isPending}
+                        className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5] transition-colors disabled:opacity-50"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Nettoyer les doublons</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setSelectionMode(true)}
+                        className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5] transition-colors"
+                      >
+                        <CheckSquare className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Sélectionner</TooltipContent>
+                  </Tooltip>
+                </>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectionMode(false);
+                        setSelectedLeads([]);
+                      }}
+                      className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5] transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Annuler la sélection</TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          </TooltipProvider>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Tabs value={viewMode} onValueChange={setViewMode}>
