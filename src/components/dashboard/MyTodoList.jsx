@@ -8,6 +8,7 @@ import { CheckSquare, Square } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { isPast, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function MyTodoList({ className }) {
   const { user } = useAuth();
@@ -25,15 +26,22 @@ export default function MyTodoList({ className }) {
         status: completed ? 'completed' : 'todo',
         completed_at: completed ? new Date().toISOString() : null,
       }),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries(['tasks']);
       queryClient.invalidateQueries(['activities']);
+      if (variables.completed) toast.success('Tâche terminée');
     },
   });
 
   const pendingTasks = tasks
     .filter((t) => ['todo', 'in_progress', 'pending'].includes(t.status))
     .slice(0, 5);
+
+  const completedTasks = tasks
+    .filter((t) => t.status === 'completed')
+    .slice(0, 3);
+
+  const displayTasks = [...pendingTasks, ...completedTasks];
 
   if (isLoading) {
     return (
@@ -54,7 +62,7 @@ export default function MyTodoList({ className }) {
         <h2 className="font-semibold text-[#1a1a1a]">Ma to-do</h2>
       </div>
       <div className="p-3">
-        {pendingTasks.length === 0 ? (
+        {displayTasks.length === 0 ? (
           <div className="py-6 text-center">
             <CheckSquare className="w-8 h-8 text-[#CCCCCC] mx-auto mb-2" />
             <p className="text-sm text-[#6b6b6b]">Rien à faire</p>
@@ -67,29 +75,43 @@ export default function MyTodoList({ className }) {
           </div>
         ) : (
           <div className="space-y-1">
-            {pendingTasks.map((task) => {
+            {displayTasks.map((task) => {
+              const isCompleted = task.status === 'completed';
               const isOverdue = task.due_date && isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date));
-              const isUrgent = isOverdue || task.priority === 'urgent';
+              const isUrgent = !isCompleted && (isOverdue || task.priority === 'urgent');
 
               return (
                 <div
                   key={task.id}
                   className={cn(
                     'flex items-center gap-3 p-2 rounded-lg hover:bg-[#FAFAFA] transition-colors',
-                    task.status === 'completed' && 'opacity-60'
+                    isCompleted && 'opacity-70'
                   )}
                 >
                   <button
+                    type="button"
                     onClick={() =>
-                      toggleMutation.mutate({ id: task.id, completed: task.status !== 'completed' })
+                      toggleMutation.mutate({ id: task.id, completed: !isCompleted })
                     }
-                    className="flex-shrink-0 text-secondary hover:opacity-80"
+                    disabled={toggleMutation.isPending}
+                    className="flex-shrink-0 text-secondary hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-secondary/30 rounded"
                   >
-                    <Square className="w-4 h-4" />
+                    {isCompleted ? (
+                      <CheckSquare className="w-4 h-4 text-secondary" />
+                    ) : (
+                      <Square className="w-4 h-4 border-2 border-current rounded-sm" />
+                    )}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#1a1a1a] truncate">{task.title}</p>
-                    {task.linked_to_id && task.linked_to_type === 'lead' && (
+                    <p
+                      className={cn(
+                        'text-sm truncate',
+                        isCompleted ? 'text-[#6b6b6b] line-through' : 'text-[#1a1a1a]'
+                      )}
+                    >
+                      {task.title}
+                    </p>
+                    {task.linked_to_id && task.linked_to_type === 'lead' && !isCompleted && (
                       <p className="text-[10px] text-[#6b6b6b] truncate">
                         — Fiche lead
                       </p>

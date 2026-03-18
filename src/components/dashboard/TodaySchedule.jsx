@@ -59,6 +59,18 @@ export default function TodaySchedule({ className }) {
     enabled: !!user?.email,
   });
 
+  const { data: leads = [] } = useQuery({
+    queryKey: ['leads', user?.email],
+    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date', 200),
+    enabled: !!user?.email,
+  });
+
+  const { data: listings = [] } = useQuery({
+    queryKey: ['listings', user?.email],
+    queryFn: () => api.entities.Listing.list('-created_date'),
+    enabled: !!user?.email,
+  });
+
   const validEvents = events.filter((e) => {
     if (!e.date || ['completed', 'cancelled'].includes(e.status)) return false;
     const d = new Date(e.date);
@@ -98,27 +110,28 @@ export default function TodaySchedule({ className }) {
     return [...last2Past, ...future];
   }, [activeView, todayEvents, upcomingEvents]);
 
+  // Événement dans les 2h : mise en avant fluo (uniquement vue Aujourd'hui)
   const isHighlighted = (dateStr) => {
     const now = getCurrentTimeMinutes();
     const aptTime = timeToMinutes(dateStr);
-    return aptTime >= now && aptTime <= now + 180;
+    return aptTime >= now && aptTime <= now + 120;
   };
 
   const getAppointmentStyle = (event) => {
+    if (activeView !== 'today') {
+      return 'neutral';
+    }
     const aptTime = timeToMinutes(event.date);
     const now = getCurrentTimeMinutes();
     const highlighted = isHighlighted(event.date);
 
     if (highlighted) {
-      return 'bg-primary/5 border-primary/50';
+      return 'highlighted';
     }
     if (aptTime < now) {
-      return 'opacity-60';
+      return 'past';
     }
-    if (aptTime > now + 180) {
-      return 'bg-muted/30 opacity-70';
-    }
-    return 'opacity-60';
+    return 'future';
   };
 
   const remainingTodayCount = useMemo(
@@ -137,10 +150,31 @@ export default function TodaySchedule({ className }) {
     return `${Math.floor(min / 60)}h${min % 60 ? min % 60 : ''}`;
   };
 
-  const formatDisplayDate = (date) => {
+  const formatDisplayDate = (date, forUpcoming = false) => {
     const d = new Date(date);
-    if (isToday(d)) return format(d, 'HH:mm');
-    return format(d, "dd MMM HH:mm", { locale: fr });
+    if (isToday(d) || !forUpcoming) return format(d, 'HH:mm');
+    return format(d, "dd MMM", { locale: fr });
+  };
+
+  const formatDisplayTime = (date) => {
+    return format(new Date(date), 'HH:mm', { locale: fr });
+  };
+
+  const getEventSubtitle = (event, config) => {
+    if (event.description?.trim()) return event.description;
+    if (event.type === 'visit' && event.linked_to_type === 'listing' && event.linked_to_id) {
+      const listing = listings.find((l) => l.id === event.linked_to_id);
+      if (listing) {
+        const type = listing.property_type ? `Appartement ${String(listing.property_type).toUpperCase()}` : 'Bien';
+        const loc = listing.city || listing.address ? ' - ' + (listing.city || listing.address) : '';
+        return `${type}${loc}`;
+      }
+    }
+    if ((event.type === 'visit' || event.type === 'call') && event.linked_to_type === 'lead' && event.linked_to_id) {
+      const lead = leads.find((l) => l.id === event.linked_to_id);
+      if (lead) return `avec ${lead.first_name} ${lead.last_name}`;
+    }
+    return config.label;
   };
 
   if (isLoading) {
@@ -185,11 +219,11 @@ export default function TodaySchedule({ className }) {
                 className={cn(
                   'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all',
                   isActive
-                    ? 'bg-primary/10 text-primary border border-primary/30'
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                    ? 'bg-muted/40 text-secondary border border-border'
+                    : 'bg-muted/30 text-muted-foreground hover:bg-muted/50'
                 )}
               >
-                <Icon className={cn('w-4 h-4', isActive && 'text-primary')} />
+                <Icon className={cn('w-4 h-4', isActive && 'text-secondary')} />
                 {isActive && (
                   <span className="animate-in fade-in slide-in-from-left-2 duration-200">
                     {view.label}
@@ -250,36 +284,46 @@ export default function TodaySchedule({ className }) {
                   key={event.id}
                   to={createPageUrl('Activity')}
                   className={cn(
-                    'group flex gap-3 p-3 rounded-lg border transition-colors',
+                    'group flex gap-3 p-3 rounded-lg border border-border transition-colors',
                     'hover:bg-secondary/10 hover:border-secondary/30',
-                    style === 'bg-primary/5 border-primary/50'
-                      ? 'border bg-primary/5'
-                      : style === 'bg-muted/30 opacity-70'
-                        ? 'border-border bg-muted/30'
-                        : 'border-border bg-card',
-                    (style === 'opacity-60') && 'opacity-60'
+                    style === 'highlighted' && 'bg-primary/15 border-primary/40',
+                    style === 'past' && 'opacity-60',
+                    (style === 'future' || style === 'neutral') && 'bg-card'
                   )}
                 >
-                  <div className="flex flex-col items-center min-w-[44px]">
-                    <span className="text-sm font-medium text-foreground">
-                      {formatDisplayDate(event.date)}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">{duration}</span>
+                  <div className="flex flex-col items-center min-w-[44px] text-center">
+                    {activeView === 'upcoming' ? (
+                      <>
+                        <span className="text-sm font-medium text-foreground">
+                          {format(new Date(event.date), 'dd MMM', { locale: fr })}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {formatDisplayTime(event.date)}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-sm font-medium text-foreground">
+                          {formatDisplayDate(event.date)}
+                        </span>
+                        {activeView === 'today' && duration && (
+                          <span className="text-[10px] text-muted-foreground">{duration}</span>
+                        )}
+                      </>
+                    )}
                   </div>
                   <div
                     className={cn(
                       'p-2 rounded-lg flex-shrink-0',
-                      style === 'bg-primary/5 border-primary/50'
-                        ? 'bg-primary/10'
-                        : 'bg-secondary/10 group-hover:bg-secondary/20'
+                      style === 'highlighted' ? 'bg-primary/20' : 'bg-secondary/10 group-hover:bg-secondary/20'
                     )}
                   >
-                    <Icon className="w-4 h-4 text-secondary" />
+                    <Icon className={cn('w-4 h-4', style === 'highlighted' ? 'text-primary' : 'text-secondary')} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm text-foreground truncate">{event.title}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {event.description || config.label}
+                      {getEventSubtitle(event, config)}
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-secondary flex-shrink-0" />
