@@ -203,18 +203,6 @@ export default function Layout({ children, currentPageName }) {
 
           {/* Bottom Section */}
           <div className="p-3 border-t border-border space-y-2">
-            <div className={cn('flex items-center gap-2', sidebarCollapsed && 'justify-center')}>
-              <Link
-                to={createPageUrl('Settings')}
-                className={cn(
-                  'p-2 hover:bg-muted rounded-lg transition-colors',
-                  sidebarCollapsed && 'flex-1 flex justify-center'
-                )}
-                title="Paramètres"
-              >
-                <Settings className="w-4 h-4 text-muted-foreground" />
-              </Link>
-            </div>
             <Link
               to={createPageUrl('SocialPage')}
               target="_blank"
@@ -233,33 +221,29 @@ export default function Layout({ children, currentPageName }) {
               )}
             </Link>
             {user && (
-              <div className={cn(
-                'px-3 py-3 bg-muted rounded-lg',
-                sidebarCollapsed && 'flex flex-col items-center'
-              )}>
-                <p className="text-sm font-medium truncate">{user.full_name || user.email}</p>
-                {!sidebarCollapsed && (
-                  <>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                    <button
-                      onClick={handleLogout}
-                      className="mt-2 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <LogOut className="w-3 h-3" />
-                      Déconnexion
-                    </button>
-                  </>
-                )}
-                {sidebarCollapsed && (
+              sidebarCollapsed ? (
+                <div className="flex justify-center">
                   <button
                     onClick={handleLogout}
-                    className="mt-2 p-1 hover:bg-background/50 rounded"
+                    className="p-2 hover:bg-muted rounded-lg transition-colors"
                     title="Déconnexion"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-4 h-4 text-muted-foreground" />
                   </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="px-3 py-3 bg-muted rounded-lg">
+                  <p className="text-sm font-medium truncate">{user.full_name || user.email}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  <button
+                    onClick={handleLogout}
+                    className="mt-2 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    Déconnexion
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>
