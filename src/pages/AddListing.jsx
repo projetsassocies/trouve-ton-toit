@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { AMENITIES } from '@/lib/amenity-criteria';
 
 const PROPERTY_TYPES = [
   { value: 'studio', label: 'Studio' },
@@ -25,17 +26,6 @@ const PROPERTY_TYPES = [
   { value: 't4', label: 'T4' },
   { value: 'maison', label: 'Maison' },
   { value: 'loft', label: 'Loft' },
-];
-
-const AMENITIES = [
-  { value: 'parking', label: 'Parking' },
-  { value: 'ascenseur', label: 'Ascenseur' },
-  { value: 'balcon', label: 'Balcon' },
-  { value: 'jardin', label: 'Jardin' },
-  { value: 'meuble', label: 'Meublé' },
-  { value: 'cave', label: 'Cave' },
-  { value: 'terrasse', label: 'Terrasse' },
-  { value: 'piscine', label: 'Piscine' },
 ];
 
 export default function AddListing() {
@@ -311,21 +301,25 @@ export default function AddListing() {
 
           <label className="text-sm text-[#999999] mb-3 block">Équipements & Commodités</label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {AMENITIES.map(amenity => (
-              <button
-                key={amenity.value}
-                type="button"
-                onClick={() => toggleAmenity(amenity.value)}
-                className={cn(
-                  "px-4 py-2.5 rounded-xl text-sm font-medium border transition-all",
-                  formData.amenities.includes(amenity.value)
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-white text-[#666666] border-[#E5E5E5] hover:border-[#CCCCCC]"
-                )}
-              >
-                {amenity.label}
-              </button>
-            ))}
+            {AMENITIES.map((amenity) => {
+              const Icon = amenity.icon;
+              return (
+                <button
+                  key={amenity.value}
+                  type="button"
+                  onClick={() => toggleAmenity(amenity.value)}
+                  className={cn(
+                    "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all",
+                    formData.amenities.includes(amenity.value)
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-white text-[#666666] border-[#E5E5E5] hover:border-[#CCCCCC]"
+                  )}
+                >
+                  <Icon className="w-4 h-4" strokeWidth={1.5} />
+                  {amenity.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 

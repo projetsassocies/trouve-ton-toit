@@ -18,8 +18,12 @@ import {
   Sparkles,
   Shield,
   Banknote,
-  Maximize
+  Maximize,
+  BarChart2,
+  FileText
 } from 'lucide-react';
+import { AMENITIES, FINANCING_STATUS_OPTIONS, getAmenityByValue } from '@/lib/amenity-criteria';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -388,12 +392,17 @@ export default function LeadDetail() {
                       <SelectValue placeholder="Non renseigné" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pret_accepte">✅ Prêt accepté</SelectItem>
-                      <SelectItem value="accord_principe">🟢 Accord de principe</SelectItem>
-                      <SelectItem value="dossier_en_cours">🔄 Dossier en cours</SelectItem>
-                      <SelectItem value="simulation_faite">📊 Simulation faite</SelectItem>
-                      <SelectItem value="pas_encore_vu">⏳ Pas encore vu</SelectItem>
-                      <SelectItem value="aucun">❌ Aucun</SelectItem>
+                      {FINANCING_STATUS_OPTIONS.map((opt) => {
+                        const Icon = opt.icon;
+                        return (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            <span className="flex items-center gap-2">
+                              <Icon className="w-4 h-4 text-[#666666]" strokeWidth={1.5} />
+                              {opt.label}
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -448,16 +457,34 @@ export default function LeadDetail() {
                 </div>
                 <div className="col-span-2">
                   <label className="text-sm text-[#999999] mb-1.5 block">Critères bloquants</label>
-                  <Input
-                    value={(editData.blocking_criteria || []).join('; ')}
-                    onChange={(e) => setEditData({
-                      ...editData, 
-                      blocking_criteria: e.target.value.split(';').map(s => s.trim()).filter(Boolean)
+                  <div className="flex flex-wrap gap-2">
+                    {AMENITIES.map((item) => {
+                      const Icon = item.icon;
+                      const selected = (editData.blocking_criteria || []).map((c) => c.toLowerCase().trim()).includes(item.value);
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => {
+                            const current = editData.blocking_criteria || [];
+                            const next = selected
+                              ? current.filter((c) => c.toLowerCase().trim() !== item.value)
+                              : [...current, item.value];
+                            setEditData({ ...editData, blocking_criteria: next });
+                          }}
+                          className={cn(
+                            "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all",
+                            selected
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-white text-[#666666] border-[#E5E5E5] hover:border-[#CCCCCC]"
+                          )}
+                        >
+                          <Icon className="w-4 h-4" strokeWidth={1.5} />
+                          {item.label}
+                        </button>
+                      );
                     })}
-                    className="rounded-xl"
-                    placeholder="Ex: ascenseur; parking; jardin"
-                  />
-                  <p className="text-xs text-[#999999] mt-1">Séparez les critères par des points-virgules (;)</p>
+                  </div>
                 </div>
                 </>
                 )}
@@ -625,13 +652,18 @@ export default function LeadDetail() {
                     </div>
                     <div>
                       <p className="text-xs text-[#999999]">Statut du financement</p>
-                      <p className="text-sm font-medium capitalize">
-                        {lead.financing_status === 'pret_accepte' && '✅ Prêt accepté'}
-                        {lead.financing_status === 'accord_principe' && '🟢 Accord de principe'}
-                        {lead.financing_status === 'dossier_en_cours' && '🔄 Dossier en cours'}
-                        {lead.financing_status === 'simulation_faite' && '📊 Simulation faite'}
-                        {lead.financing_status === 'pas_encore_vu' && '⏳ Pas encore vu'}
-                        {lead.financing_status === 'aucun' && '❌ Aucun'}
+                      <p className="text-sm font-medium flex items-center gap-2">
+                        {(() => {
+                          const opt = FINANCING_STATUS_OPTIONS.find((o) => o.value === lead.financing_status);
+                          if (!opt) return lead.financing_status;
+                          const Icon = opt.icon;
+                          return (
+                            <>
+                              <Icon className="w-4 h-4 text-[#666666]" strokeWidth={1.5} />
+                              {opt.label}
+                            </>
+                          );
+                        })()}
                       </p>
                       {lead.apport_percentage && (
                         <p className="text-xs text-[#999999] mt-1">
@@ -649,11 +681,17 @@ export default function LeadDetail() {
                     <div className="flex-1">
                       <p className="text-xs text-[#999999]">Critères bloquants</p>
                       <div className="flex flex-wrap gap-1.5 mt-1">
-                        {lead.blocking_criteria.map((criterion, i) => (
-                          <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                            {criterion}
-                          </span>
-                        ))}
+                        {lead.blocking_criteria.map((criterion, i) => {
+                          const item = getAmenityByValue(criterion);
+                          const Icon = item?.icon;
+                          const label = item?.label ?? criterion;
+                          return (
+                            <span key={i} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                              {Icon && <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />}
+                              {label}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -739,7 +777,10 @@ export default function LeadDetail() {
                   {/* Détail du score */}
                   {(lead.score_initial !== undefined || lead.score_engagement !== undefined || lead.score_progression !== undefined) && (
                     <div className="pt-4 border-t border-[#E5E5E5] space-y-2">
-                      <p className="text-xs font-medium text-[#666666] mb-3">📊 Détail du score</p>
+                      <p className="text-xs font-medium text-[#666666] mb-3 flex items-center gap-2">
+                        <BarChart2 className="w-4 h-4" strokeWidth={1.5} />
+                        Détail du score
+                      </p>
                       
                       <div className="space-y-2">
                         {lead.score_initial !== undefined && (
@@ -768,8 +809,9 @@ export default function LeadDetail() {
                   {lead.scoring_logs && lead.scoring_logs.length > 0 && (
                     <div className="pt-4 border-t border-[#E5E5E5]">
                       <details className="cursor-pointer">
-                        <summary className="text-xs font-medium text-[#666666] hover:text-black">
-                          📝 Historique des changements
+                        <summary className="text-xs font-medium text-[#666666] hover:text-black flex items-center gap-2">
+                          <FileText className="w-4 h-4" strokeWidth={1.5} />
+                          Historique des changements
                         </summary>
                         <div className="mt-3 space-y-3 max-h-64 overflow-y-auto">
                           {lead.scoring_logs.slice(0, 5).map((log, idx) => (

@@ -41,6 +41,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { getAmenityByValue } from '@/lib/amenity-criteria';
 import MatchedLeads from '@/components/matching/MatchedLeads';
 import AmenitiesMap from '@/components/listing/AmenitiesMap';
 import AmenitiesList from '@/components/listing/AmenitiesList';
@@ -428,11 +429,17 @@ export default function ListingDetail() {
                 <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
                   <h2 className="font-semibold mb-4">Équipements</h2>
                   <div className="flex flex-wrap gap-2">
-                    {listing.amenities.map((amenity) => (
-                      <Badge key={amenity} variant="secondary" className="capitalize">
-                        {amenity}
-                      </Badge>
-                    ))}
+                    {listing.amenities.map((amenity) => {
+                      const item = getAmenityByValue(amenity);
+                      const Icon = item?.icon;
+                      const label = item?.label ?? amenity;
+                      return (
+                        <Badge key={amenity} variant="secondary" className="capitalize inline-flex items-center gap-1.5">
+                          {Icon && <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />}
+                          {label}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 </div>
               )}
