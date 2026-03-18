@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   User, 
   Mail, 
@@ -15,8 +15,11 @@ import {
   HelpCircle,
   ChevronRight,
   LogOut,
-  Plug
+  Plug,
+  Database,
+  Sparkles
 } from 'lucide-react';
+import { seedDemoData } from '@/lib/seedDemoData';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
@@ -29,6 +32,7 @@ import { cn } from '@/lib/utils';
 
 export default function Settings() {
   const { user, logout } = useAuth();
+  const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState('profile');
   
   const [formData, setFormData] = useState({
@@ -43,6 +47,29 @@ export default function Settings() {
     email_weekly_report: true,
     push_notifications: false,
   });
+
+  const [seedLoading, setSeedLoading] = useState(false);
+  const [seedResult, setSeedResult] = useState(null);
+
+  const handleSeedDemo = async () => {
+    if (!user?.email) return;
+    setSeedLoading(true);
+    setSeedResult(null);
+    try {
+      const res = await seedDemoData(user.email);
+      setSeedResult(res);
+      queryClient.invalidateQueries(['tasks']);
+      queryClient.invalidateQueries(['events']);
+      queryClient.invalidateQueries(['leads']);
+      queryClient.invalidateQueries(['activities']);
+      toast.success(`${res.tasks} tâches et ${res.events} RDV créés`);
+    } catch (err) {
+      toast.error(err?.message || 'Erreur lors du seed');
+      setSeedResult({ error: err?.message });
+    } finally {
+      setSeedLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -86,6 +113,7 @@ export default function Settings() {
     { id: 'appearance', label: 'Apparence', icon: Palette },
     { id: 'billing', label: 'Facturation', icon: CreditCard },
     { id: 'help', label: 'Aide', icon: HelpCircle },
+    { id: 'donnees-demo', label: 'Données démo', icon: Database },
   ];
 
   if (!user) {
@@ -330,6 +358,39 @@ export default function Settings() {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {activeSection === 'donnees-demo' && (
+            <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6">
+              <h2 className="font-semibold mb-6 flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                Données démo
+              </h2>
+              <p className="text-sm text-[#666666] mb-4">
+                Remplissez votre CRM avec des actions prioritaires, tâches et rendez-vous fictifs pour tester les écrans Dashboard, Activité et Agenda.
+              </p>
+              <Button
+                onClick={handleSeedDemo}
+                disabled={seedLoading}
+                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-xl"
+              >
+                {seedLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4 mr-2" />
+                )}
+                Remplir le CRM
+              </Button>
+              {seedResult && !seedResult.error && (
+                <p className="text-sm text-[#22c55e] mt-4">
+                  {seedResult.tasks} tâches et {seedResult.events} RDV créés
+                  {seedResult.leadsUsed > 0 && ` (liés à ${seedResult.leadsUsed} leads)`}
+                </p>
+              )}
+              {seedResult?.error && (
+                <p className="text-sm text-rose-600 mt-4">{seedResult.error}</p>
+              )}
             </div>
           )}
         </div>
