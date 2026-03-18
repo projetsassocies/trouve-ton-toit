@@ -292,13 +292,13 @@ export default function ListingDetail() {
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-none border border-[#E5E5E5] transition-colors"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-none border border-[#E5E5E5] transition-colors"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -347,15 +347,15 @@ export default function ListingDetail() {
               "grid w-full h-12 bg-[#F5F5F5] rounded-xl p-1",
               listing.transaction_type === 'vente' ? "grid-cols-3" : "grid-cols-2"
             )}>
-              <TabsTrigger value="details" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger value="details" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-none">
                 Détails du bien
               </TabsTrigger>
-              <TabsTrigger value="commodites" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger value="commodites" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-none">
                 <MapPinned className="w-4 h-4 mr-2" />
                 Commodités
               </TabsTrigger>
               {listing.transaction_type === 'vente' && (
-                <TabsTrigger value="estimation" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <TabsTrigger value="estimation" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-none">
                   <TrendingUp className="w-4 h-4 mr-2" />
                   Estimation
                 </TabsTrigger>
