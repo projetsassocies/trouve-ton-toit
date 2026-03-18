@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { api } from '@/api/apiClient';
@@ -22,9 +22,32 @@ import EditableLeadTypeBadge from '@/components/leads/EditableLeadTypeBadge';
 import EditableCategorieBadge from '@/components/leads/EditableCategorieBadge';
 import EditableStatusBadge from '@/components/leads/EditableStatusBadge';
 import { toast } from 'sonner';
+import {
+  LEAD_TYPE_VIEWS,
+  LEADS_VIEW_STORAGE_KEY,
+  CATEGORY_FILTER_OPTIONS,
+} from '@/lib/scoring-constants';
 
 export default function Leads() {
   const [search, setSearch] = useState('');
+  const [leadTypeView, setLeadTypeView] = useState(() => {
+    try {
+      const stored = localStorage.getItem(LEADS_VIEW_STORAGE_KEY);
+      if (stored && Object.values(LEAD_TYPE_VIEWS).includes(stored)) return stored;
+    } catch (_) {}
+    return LEAD_TYPE_VIEWS.TOUS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LEADS_VIEW_STORAGE_KEY, leadTypeView);
+    } catch (_) {}
+  }, [leadTypeView]);
+
+  useEffect(() => {
+    setCategoryFilter('all');
+  }, [leadTypeView]);
+
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'kanban'
@@ -97,7 +120,14 @@ export default function Leads() {
     },
   });
 
-  const filteredLeads = leads.filter(lead => {
+  // Filtre par type de lead (vue raccourci)
+  const leadsByView = leads.filter((lead) => {
+    if (leadTypeView === LEAD_TYPE_VIEWS.LOCATAIRE) return lead.lead_type === 'locataire';
+    if (leadTypeView === LEAD_TYPE_VIEWS.ACHAT_VENTE) return ['acheteur', 'vendeur'].includes(lead.lead_type);
+    return true; // tous
+  });
+
+  const filteredLeads = leadsByView.filter(lead => {
     const matchesSearch = search === '' || 
       `${lead.first_name} ${lead.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
       lead.email?.toLowerCase().includes(search.toLowerCase()) ||
@@ -111,6 +141,12 @@ export default function Leads() {
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
+
+  const countByView = {
+    [LEAD_TYPE_VIEWS.LOCATAIRE]: leads.filter((l) => l.lead_type === 'locataire').length,
+    [LEAD_TYPE_VIEWS.ACHAT_VENTE]: leads.filter((l) => ['acheteur', 'vendeur'].includes(l.lead_type)).length,
+    [LEAD_TYPE_VIEWS.TOUS]: leads.length,
+  };
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', { 
@@ -239,6 +275,48 @@ export default function Leads() {
             className="pl-10 h-10 rounded-xl border-[#E5E5E5] focus:border-black focus:ring-0 w-full"
           />
         </div>
+        {/* Barre vues raccourcis */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setLeadTypeView(LEAD_TYPE_VIEWS.LOCATAIRE)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              leadTypeView === LEAD_TYPE_VIEWS.LOCATAIRE
+                ? 'bg-black text-white'
+                : 'bg-white border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
+            }`}
+          >
+            <span>🔑</span>
+            <span>Locataires</span>
+            <span className="text-xs opacity-80">{countByView[LEAD_TYPE_VIEWS.LOCATAIRE]}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setLeadTypeView(LEAD_TYPE_VIEWS.ACHAT_VENTE)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              leadTypeView === LEAD_TYPE_VIEWS.ACHAT_VENTE
+                ? 'bg-black text-white'
+                : 'bg-white border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
+            }`}
+          >
+            <span>💰</span>
+            <span>Achat / Vente</span>
+            <span className="text-xs opacity-80">{countByView[LEAD_TYPE_VIEWS.ACHAT_VENTE]}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setLeadTypeView(LEAD_TYPE_VIEWS.TOUS)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              leadTypeView === LEAD_TYPE_VIEWS.TOUS
+                ? 'bg-black text-white'
+                : 'bg-white border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
+            }`}
+          >
+            <span>📋</span>
+            <span>Tous</span>
+            <span className="text-xs opacity-80">{countByView[LEAD_TYPE_VIEWS.TOUS]}</span>
+          </button>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <Tabs value={viewMode} onValueChange={setViewMode}>
             <TabsList className="bg-white border border-[#E5E5E5] h-10">
@@ -273,10 +351,11 @@ export default function Leads() {
                   <SelectValue placeholder="Catégorie" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toutes les catégories</SelectItem>
-                  <SelectItem value="CHAUD">Chaud / Urgent</SelectItem>
-                  <SelectItem value="TIEDE">Tiède / Actif</SelectItem>
-                  <SelectItem value="FROID">Froid / En veille</SelectItem>
+                  {CATEGORY_FILTER_OPTIONS[leadTypeView].map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </>
@@ -314,7 +393,7 @@ export default function Leads() {
           </div>
         </div>
       ) : viewMode === 'kanban' ? (
-        <LeadsKanbanView leads={filteredLeads} onUpdateLead={handleUpdateLead} />
+        <LeadsKanbanView leads={filteredLeads} leadTypeView={leadTypeView} onUpdateLead={handleUpdateLead} />
       ) : (
         /* List View */
         <div className="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">

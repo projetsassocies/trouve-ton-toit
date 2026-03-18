@@ -4,25 +4,25 @@ import { createPageUrl } from '@/utils';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Mail, Phone, Home, MapPin } from 'lucide-react';
 import StatusBadge from '@/components/ui/StatusBadge';
+import { LEAD_TYPE_VIEWS, KANBAN_COLUMNS } from '@/lib/scoring-constants';
 
-// Colonnes hybrides : Vente (FROID/TIEDE/CHAUD) + Location (EN_VEILLE/ACTIF/URGENT)
-const CATEGORIES = [
-  { id: 'CHAUD', label: 'Chaud 🔥', equivLocataire: 'URGENT', bgColor: 'bg-[#FEF2F2]', borderColor: 'border-[#FEE2E2]' },
-  { id: 'TIEDE', label: 'Tiède ☀️', equivLocataire: 'ACTIF', bgColor: 'bg-[#FFFBEB]', borderColor: 'border-[#FEF3C7]' },
-  { id: 'FROID', label: 'Froid ❄️', equivLocataire: 'EN_VEILLE', bgColor: 'bg-[#EFF6FF]', borderColor: 'border-[#DBEAFE]' },
-];
-
-export default function LeadsKanbanView({ leads, onUpdateLead }) {
+export default function LeadsKanbanView({ leads, leadTypeView = LEAD_TYPE_VIEWS.TOUS, onUpdateLead }) {
+  const columns = KANBAN_COLUMNS[leadTypeView] || KANBAN_COLUMNS[LEAD_TYPE_VIEWS.TOUS];
   const handleDragEnd = (result) => {
     if (!result.destination) return;
     const leadId = result.draggableId;
     const colId = result.destination.droppableId;
     const lead = leads.find((l) => l.id === leadId);
     if (!lead) return;
-    const catConfig = CATEGORIES.find((c) => c.id === colId);
-    const newCategorie = lead.lead_type === 'locataire' && catConfig?.equivLocataire
-      ? catConfig.equivLocataire
-      : colId;
+    const colConfig = columns.find((c) => c.id === colId);
+    let newCategorie = colId;
+    if (leadTypeView === LEAD_TYPE_VIEWS.TOUS && lead.lead_type === 'locataire' && colConfig?.equivLocataire) {
+      newCategorie = colConfig.equivLocataire;
+    } else if (leadTypeView === LEAD_TYPE_VIEWS.LOCATAIRE) {
+      newCategorie = colId; // EN_VEILLE, ACTIF, URGENT
+    } else {
+      newCategorie = colId; // FROID, TIEDE, CHAUD
+    }
     if (lead.categorie !== newCategorie) {
       onUpdateLead(leadId, { categorie: newCategorie });
     }
@@ -59,7 +59,7 @@ export default function LeadsKanbanView({ leads, onUpdateLead }) {
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {CATEGORIES.map((category) => {
+          {columns.map((category) => {
             const categoryLeads = getLeadsByCategory(category);
             
             return (
@@ -67,11 +67,7 @@ export default function LeadsKanbanView({ leads, onUpdateLead }) {
                 {/* Column Header - Notion Style */}
                 <div className="bg-white border border-[#E5E5E5] rounded-t-xl px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
-                      category.id === 'CHAUD' ? 'bg-[#FEE2E2] text-[#DC2626]' :
-                      category.id === 'TIEDE' ? 'bg-[#FEF3C7] text-[#D97706]' :
-                      'bg-[#DBEAFE] text-[#2563EB]'
-                    }`}>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${category.headerClass || ''}`}>
                       {category.label}
                     </span>
                     <span className="text-sm font-medium text-[#999999]">
