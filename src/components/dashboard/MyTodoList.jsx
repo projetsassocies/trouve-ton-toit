@@ -4,8 +4,9 @@ import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { CheckSquare, Square } from 'lucide-react';
+import { CheckSquare } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import { isPast, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -23,13 +24,17 @@ export default function MyTodoList({ className }) {
   const toggleMutation = useMutation({
     mutationFn: ({ id, completed }) =>
       api.entities.Task.update(id, {
-        status: completed ? 'completed' : 'todo',
+        status: completed ? 'completed' : 'pending',
         completed_at: completed ? new Date().toISOString() : null,
       }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries(['tasks']);
       queryClient.invalidateQueries(['activities']);
       if (variables.completed) toast.success('Tâche terminée');
+    },
+    onError: (err) => {
+      console.error('[MyTodoList] toggle error:', err);
+      toast.error('Impossible de mettre à jour la tâche');
     },
   });
 
@@ -88,20 +93,14 @@ export default function MyTodoList({ className }) {
                     isCompleted && 'opacity-70'
                   )}
                 >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      toggleMutation.mutate({ id: task.id, completed: !isCompleted })
+                  <Checkbox
+                    checked={isCompleted}
+                    onCheckedChange={(checked) =>
+                      toggleMutation.mutate({ id: task.id, completed: !!checked })
                     }
                     disabled={toggleMutation.isPending}
-                    className="flex-shrink-0 text-secondary hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-secondary/30 rounded"
-                  >
-                    {isCompleted ? (
-                      <CheckSquare className="w-4 h-4 text-secondary" />
-                    ) : (
-                      <Square className="w-4 h-4 border-2 border-current rounded-sm" />
-                    )}
-                  </button>
+                    className="flex-shrink-0 h-4 w-4 rounded border-border data-[state=checked]:bg-muted-foreground/80 data-[state=checked]:border-muted-foreground/80"
+                  />
                   <div className="flex-1 min-w-0">
                     <p
                       className={cn(

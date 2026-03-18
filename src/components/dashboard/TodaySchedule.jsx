@@ -179,7 +179,7 @@ export default function TodaySchedule({ className }) {
 
   if (isLoading) {
     return (
-      <Card className={className}>
+      <Card className={cn('shadow-none', className)}>
         <CardHeader>
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-secondary" />
@@ -200,7 +200,7 @@ export default function TodaySchedule({ className }) {
   const hasAnyEvents = todayEvents.length > 0 || upcomingEvents.length > 0;
 
   return (
-    <Card className={className}>
+    <Card className={cn('shadow-none', className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-secondary" />
