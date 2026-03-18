@@ -355,7 +355,7 @@ export default function ConversationalChat({
 
                 {/* Zone de saisie : encadrée comme un champ de texte professionnel */}
                 <div className="flex-shrink-0 pt-4 space-y-3">
-                  <div className="relative rounded-lg border border-border bg-muted/30 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-colors">
+                  <div className="relative rounded-lg border border-border bg-muted/10 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-colors">
                     <textarea
                       data-chat-textarea
                       value={inputValue}
@@ -364,13 +364,13 @@ export default function ConversationalChat({
                       onBlur={() => setInputFocused(false)}
                       onKeyDown={handleKeyDown}
                       placeholder={inputFocused ? "Écrivez votre message..." : ""}
-                      rows={2}
+                      rows={1}
                       disabled={isProcessing}
-                      className="w-full min-h-[56px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-base py-3 px-4"
+                      className="w-full min-h-[40px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-base py-2 px-3"
                     />
                     {!inputValue && !inputFocused && messages.length > 0 && (
                       <div
-                        className="absolute inset-0 flex items-center py-3 px-4 text-base text-muted-foreground pointer-events-none"
+                        className="absolute inset-0 flex items-center py-2 px-3 text-base text-muted-foreground pointer-events-none"
                         aria-hidden
                       >
                         <span>Écrivez votre message...</span>
