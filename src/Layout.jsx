@@ -266,9 +266,16 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Main Content */}
-      <main className={cn('min-h-screen pt-16 lg:pt-0 overflow-x-hidden', mainMargin)}>
-        {/* Header - sticky pour rester visible au scroll (top-16 sur mobile pour ne pas masquer le header fixe) */}
-        <div className="sticky top-16 lg:top-0 z-40 border-b border-border bg-card">
+      <main className={cn('min-h-screen pt-16 lg:pt-0', mainMargin)}>
+        {/* Header - fixed pour rester visible au scroll (sticky cassé par overflow des ancêtres) */}
+        <header
+          className={cn(
+            'fixed z-40 right-0 border-b border-border bg-card',
+            'top-16 lg:top-0',
+            sidebarCollapsed ? 'lg:left-16' : 'lg:left-60',
+            'left-0'
+          )}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-8 py-4">
             <div>
               <h1 className="text-2xl font-semibold">{greetingMessage.greeting}</h1>
@@ -280,10 +287,10 @@ export default function Layout({ children, currentPageName }) {
               <NotificationPopover user={user} />
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Page Content */}
-        <div className="p-4 lg:p-8 max-w-[100vw]">
+        {/* Page Content - padding-top pour compenser le header fixed */}
+        <div className="p-4 lg:p-8 max-w-[100vw] pt-28 overflow-x-hidden">
           {children}
         </div>
       </main>
