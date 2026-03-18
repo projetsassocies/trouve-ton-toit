@@ -20,7 +20,7 @@ const TABS = [
 
 const QUICK_ACTIONS = [
   { label: 'Analyser mes leads', prompt: "Combien de leads chauds j'ai ?", icon: Monitor },
-  { label: 'Créer une annonce', link: 'AddListing', icon: FileText },
+  { label: 'Estimer un bien', prompt: 'Je veux estimer un bien. Montre-moi la liste de mes biens à vendre et propose-moi d\'en choisir un pour l\'estimation.', icon: FileText },
   { label: 'Rapport d\'activité', prompt: 'Rapport d\'activité de la semaine', icon: BarChart3 },
   { label: 'Analyse de marché', prompt: 'Résume mon pipeline', icon: Globe },
   { label: 'Plus', prompt: 'Que peux-tu faire pour moi ?', icon: MoreHorizontal },

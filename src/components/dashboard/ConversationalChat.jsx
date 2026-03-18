@@ -353,33 +353,35 @@ export default function ConversationalChat({
                   )}
                 </div>
 
-                {/* Textarea : zone de saisie - hauteur réduite */}
-                <div className="relative min-h-[56px] flex-shrink-0 pt-3 border-t border-border/50">
-                  <textarea
-                    data-chat-textarea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onFocus={() => setInputFocused(true)}
-                    onBlur={() => setInputFocused(false)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={inputFocused ? "Écrivez votre message..." : ""}
-                    rows={2}
-                    disabled={isProcessing}
-                    className="w-full min-h-[56px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-base py-2"
-                  />
-                  {!inputValue && !inputFocused && messages.length > 0 && (
-                    <div
-                      className="absolute inset-0 flex items-center pt-3 pl-0 text-base text-muted-foreground pointer-events-none"
-                      aria-hidden
-                    >
-                      <span>Écrivez votre message...</span>
-                    </div>
-                  )}
-                </div>
+                {/* Zone de saisie : encadrée comme un champ de texte professionnel */}
+                <div className="flex-shrink-0 pt-4 space-y-3">
+                  <div className="relative rounded-lg border border-border bg-muted/30 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-colors">
+                    <textarea
+                      data-chat-textarea
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onFocus={() => setInputFocused(true)}
+                      onBlur={() => setInputFocused(false)}
+                      onKeyDown={handleKeyDown}
+                      placeholder={inputFocused ? "Écrivez votre message..." : ""}
+                      rows={2}
+                      disabled={isProcessing}
+                      className="w-full min-h-[56px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-base py-3 px-4"
+                    />
+                    {!inputValue && !inputFocused && messages.length > 0 && (
+                      <div
+                        className="absolute inset-0 flex items-center py-3 px-4 text-base text-muted-foreground pointer-events-none"
+                        aria-hidden
+                      >
+                        <span>Écrivez votre message...</span>
+                      </div>
+                    )}
+                  </div>
 
-                {/* Barre du bas */}
-                <div className="flex items-center justify-between pt-4 border-t flex-shrink-0">
-                  {renderBarContent({ sendButton, historyButton })}
+                  {/* Barre du bas */}
+                  <div className="flex items-center justify-between flex-shrink-0">
+                    {renderBarContent({ sendButton, historyButton })}
+                  </div>
                 </div>
               </div>
             </Card>

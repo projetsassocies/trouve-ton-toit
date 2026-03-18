@@ -24,6 +24,7 @@ const TOOL_ICONS = {
   create_task: ClipboardList,
   add_note: StickyNote,
   add_activity: Activity,
+  estimate_listing: BarChart3,
 };
 
 const TOOL_LABELS = {
@@ -39,9 +40,10 @@ const TOOL_LABELS = {
   create_task: 'Tâche créée',
   add_note: 'Note ajoutée',
   add_activity: 'Activité enregistrée',
+  estimate_listing: 'Estimation générée',
 };
 
-const WRITE_TOOLS = new Set(['create_event', 'update_lead', 'create_task', 'add_note', 'add_activity']);
+const WRITE_TOOLS = new Set(['create_event', 'update_lead', 'create_task', 'add_note', 'add_activity', 'estimate_listing']);
 
 function buildSystemPrompt(context) {
   const now = new Date();
@@ -64,10 +66,12 @@ REGLES :
 - Sois direct, concret et actionnable
 - Ton conversationnel et dynamique, tutoie l'utilisateur
 - N'utilise pas de gras (**) ni de markdown
+- Sois PROACTIF : quand l'utilisateur veut une action, execute d'abord les recherches necessaires, presente les options, puis propose la suite
 - Quand l'utilisateur demande une action (creer RDV, modifier lead, etc.), execute-la directement avec les outils
 - Quand l'utilisateur pose une question sur ses donnees, utilise les outils pour chercher la reponse
 - Si tu manques d'info pour executer une action, demande les details manquants
 - Apres une action, confirme ce qui a ete fait de facon concise
+- ESTIMATION D'UN BIEN : si l'utilisateur veut estimer un bien, appelle d'abord search_listings avec transaction_type='vente' et limit=10, presente la liste numerotee (1. Titre - ville, X €, Y m²...), puis demande " lequel veux-tu estimer ?" (par numero ou nom). Quand il choisit, appelle estimate_listing avec le listing_id correspondant.
 - Pour les dates relatives ("mardi", "demain", "la semaine prochaine"), calcule la date exacte a partir de la date actuelle
 - IMPORTANT pour les dates ISO 8601 : utilise TOUJOURS le fuseau horaire de l'utilisateur (${tzString}). Exemple : si l'utilisateur dit "demain 10h", genere "2026-02-26T10:00:00${tzString}" et NON "2026-02-26T10:00:00Z"`;
 
@@ -213,6 +217,23 @@ function ToolResultSummary({ name, data }) {
     case 'add_note':
     case 'add_activity':
       return data.message ? <p className="text-[11px] text-green-700 mt-1.5">{data.message}</p> : null;
+
+    case 'estimate_listing':
+      if (data?.error) {
+        return <p className="text-red-600 text-[11px] mt-1.5">{data.error}</p>;
+      }
+      if (data?.success) {
+        return (
+          <div className="mt-1.5 space-y-1">
+            <p className="text-[11px] text-green-700 font-medium">{data.listing_title}</p>
+            <p className="text-[11px] text-[#374151]">
+              {data.estimation_min?.toLocaleString('fr-FR')}€ - {data.estimation_max?.toLocaleString('fr-FR')}€
+              {data.prix_m2 && <span className="text-[#9CA3AF]"> · {data.prix_m2.toLocaleString('fr-FR')} €/m²</span>}
+            </p>
+          </div>
+        );
+      }
+      return null;
 
     default:
       return <pre className="text-[10px] text-[#6B7280] mt-1 overflow-x-auto">{JSON.stringify(data, null, 2)}</pre>;

@@ -108,6 +108,20 @@ export const CRM_TOOLS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'estimate_listing',
+      description: "Générer une estimation de valeur pour un bien immobilier (vente). Utilise APRÈS avoir listé les biens avec search_listings et que l'utilisateur a choisi lequel estimer. Requiert que le bien ait une surface renseignée.",
+      parameters: {
+        type: 'object',
+        properties: {
+          listing_id: { type: 'string', description: 'UUID du bien à estimer' },
+        },
+        required: ['listing_id'],
+      },
+    },
+  },
 
   // ═══ WRITE TOOLS ═══
   {
@@ -355,6 +369,59 @@ const toolHandlers = {
       lead_summary: `${lead.first_name} ${lead.last_name} — ${lead.city}, ${lead.property_type}, budget ${lead.budget_max}€`,
       matching_listings: data || [],
       count: data?.length || 0,
+    }
+  },
+
+  async estimate_listing(args) {
+    const listing = await api.entities.Listing.get(args.listing_id)
+    if (!listing?.surface || Number(listing.surface) <= 0) {
+      return {
+        success: false,
+        error: `Le bien "${listing?.title || 'sans titre'}" n'a pas de surface renseignée. Ajoute la surface dans la fiche bien pour pouvoir l'estimer.`,
+      }
+    }
+    if (listing.transaction_type !== 'vente') {
+      return {
+        success: false,
+        error: "L'estimation n'est disponible que pour les biens à vendre.",
+      }
+    }
+
+    const address = [listing.address, listing.postal_code, listing.city].filter(Boolean).join(', ')
+    const response = await api.functions.invoke('getPropertyEstimation', {
+      address: address || undefined,
+      latitude: listing.latitude,
+      longitude: listing.longitude,
+      surface: listing.surface,
+      property_type: listing.property_type,
+      postal_code: listing.postal_code,
+      amenities: listing.amenities || [],
+    })
+
+    if (response?.error) {
+      return { success: false, error: response.error }
+    }
+
+    await api.entities.Listing.update(args.listing_id, {
+      estimation_min: response.estimation_min,
+      estimation_max: response.estimation_max,
+      estimation_prix_m2: response.prix_m2,
+      estimation_date: new Date().toISOString(),
+      estimation_source: response.source,
+      ventes_comparables: response.ventes_comparables || null,
+      estimation_explication: response.estimation_explication || null,
+    })
+
+    const formatPrice = (p) => p != null ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(p) : '-'
+    return {
+      success: true,
+      listing_title: listing.title,
+      estimation_min: response.estimation_min,
+      estimation_max: response.estimation_max,
+      estimation_median: Math.round((response.estimation_min + response.estimation_max) / 2),
+      prix_m2: response.prix_m2,
+      source: response.source,
+      message: `Estimation pour "${listing.title}" : ${formatPrice(response.estimation_min)} - ${formatPrice(response.estimation_max)} (médiane ${formatPrice(Math.round((response.estimation_min + response.estimation_max) / 2))}). Prix réf. ${response.prix_m2?.toLocaleString('fr-FR')} €/m².`,
     }
   },
 
