@@ -289,8 +289,8 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </header>
 
-        {/* Page Content - pt-[104px] = 72px header + 32px espacement */}
-        <div className="p-4 lg:p-8 max-w-[100vw] pt-[104px] overflow-x-hidden">
+        {/* Page Content - pt responsive: mobile (header 64+72px) + gap 40px = 176px, desktop (72px) + gap 40px = 112px */}
+        <div className="overflow-x-hidden p-4 pb-8 lg:p-8 lg:pb-8 max-w-[100vw] pt-[11rem] lg:pt-[7rem]">
           {children}
         </div>
       </main>
