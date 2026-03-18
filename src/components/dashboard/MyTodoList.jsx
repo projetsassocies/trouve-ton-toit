@@ -25,7 +25,6 @@ export default function MyTodoList({ className }) {
     mutationFn: ({ id, completed }) =>
       api.entities.Task.update(id, {
         status: completed ? 'completed' : 'pending',
-        completed_at: completed ? new Date().toISOString() : null,
       }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries(['tasks']);
