@@ -110,29 +110,7 @@ export default function TodaySchedule({ className }) {
     return [...last2Past, ...future];
   }, [activeView, todayEvents, upcomingEvents]);
 
-  // Prochain RDV (le plus imminent) : mise en avant fluo (uniquement vue Aujourd'hui)
-  const nextEventId = useMemo(() => {
-    const now = getCurrentTimeMinutes();
-    const next = todayEvents.find((e) => timeToMinutes(e.date) >= now);
-    return next?.id ?? null;
-  }, [todayEvents]);
-
-  const getAppointmentStyle = (event) => {
-    if (activeView !== 'today') {
-      return 'neutral';
-    }
-    const aptTime = timeToMinutes(event.date);
-    const now = getCurrentTimeMinutes();
-
-    if (aptTime < now) {
-      return 'past';
-    }
-    // Le prochain RDV à venir = fluo (peu importe s'il est dans 30 min ou 2h)
-    if (event.id === nextEventId) {
-      return 'highlighted';
-    }
-    return 'future';
-  };
+  const isTodayView = activeView === 'today';
 
   const remainingTodayCount = useMemo(
     () => todayEvents.filter((e) => timeToMinutes(e.date) >= getCurrentTimeMinutes()).length,
@@ -277,7 +255,7 @@ export default function TodaySchedule({ className }) {
                 ? new Date(event.end_date)
                 : new Date(eventDate.getTime() + 30 * 60000);
               const duration = formatDuration(event.date, endDate);
-              const style = getAppointmentStyle(event);
+              const isHighlighted = isTodayView;
 
               return (
                 <Link
@@ -286,9 +264,8 @@ export default function TodaySchedule({ className }) {
                   className={cn(
                     'group flex gap-3 p-3 rounded-lg border border-border transition-colors',
                     'hover:bg-secondary/10 hover:border-secondary/30',
-                    style === 'highlighted' && 'bg-primary/15 border-primary/40',
-                    style === 'past' && 'opacity-60',
-                    (style === 'future' || style === 'neutral') && 'bg-card'
+                    isHighlighted && 'bg-primary/15 border-primary/40',
+                    !isHighlighted && 'bg-card'
                   )}
                 >
                   <div className="flex flex-col items-center min-w-[44px] text-center">
@@ -303,11 +280,11 @@ export default function TodaySchedule({ className }) {
                       </>
                     ) : (
                       <>
-                        <span className="text-sm font-medium text-foreground">
+                        <span className={cn('text-sm font-medium', isHighlighted && 'text-secondary')}>
                           {formatDisplayDate(event.date)}
                         </span>
                         {activeView === 'today' && duration && (
-                          <span className="text-[10px] text-muted-foreground">{duration}</span>
+                          <span className={cn('text-[10px]', isHighlighted ? 'text-secondary/80' : 'text-muted-foreground')}>{duration}</span>
                         )}
                       </>
                     )}
@@ -315,18 +292,18 @@ export default function TodaySchedule({ className }) {
                   <div
                     className={cn(
                       'p-2 rounded-lg flex-shrink-0',
-                      style === 'highlighted' ? 'bg-primary/20' : 'bg-secondary/10 group-hover:bg-secondary/20'
+                      isHighlighted ? 'bg-primary/20' : 'bg-secondary/10 group-hover:bg-secondary/20'
                     )}
                   >
-                    <Icon className={cn('w-4 h-4', style === 'highlighted' ? 'text-primary' : 'text-secondary')} />
+                    <Icon className="w-4 h-4 text-secondary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-foreground truncate">{event.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className={cn('font-medium text-sm truncate', isHighlighted && 'text-secondary')}>{event.title}</p>
+                    <p className={cn('text-xs truncate', isHighlighted ? 'text-secondary/80' : 'text-muted-foreground')}>
                       {getEventSubtitle(event, config)}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-secondary flex-shrink-0" />
+                  <ChevronRight className={cn('w-4 h-4 flex-shrink-0', isHighlighted ? 'text-secondary' : 'text-muted-foreground group-hover:text-secondary')} />
                 </Link>
               );
             })}
