@@ -110,12 +110,12 @@ export default function TodaySchedule({ className }) {
     return [...last2Past, ...future];
   }, [activeView, todayEvents, upcomingEvents]);
 
-  // Événement dans les 2h : mise en avant fluo (uniquement vue Aujourd'hui)
-  const isHighlighted = (dateStr) => {
+  // Prochain RDV (le plus imminent) : mise en avant fluo (uniquement vue Aujourd'hui)
+  const nextEventId = useMemo(() => {
     const now = getCurrentTimeMinutes();
-    const aptTime = timeToMinutes(dateStr);
-    return aptTime >= now && aptTime <= now + 120;
-  };
+    const next = todayEvents.find((e) => timeToMinutes(e.date) >= now);
+    return next?.id ?? null;
+  }, [todayEvents]);
 
   const getAppointmentStyle = (event) => {
     if (activeView !== 'today') {
@@ -123,13 +123,13 @@ export default function TodaySchedule({ className }) {
     }
     const aptTime = timeToMinutes(event.date);
     const now = getCurrentTimeMinutes();
-    const highlighted = isHighlighted(event.date);
 
-    if (highlighted) {
-      return 'highlighted';
-    }
     if (aptTime < now) {
       return 'past';
+    }
+    // Le prochain RDV à venir = fluo (peu importe s'il est dans 30 min ou 2h)
+    if (event.id === nextEventId) {
+      return 'highlighted';
     }
     return 'future';
   };
