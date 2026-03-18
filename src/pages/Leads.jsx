@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Filter, Plus, ChevronRight, Phone, LayoutList, LayoutGrid, CheckSquare, Square, Trash2, X, Sparkles, CircleDollarSign, Key } from 'lucide-react';
+import { Search, Filter, Plus, ChevronRight, Phone, LayoutList, LayoutGrid, CheckSquare, Square, Trash2, X, BrushCleaning, CircleDollarSign, Key } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -301,7 +301,7 @@ export default function Leads() {
                         disabled={cleanDuplicatesMutation.isPending}
                         className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5] transition-colors disabled:opacity-50"
                       >
-                        <Sparkles className="w-4 h-4" />
+                        <BrushCleaning className="w-4 h-4" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>Nettoyer les doublons</TooltipContent>

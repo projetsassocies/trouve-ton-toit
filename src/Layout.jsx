@@ -267,8 +267,8 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className={cn('min-h-screen pt-16 lg:pt-0 overflow-x-hidden', mainMargin)}>
-        {/* Header */}
-        <div className="border-b border-border bg-card">
+        {/* Header - sticky pour rester visible au scroll (top-16 sur mobile pour ne pas masquer le header fixe) */}
+        <div className="sticky top-16 lg:top-0 z-40 border-b border-border bg-card">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-8 py-4">
             <div>
               <h1 className="text-2xl font-semibold">{greetingMessage.greeting}</h1>
