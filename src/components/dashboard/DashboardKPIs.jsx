@@ -88,20 +88,26 @@ export default function DashboardKPIs({ className }) {
 
   const { data: leads = [], isLoading: leadsLoading } = useQuery({
     queryKey: ['leads', user?.email],
-    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date', 500),
+    queryFn: () => api.entities.Lead.filter({ created_by: user.email }, '-created_date', 3000),
     enabled: !!user?.email,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   const { data: events = [], isLoading: eventsLoading } = useQuery({
     queryKey: ['events', user?.email],
-    queryFn: () => api.entities.Event.filter({ created_by: user.email }, '-date', 200),
+    queryFn: () => api.entities.Event.filter({ created_by: user.email }, '-date', 1000),
     enabled: !!user?.email,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   const { data: matches = [], isLoading: matchesLoading } = useQuery({
     queryKey: ['matches', user?.email],
     queryFn: () => api.entities.Match.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   const isLoading = leadsLoading || eventsLoading || matchesLoading;
