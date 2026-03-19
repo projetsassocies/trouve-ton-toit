@@ -10,25 +10,14 @@ import {
   PenLine,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  startOfDay,
-  endOfDay,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-  subDays,
-  subWeeks,
-  subMonths,
-  isWithinInterval,
-} from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
+// Mêmes périodes que la page Analyse pour synchronisation des stats
 const PERIODS = [
-  { id: 'day', label: "Aujourd'hui" },
-  { id: 'week', label: 'Cette semaine' },
-  { id: 'month', label: 'Ce mois' },
+  { id: '7d', label: '7 derniers jours' },
+  { id: '30d', label: '30 derniers jours' },
+  { id: '90d', label: '90 derniers jours' },
+  { id: 'all', label: 'Tout' },
 ];
 
 const statConfig = {
@@ -55,35 +44,30 @@ const statConfig = {
   },
 };
 
+/**
+ * Périodes glissantes identiques à la page Analyse (match.created_date >= cutoff).
+ * Retourne { cutoff, prevCutoff } en ms pour la période courante et la période précédente.
+ */
 function getPeriodRange(periodId) {
-  const now = new Date();
-  if (periodId === 'day') {
+  const now = Date.now();
+  const msDay = 86400000;
+  if (periodId === 'all') {
     return {
-      start: startOfDay(now),
-      end: endOfDay(now),
-      prevStart: startOfDay(subDays(now, 1)),
-      prevEnd: endOfDay(subDays(now, 1)),
+      cutoff: null,
+      prevCutoff: null,
+      prevCutoffEnd: null,
     };
   }
-  if (periodId === 'week') {
-    return {
-      start: startOfWeek(now, { locale: fr }),
-      end: endOfWeek(now, { locale: fr }),
-      prevStart: startOfWeek(subWeeks(now, 1), { locale: fr }),
-      prevEnd: endOfWeek(subWeeks(now, 1), { locale: fr }),
-    };
-  }
-  return {
-    start: startOfMonth(now),
-    end: endOfMonth(now),
-    prevStart: startOfMonth(subMonths(now, 1)),
-    prevEnd: endOfMonth(subMonths(now, 1)),
-  };
+  const days = periodId === '7d' ? 7 : periodId === '30d' ? 30 : 90;
+  const cutoff = now - days * msDay;
+  const prevCutoffEnd = cutoff;
+  const prevCutoff = cutoff - days * msDay;
+  return { cutoff, prevCutoff, prevCutoffEnd };
 }
 
 export default function DashboardKPIs({ className }) {
   const { user } = useAuth();
-  const [period, setPeriod] = useState('day');
+  const [period, setPeriod] = useState('30d');
   const range = getPeriodRange(period);
 
   const { data: leads = [], isLoading: leadsLoading } = useQuery({
@@ -115,30 +99,32 @@ export default function DashboardKPIs({ className }) {
   const stats = useMemo(() => {
     const inRange = (dateStr) => {
       if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return isWithinInterval(d, { start: range.start, end: range.end });
+      if (range.cutoff === null) return true;
+      return new Date(dateStr).getTime() >= range.cutoff;
     };
     const inPrevRange = (dateStr) => {
       if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return isWithinInterval(d, { start: range.prevStart, end: range.prevEnd });
+      if (range.prevCutoff === null) return false;
+      const t = new Date(dateStr).getTime();
+      return t >= range.prevCutoff && t < range.prevCutoffEnd;
     };
 
     const nouveauLead = leads.filter((l) => inRange(l.created_date)).length;
     const nouveauLeadPrev = leads.filter((l) => inPrevRange(l.created_date)).length;
 
-    const visitEvents = events.filter((e) => {
-      if (e.type !== 'visit') return false;
-      if (e.status === 'completed' || e.status === 'cancelled') return false;
-      return inRange(e.date);
-    });
-    const visitEventsPrev = events.filter((e) => {
-      if (e.type !== 'visit') return false;
-      if (e.status === 'completed' || e.status === 'cancelled') return false;
-      return inPrevRange(e.date);
-    });
-    const visites = visitEvents.length;
-    const visitesPrev = visitEventsPrev.length;
+    // Visites = matchs avec statut visite/accepte (même définition que page Analyse)
+    const filteredMatches = range.cutoff === null
+      ? matches
+      : matches.filter((m) => inRange(m.created_date));
+    const filteredMatchesPrev = range.prevCutoff === null
+      ? []
+      : matches.filter((m) => inPrevRange(m.created_date));
+    const visites = filteredMatches.filter((m) =>
+      ['visite_planifiee', 'visite_effectuee', 'accepte'].includes(m.status)
+    ).length;
+    const visitesPrev = filteredMatchesPrev.filter((m) =>
+      ['visite_planifiee', 'visite_effectuee', 'accepte'].includes(m.status)
+    ).length;
 
     const proposed = matches.filter((m) => {
       const inP = inRange(m.created_date);
@@ -228,7 +214,7 @@ export default function DashboardKPIs({ className }) {
 
   return (
     <div className={cn('space-y-5 w-full', className)}>
-      {/* Période : tabs - Aujourd'hui / Semaine / Mois */}
+      {/* Période : identique à la page Analyse (7d, 30d, 90d, Tout) */}
       <div className="flex gap-0 border-b border-border w-full">
         {PERIODS.map((p) => (
           <button
@@ -269,7 +255,7 @@ export default function DashboardKPIs({ className }) {
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                   <Icon className="w-5 h-5 text-secondary" />
                 </div>
-                {delta !== 0 && (
+                {delta !== 0 && delta != null && (
                   <span className="text-xs font-medium px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
                     {deltaStr}
                   </span>
