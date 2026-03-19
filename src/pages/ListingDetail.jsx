@@ -41,6 +41,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { getAmenityByValue } from '@/lib/amenity-criteria';
 import MatchedLeads from '@/components/matching/MatchedLeads';
 import AmenitiesMap from '@/components/listing/AmenitiesMap';
@@ -52,8 +53,8 @@ export default function ListingDetail() {
   const listingId = urlParams.get('id');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [exactAddress, setExactAddress] = useState('');
@@ -238,35 +239,38 @@ export default function ListingDetail() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link to={createPageUrl('Listings')}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+          <Link to={createPageUrl('Listings')} className="flex-shrink-0">
             <Button variant="ghost" size="icon" className="rounded-xl">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold tracking-tight">{listing.title}</h1>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <h1 className={cn(
+                "font-semibold tracking-tight",
+                isMobile ? "text-lg sm:text-xl" : "text-2xl"
+              )}>{listing.title}</h1>
               {listing.featured && (
-                <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+                <Badge className="bg-amber-100 text-amber-700 border-amber-200 shrink-0">
                   <Star className="w-3 h-3 mr-1" />
                   En vedette
                 </Badge>
               )}
             </div>
-            <p className="text-[#999999] text-sm mt-0.5 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5" />
-              {listing.address ? `${listing.address}, ` : ''}{listing.city} {listing.postal_code}
+            <p className="text-[#999999] text-xs sm:text-sm mt-0.5 flex items-center gap-1 truncate">
+              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+              <span className="truncate">{listing.address ? `${listing.address}, ` : ''}{listing.city} {listing.postal_code}</span>
             </p>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Link to={createPageUrl(`EditListing?id=${listing.id}`)}>
-            <Button variant="outline" className="rounded-xl">
-              <Pencil className="w-4 h-4 mr-2" />
-              Modifier
+            <Button variant="outline" className="rounded-xl" title="Modifier">
+              <Pencil className={cn("w-4 h-4", !isMobile && "mr-2")} />
+              {!isMobile && "Modifier"}
             </Button>
           </Link>
           <Button 

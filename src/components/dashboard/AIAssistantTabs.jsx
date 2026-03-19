@@ -5,6 +5,7 @@ import {
   Monitor, FileText, BarChart3, Globe, MoreHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { ChatContextProvider, useChatContext } from '@/contexts/ChatContext';
 import { useAuth } from '@/lib/AuthContext';
 import { getChatGreeting } from '@/lib/chatGreeting';
@@ -38,10 +39,11 @@ function TabsContent({ fullWidth }) {
   const { user } = useAuth();
   const { activeTab, setActiveTab, activeLead, activeListing, switchToAssistant } = useChatContext();
   const greeting = getChatGreeting(user);
+  const isMobile = useIsMobile();
 
   const renderBarContent = ({ sendButton, historyButton }) => (
     <>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {historyButton}
         {TABS.map((tab) => {
           const Icon = tab.icon;
@@ -51,15 +53,16 @@ function TabsContent({ fullWidth }) {
               key={tab.id}
               variant="ghost"
               onClick={() => setActiveTab(tab.id)}
+              title={isMobile ? tab.label : undefined}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-colors',
+                'flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full font-medium transition-colors',
                 isActive
                   ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
               )}
             >
               <Icon className="h-4 w-4" />
-              {tab.label}
+              {!isMobile && tab.label}
             </Button>
           );
         })}
@@ -69,7 +72,10 @@ function TabsContent({ fullWidth }) {
   );
 
   const renderSuggestions = () => (
-    <div className="flex items-center gap-3 flex-wrap justify-center">
+    <div className={cn(
+      "flex gap-3 justify-center",
+      isMobile ? "flex-row flex-nowrap overflow-x-auto w-full pb-1 -mx-2 px-2" : "flex-wrap"
+    )}>
       {QUICK_ACTIONS.map((action) => {
         const Icon = action.icon;
         if (action.link) {
@@ -77,10 +83,14 @@ function TabsContent({ fullWidth }) {
             <Link
               key={action.label}
               to={createPageUrl(action.link)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border border-border bg-transparent text-foreground hover:bg-muted transition-colors outline"
+              title={action.label}
+              className={cn(
+                "flex items-center gap-2 rounded-full border border-border bg-transparent text-foreground hover:bg-muted transition-colors outline flex-shrink-0",
+                isMobile ? "p-3" : "px-4 py-2 text-sm font-medium"
+              )}
             >
               <Icon className="h-4 w-4 text-muted-foreground" />
-              {action.label}
+              {!isMobile && action.label}
             </Link>
           );
         }
@@ -89,10 +99,14 @@ function TabsContent({ fullWidth }) {
             key={action.label}
             variant="outline"
             onClick={() => switchToAssistant(action.prompt)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
+            title={action.label}
+            className={cn(
+              "flex items-center gap-2 rounded-full flex-shrink-0",
+              isMobile ? "p-3" : "px-4 py-2 text-sm font-medium"
+            )}
           >
             <Icon className="h-4 w-4" />
-            {action.label}
+            {!isMobile && action.label}
           </Button>
         );
       })}
@@ -101,7 +115,10 @@ function TabsContent({ fullWidth }) {
 
   return (
     <div className={cn("flex flex-col items-center justify-center py-12 w-full min-w-0", !fullWidth && "max-w-[1200px] mx-auto")}>
-      <h1 className="text-3xl font-semibold text-foreground mb-2">
+      <h1 className={cn(
+        "font-semibold text-foreground mb-2 text-center",
+        isMobile ? "text-xl sm:text-2xl" : "text-3xl"
+      )}>
         {getAISuggestion()}
       </h1>
       <div className="w-full max-w-4xl flex flex-col items-center">

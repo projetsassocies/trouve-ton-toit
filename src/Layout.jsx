@@ -251,16 +251,18 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className={cn('min-h-screen pt-16 lg:pt-0', mainMargin)}>
-        {/* Header - fixed, h-[72px] pour aligner la bordure avec la sidebar */}
+        {/* Header - fixed, plus d'espace mobile pour éviter que le texte soit coupé */}
         <header
           className={cn(
-            'fixed z-40 right-0 h-[72px] min-h-[72px] flex items-center border-b border-border bg-card',
+            'fixed z-40 right-0 flex items-center border-b border-border bg-card',
             'top-16 lg:top-0',
+            'min-h-[96px] sm:min-h-[72px] lg:h-[72px] lg:min-h-[72px]',
+            'py-3 sm:py-0 sm:h-[72px]',
             sidebarCollapsed ? 'lg:left-16' : 'lg:left-60',
             'left-0'
           )}
         >
-          <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 px-4 lg:px-8 py-3">
+          <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 px-4 lg:px-8 py-2 sm:py-3 min-w-0">
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-semibold truncate">{greetingMessage.greeting}</h1>
               <p className="text-xs sm:text-sm text-muted-foreground truncate">{greetingMessage.motivation}</p>
@@ -273,8 +275,8 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </header>
 
-        {/* Page Content - pt responsive: mobile (header 64+72px) + gap 40px = 176px, desktop (72px) + gap 40px = 112px */}
-        <div className="overflow-x-hidden p-4 pb-8 lg:p-8 lg:pb-8 max-w-[100vw] pt-[11rem] lg:pt-[7rem]">
+        {/* Page Content - pt responsive: mobile (bar 64 + header variable) + gap, desktop (72px) + gap */}
+        <div className="overflow-x-hidden p-4 pb-8 lg:p-8 lg:pb-8 max-w-[100vw] pt-[12rem] sm:pt-[11rem] lg:pt-[7rem]">
           {children}
         </div>
       </main>

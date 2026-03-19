@@ -30,6 +30,7 @@ import {
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import CreateEventModal from './CreateEventModal';
 
 const eventTypeConfig = {
@@ -49,6 +50,7 @@ const statusConfig = {
 };
 
 export default function AgendaTab() {
+  const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -236,17 +238,19 @@ export default function AgendaTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-[#E5E5E5] p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold capitalize">
-              {format(currentDate, 'MMMM yyyy', { locale: fr })}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-[#E5E5E5] p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-sm sm:text-lg font-semibold">
+              {isMobile
+                ? format(currentDate, 'MM/yyyy')
+                : format(currentDate, 'MMMM yyyy', { locale: fr })}
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-                className="rounded-lg"
+                className="rounded-lg h-8 w-8 sm:h-9 sm:w-auto sm:px-3 p-0"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -257,7 +261,7 @@ export default function AgendaTab() {
                   setCurrentDate(new Date());
                   setSelectedDate(new Date());
                 }}
-                className="rounded-lg"
+                className="rounded-lg text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
               >
                 Aujourd'hui
               </Button>
@@ -265,22 +269,22 @@ export default function AgendaTab() {
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-                className="rounded-lg"
+                className="rounded-lg h-8 w-8 sm:h-9 sm:w-auto sm:px-3 p-0"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-7 gap-2 mb-2">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-2 mb-1 sm:mb-2">
             {weekDays.map((day) => (
-              <div key={day} className="text-center text-xs font-medium text-[#999999] py-2">
+              <div key={day} className="text-center text-[10px] sm:text-xs font-medium text-[#999999] py-1 sm:py-2">
                 {day}
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
             {calendarDays.map((day) => {
               const dayEvents = getEventsForDay(day);
               const isCurrentMonth = isSameMonth(day, currentDate);
@@ -292,7 +296,7 @@ export default function AgendaTab() {
                   key={day.toISOString()}
                   onClick={() => setSelectedDate(day)}
                   className={cn(
-                    'min-h-[80px] p-2 rounded-lg border transition-all text-left flex flex-col gap-1',
+                    'min-h-[52px] sm:min-h-[80px] p-1 sm:p-2 rounded sm:rounded-lg border transition-all text-left flex flex-col gap-0.5 sm:gap-1',
                     !isCurrentMonth && 'text-neutral-300',
                     isCurrentMonth && 'text-neutral-900 hover:bg-neutral-50',
                     isSelected && 'border-primary bg-primary/5 ring-1 ring-primary/20',
@@ -300,22 +304,33 @@ export default function AgendaTab() {
                     !isSelected && !isTodayDate && 'border-neutral-200'
                   )}
                 >
-                  <div className="text-sm font-medium flex-shrink-0">{format(day, 'd')}</div>
+                  <div className="text-[11px] sm:text-sm font-medium flex-shrink-0">{format(day, 'd')}</div>
                   {dayEvents.length > 0 && (
-                    <div className="flex-1 flex flex-col gap-0.5 overflow-hidden">
-                      {dayEvents.slice(0, 2).map((ev) => (
-                        <div
-                          key={ev.id}
-                          className="text-[10px] font-medium text-neutral-700 truncate px-1.5 py-0.5 rounded bg-neutral-100"
-                          title={ev.title}
-                        >
-                          {ev.title}
+                    <div className="flex-1 flex flex-col gap-0 overflow-hidden min-w-0">
+                      {isMobile ? (
+                        <div className="flex items-center gap-0.5 flex-wrap" title={dayEvents.map((e) => e.title).join(', ')}>
+                          {dayEvents.slice(0, 3).map((ev) => (
+                            <span key={ev.id} className="w-1.5 h-1.5 rounded-full bg-primary/70 shrink-0" />
+                          ))}
+                          {dayEvents.length > 3 && (
+                            <span className="text-[9px] text-neutral-500">+{dayEvents.length - 3}</span>
+                          )}
                         </div>
-                      ))}
-                      {dayEvents.length > 2 && (
-                        <div className="text-[10px] text-neutral-500 px-1.5">
-                          +{dayEvents.length - 2}
-                        </div>
+                      ) : (
+                        <>
+                          {dayEvents.slice(0, 2).map((ev) => (
+                            <div
+                              key={ev.id}
+                              className="text-[10px] font-medium text-neutral-700 truncate px-1.5 py-0.5 rounded bg-neutral-100"
+                              title={ev.title}
+                            >
+                              {ev.title}
+                            </div>
+                          ))}
+                          {dayEvents.length > 2 && (
+                            <div className="text-[10px] text-neutral-500 px-1.5">+{dayEvents.length - 2}</div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}

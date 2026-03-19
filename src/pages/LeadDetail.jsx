@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { AMENITIES, FINANCING_STATUS_OPTIONS, getAmenityByValue } from '@/lib/amenity-criteria';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -61,6 +62,7 @@ export default function LeadDetail() {
   const queryClient = useQueryClient();
   
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -180,24 +182,27 @@ export default function LeadDetail() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link to={createPageUrl('Leads')}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+          <Link to={createPageUrl('Leads')} className="flex-shrink-0">
             <Button variant="ghost" size="icon" className="rounded-xl">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
+          <div className="min-w-0 flex-1">
+            <h1 className={cn(
+              "font-semibold tracking-tight",
+              isMobile ? "text-lg sm:text-xl" : "text-2xl"
+            )}>
               {lead.first_name} {lead.last_name}
             </h1>
-            <p className="text-[#999999] text-sm mt-0.5">
+            <p className="text-[#999999] text-xs sm:text-sm mt-0.5">
               Créé le {format(new Date(lead.created_date), 'dd MMMM yyyy', { locale: fr })}
             </p>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {isEditing ? (
             <>
               <Button 
@@ -223,9 +228,10 @@ export default function LeadDetail() {
                 variant="outline" 
                 onClick={handleEdit}
                 className="rounded-xl"
+                title="Modifier"
               >
-                <Pencil className="w-4 h-4 mr-2" />
-                Modifier
+                <Pencil className={cn("w-4 h-4", !isMobile && "mr-2")} />
+                {!isMobile && "Modifier"}
               </Button>
               <Button 
                 variant="outline" 
